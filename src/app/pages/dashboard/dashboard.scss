@@ -1,0 +1,25 @@
+@use '../../../styles.scss' as *;
+
+.dashboard-container {
+  padding: var(--wd-spacing-8) 0;
+  min-height: calc(100vh - var(--wd-navbar-height) - 200px);
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--wd-spacing-8);
+  flex-wrap: wrap;
+  gap: var(--wd-spacing-4);
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.dashboard-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--wd-spacing-6);
+}

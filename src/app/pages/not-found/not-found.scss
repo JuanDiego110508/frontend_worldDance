@@ -1,0 +1,32 @@
+@use '../../../styles.scss' as *;
+
+.not-found-container {
+  min-height: calc(100vh - var(--wd-navbar-height) - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--wd-spacing-6);
+}
+
+.not-found-content {
+  h1 {
+    font-size: 6rem;
+    font-weight: 900;
+    color: var(--wd-purple);
+    margin: 0;
+    line-height: 1;
+  }
+
+  h2 {
+    font-size: var(--wd-font-size-2xl);
+    color: var(--wd-gray-800);
+    margin: var(--wd-spacing-4) 0;
+  }
+
+  p {
+    color: var(--wd-gray-600);
+    margin-bottom: var(--wd-spacing-6);
+    max-width: 400px;
+  }
+}

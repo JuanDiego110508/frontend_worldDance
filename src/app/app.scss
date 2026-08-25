@@ -1,0 +1,16 @@
+@use '../styles.scss' as *;
+
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  padding-top: var(--wd-navbar-height);
+  background: var(--wd-gray-50);
+  /* Eliminar cualquier margen o padding extra */
+  margin: 0;
+  padding-bottom: 0;
+}

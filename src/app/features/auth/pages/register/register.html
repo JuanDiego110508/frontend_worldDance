@@ -1,0 +1,147 @@
+<div class="register-container">
+  <div class="register-card">
+    <div class="register-header">
+      <div class="register-brand">
+        <span class="brand-icon">WD</span>
+        <span class="brand-text">WorldDance</span>
+      </div>
+      <h1>Crear cuenta</h1>
+      <p class="register-subtitle">Regístrate para empezar a participar</p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" #registerForm="ngForm" class="register-form">
+      <!-- Campo Nombre -->
+      <div class="form-group">
+        <label for="firstName">Nombre</label>
+        <input 
+          type="text" 
+          id="firstName"
+          [(ngModel)]="firstName"
+          name="firstName"
+          placeholder="Tu nombre"
+          required
+          autocomplete="given-name"
+        >
+      </div>
+
+      <!-- Campo Apellido -->
+      <div class="form-group">
+        <label for="lastName">Apellido</label>
+        <input 
+          type="text" 
+          id="lastName"
+          [(ngModel)]="lastName"
+          name="lastName"
+          placeholder="Tu apellido"
+          required
+          autocomplete="family-name"
+        >
+      </div>
+
+      <!-- Campo Número de Documento -->
+      <div class="form-group">
+        <label for="documentNumber">Número de documento</label>
+        <input 
+          type="text" 
+          id="documentNumber"
+          [(ngModel)]="documentNumber"
+          name="documentNumber"
+          placeholder="CC, CE, etc."
+          required
+          autocomplete="off"
+        >
+      </div>
+
+      <!-- Campo Correo -->
+      <div class="form-group">
+        <label for="email">Correo electrónico</label>
+        <input 
+          type="email" 
+          id="email"
+          [(ngModel)]="email"
+          name="email"
+          placeholder="ejemplo@correo.com"
+          required
+          autocomplete="email"
+        >
+      </div>
+
+      <!-- Campo Contraseña -->
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <div class="password-wrapper">
+          <input 
+            [type]="showPassword() ? 'text' : 'password'" 
+            id="password"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="Mínimo 6 caracteres"
+            required
+            autocomplete="new-password"
+          >
+          <button 
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            aria-label="Mostrar contraseña"
+          >
+            {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Campo Confirmar Contraseña -->
+      <div class="form-group">
+        <label for="confirmPassword">Confirmar contraseña</label>
+        <div class="password-wrapper">
+          <input 
+            [type]="showConfirmPassword() ? 'text' : 'password'" 
+            id="confirmPassword"
+            [(ngModel)]="confirmPassword"
+            name="confirmPassword"
+            placeholder="Repite tu contraseña"
+            required
+            autocomplete="new-password"
+          >
+          <button 
+            type="button"
+            class="password-toggle"
+            (click)="toggleConfirmPasswordVisibility()"
+            aria-label="Mostrar contraseña"
+          >
+            {{ showConfirmPassword() ? 'Ocultar' : 'Mostrar' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Mensaje de error -->
+      @if (errorMessage()) {
+        <div class="error-message">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <!-- Botón de envío -->
+      <button 
+        type="submit" 
+        class="btn btn-primary btn-block btn-lg"
+        [disabled]="isLoading()"
+      >
+        @if (isLoading()) {
+          <span class="spinner"></span>
+          Cargando...
+        } @else {
+          Registrarse
+        }
+      </button>
+    </form>
+
+    <!-- Enlace a login -->
+    <div class="register-footer">
+      <p>
+        ¿Ya tienes cuenta? 
+        <a routerLink="/auth/login">Inicia sesión aquí</a>
+      </p>
+    </div>
+  </div>
+</div>
