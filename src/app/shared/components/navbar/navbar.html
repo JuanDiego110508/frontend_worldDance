@@ -1,0 +1,104 @@
+<nav 
+  class="navbar" 
+  [class.scrolled]="isScrolled()"
+  [class.navbar-dark]="darkMode()"
+  role="navigation"
+>
+  <div class="navbar-container container">
+    <a class="navbar-brand" routerLink="/">
+      <span class="brand-icon">WD</span>
+      <span class="brand-text">WorldDance</span>
+    </a>
+
+    <ul class="navbar-nav-desktop">
+      @for (item of navItems; track item.route) {
+        <li>
+          <a 
+            [routerLink]="[item.route]"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
+            {{ item.label }}
+          </a>
+        </li>
+      }
+    </ul>
+
+    <div class="navbar-actions">
+      @if (!isAuthenticated) {
+        <button class="btn btn-ghost btn-sm" (click)="goToLogin()">
+          Iniciar Sesión
+        </button>
+        <button class="btn btn-primary btn-sm" (click)="goToRegister()">
+          Registrarse
+        </button>
+      } @else {
+        <div class="user-menu">
+          <span class="user-avatar">{{ userName.charAt(0) }}</span>
+          <span class="user-name">{{ userName }}</span>
+          <button class="btn btn-ghost btn-sm" (click)="goToProfile()">
+            Mi Perfil
+          </button>
+          <button class="btn btn-ghost btn-sm" (click)="goToDashboard()">
+            Dashboard
+          </button>
+          <button class="btn btn-outline btn-sm" (click)="logout()">
+            Cerrar Sesión
+          </button>
+        </div>
+      }
+    </div>
+
+    <button 
+      class="navbar-toggle" 
+      (click)="toggleMenu()"
+      aria-label="Abrir menú"
+      [attr.aria-expanded]="isMenuOpen()"
+    >
+      <span class="hamburger" [class.active]="isMenuOpen()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+    </button>
+  </div>
+
+  @if (isMenuOpen()) {
+    <div class="navbar-mobile">
+      <ul class="navbar-nav-mobile">
+        @for (item of navItems; track item.route) {
+          <li>
+            <a 
+              [routerLink]="[item.route]"
+              routerLinkActive="active"
+              (click)="closeMenu()"
+            >
+              {{ item.label }}
+            </a>
+          </li>
+        }
+      </ul>
+      
+      <div class="navbar-mobile-actions">
+        @if (!isAuthenticated) {
+          <button class="btn btn-primary btn-block" (click)="goToRegister()">
+            Registrarse
+          </button>
+          <button class="btn btn-outline btn-block" (click)="goToLogin()">
+            Iniciar Sesión
+          </button>
+        } @else {
+          <button class="btn btn-ghost btn-block" (click)="goToProfile()">
+            Mi Perfil
+          </button>
+          <button class="btn btn-ghost btn-block" (click)="goToDashboard()">
+            Dashboard
+          </button>
+          <button class="btn btn-outline btn-block" (click)="logout()">
+            Cerrar Sesión
+          </button>
+        }
+      </div>
+    </div>
+  }
+</nav>

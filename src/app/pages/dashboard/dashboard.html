@@ -1,0 +1,21 @@
+<div class="dashboard-container">
+  <div class="container">
+    <div class="dashboard-header">
+      <h1>Dashboard</h1>
+      <button class="btn btn-outline" (click)="logout()">Cerrar Sesión</button>
+    </div>
+    
+    <div class="dashboard-content">
+      <div class="card">
+        <h3>Bienvenido</h3>
+        @if (user) {
+          <p>Has iniciado sesión como: <strong>{{ user.email }}</strong></p>
+          <!-- Usamos solo 'role' -->
+          <p>Rol: <strong>{{ user.role }}</strong></p>
+        }
+        <p>Esta es una vista temporal del dashboard.</p>
+        <p>Próximamente: eventos, inscripciones y más.</p>
+      </div>
+    </div>
+  </div>
+</div>

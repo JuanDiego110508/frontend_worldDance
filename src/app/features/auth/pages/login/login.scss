@@ -1,0 +1,270 @@
+@use '../../../../../styles.scss' as *;
+
+.login-container {
+  /* Ocupa todo el alto disponible menos el navbar */
+  min-height: calc(100vh - var(--wd-navbar-height));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--wd-spacing-6);
+  /* Fondo con el degradado oscuro que vimos en el prototipo */
+  background: var(--wd-gradient-hero);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efectos decorativos de fondo para darle profundidad */
+.login-container::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.login-container::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(91, 33, 182, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.login-card {
+  background: var(--wd-white);
+  border-radius: var(--wd-radius-2xl);
+  padding: var(--wd-spacing-10) var(--wd-spacing-8);
+  max-width: 420px;
+  width: 100%;
+  /* Sombra con glow para que resalte sobre el fondo oscuro */
+  box-shadow: var(--wd-shadow-xl), var(--wd-shadow-glow);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: var(--wd-spacing-8);
+
+  .login-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--wd-spacing-2);
+    margin-bottom: var(--wd-spacing-4);
+
+    .brand-icon {
+      background: var(--wd-gradient-primary);
+      color: var(--wd-white);
+      width: 44px;
+      height: 44px;
+      border-radius: var(--wd-radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+      box-shadow: 0 2px 12px rgba(124, 58, 237, 0.3);
+    }
+
+    .brand-text {
+      font-size: var(--wd-font-size-xl);
+      font-weight: 800;
+      color: var(--wd-gray-900);
+    }
+  }
+
+  h1 {
+    font-size: var(--wd-font-size-2xl);
+    font-weight: 700;
+    margin-bottom: var(--wd-spacing-2);
+    color: var(--wd-gray-900);
+  }
+
+  .login-subtitle {
+    color: var(--wd-gray-500);
+    font-size: var(--wd-font-size-sm);
+    margin: 0;
+  }
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wd-spacing-4);
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wd-spacing-1);
+
+    label {
+      font-size: var(--wd-font-size-sm);
+      font-weight: 600;
+      color: var(--wd-gray-700);
+    }
+
+    input {
+      padding: var(--wd-spacing-3) var(--wd-spacing-4);
+      border: 1.5px solid var(--wd-gray-200);
+      border-radius: var(--wd-radius-md);
+      font-family: var(--wd-font-family);
+      font-size: var(--wd-font-size-base);
+      transition: all 0.2s;
+      background: var(--wd-white);
+      color: var(--wd-gray-900);
+
+      &:focus {
+        outline: none;
+        border-color: var(--wd-purple);
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+      }
+
+      &::placeholder {
+        color: var(--wd-gray-400);
+      }
+    }
+  }
+
+  /* Contenedor especial para el campo de contraseña con su botón de mostrar/ocultar */
+  .password-wrapper {
+    position: relative;
+
+    input {
+      width: 100%;
+      padding-right: 5rem;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: var(--wd-spacing-3);
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: var(--wd-font-size-sm);
+      color: var(--wd-gray-400);
+      padding: var(--wd-spacing-1);
+      font-weight: 500;
+
+      &:hover {
+        color: var(--wd-purple);
+      }
+    }
+  }
+
+  .form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: var(--wd-spacing-1) 0;
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: var(--wd-spacing-2);
+      font-size: var(--wd-font-size-sm);
+      color: var(--wd-gray-600);
+      cursor: pointer;
+
+      input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--wd-purple);
+        cursor: pointer;
+      }
+    }
+
+    .forgot-link {
+      font-size: var(--wd-font-size-sm);
+      color: var(--wd-purple);
+      text-decoration: none;
+
+      &:hover {
+        color: var(--wd-purple-dark);
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .error-message {
+    background: var(--wd-red-light);
+    color: var(--wd-red);
+    padding: var(--wd-spacing-3) var(--wd-spacing-4);
+    border-radius: var(--wd-radius-md);
+    font-size: var(--wd-font-size-sm);
+    border: 1px solid #FECACA;
+  }
+
+  .btn {
+    margin-top: var(--wd-spacing-2);
+    padding: var(--wd-spacing-3);
+    font-size: var(--wd-font-size-base);
+    font-weight: 600;
+    border-radius: var(--wd-radius-md);
+  }
+
+  /* Spinner que aparece mientras se procesa la petición */
+  .spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: var(--wd-white);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: var(--wd-spacing-2);
+  }
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: var(--wd-spacing-6);
+  padding-top: var(--wd-spacing-6);
+  border-top: 1px solid var(--wd-gray-200);
+
+  p {
+    font-size: var(--wd-font-size-sm);
+    color: var(--wd-gray-500);
+    margin: 0;
+
+    a {
+      color: var(--wd-purple);
+      font-weight: 600;
+      text-decoration: none;
+
+      &:hover {
+        color: var(--wd-purple-dark);
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+/* Animación para el spinner */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: var(--wd-spacing-6) var(--wd-spacing-4);
+  }
+
+  .form-options {
+    flex-direction: column;
+    gap: var(--wd-spacing-2);
+    align-items: flex-start;
+  }
+}
