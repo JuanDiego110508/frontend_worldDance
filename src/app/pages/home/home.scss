@@ -19,7 +19,6 @@
   margin: 0;
 }
 
-/* Efectos decorativos de fondo */
 .hero::before {
   content: '';
   position: absolute;
@@ -51,7 +50,6 @@
   max-width: 700px;
   width: 100%;
   padding: 0 var(--wd-spacing-4);
-  /* Centrado vertical perfecto */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -69,8 +67,8 @@
   gap: var(--wd-spacing-3);
 
   .logo-icon {
-    width: 52px;
-    height: 52px;
+    width: 72px;
+    height: 72px;
     flex-shrink: 0;
     box-shadow: 0 4px 20px rgba(124, 58, 237, 0.35);
     border-radius: var(--wd-radius-md);
@@ -118,7 +116,6 @@
   border-color: var(--wd-white);
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .hero {
     min-height: calc(100vh - var(--wd-navbar-height));
@@ -130,8 +127,8 @@
 
   .logo-wrapper {
     .logo-icon {
-      width: 40px;
-      height: 40px;
+      width: 56px;
+      height: 56px;
     }
 
     .brand-text {
@@ -158,6 +155,10 @@
 
 @media (max-width: 480px) {
   .logo-wrapper {
+    .logo-icon {
+      width: 48px;  
+      height: 48px; 
+    }
     .brand-text {
       font-size: var(--wd-font-size-2xl);
     }

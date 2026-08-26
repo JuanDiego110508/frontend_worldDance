@@ -2,7 +2,7 @@
   <div class="register-card">
     <div class="register-header">
       <div class="register-brand">
-        <span class="brand-icon">WD</span>
+        <img class="brand-icon" src="/FondoWorDancePNG.png" alt="World Dance">
         <span class="brand-text">WorldDance</span>
       </div>
       <h1>Crear cuenta</h1>
@@ -10,7 +10,6 @@
     </div>
 
     <form (ngSubmit)="onSubmit()" #registerForm="ngForm" class="register-form">
-      <!-- Campo Nombre -->
       <div class="form-group">
         <label for="firstName">Nombre</label>
         <input 
@@ -24,7 +23,6 @@
         >
       </div>
 
-      <!-- Campo Apellido -->
       <div class="form-group">
         <label for="lastName">Apellido</label>
         <input 
@@ -38,7 +36,6 @@
         >
       </div>
 
-      <!-- Campo Número de Documento -->
       <div class="form-group">
         <label for="documentNumber">Número de documento</label>
         <input 
@@ -52,7 +49,6 @@
         >
       </div>
 
-      <!-- Campo Correo -->
       <div class="form-group">
         <label for="email">Correo electrónico</label>
         <input 
@@ -66,7 +62,6 @@
         >
       </div>
 
-      <!-- Campo Contraseña -->
       <div class="form-group">
         <label for="password">Contraseña</label>
         <div class="password-wrapper">
@@ -90,7 +85,6 @@
         </div>
       </div>
 
-      <!-- Campo Confirmar Contraseña -->
       <div class="form-group">
         <label for="confirmPassword">Confirmar contraseña</label>
         <div class="password-wrapper">
@@ -114,14 +108,12 @@
         </div>
       </div>
 
-      <!-- Mensaje de error -->
       @if (errorMessage()) {
         <div class="error-message">
           {{ errorMessage() }}
         </div>
       }
 
-      <!-- Botón de envío -->
       <button 
         type="submit" 
         class="btn btn-primary btn-block btn-lg"
@@ -136,7 +128,6 @@
       </button>
     </form>
 
-    <!-- Enlace a login -->
     <div class="register-footer">
       <p>
         ¿Ya tienes cuenta? 
