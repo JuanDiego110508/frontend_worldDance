@@ -13,7 +13,7 @@ describe('ModalityConfig', () => {
 
     fixture = TestBed.createComponent(ModalityConfig);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+    fixture.detectChanges();
   });
 
   it('should create', () => {

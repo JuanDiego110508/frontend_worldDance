@@ -4,13 +4,13 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background-color: var(--wd-bg-body);
+  color: var(--wd-text-body);
 }
 
 .app-main {
   flex: 1;
-  padding-top: var(--wd-navbar-height);
-  background: var(--wd-gray-50);
-  /* Eliminar cualquier margen o padding extra */
-  margin: 0;
-  padding-bottom: 0;
+  width: 100%;
+  padding-top: var(--wd-navbar-height); 
+  background-color: var(--wd-bg-body);
 }

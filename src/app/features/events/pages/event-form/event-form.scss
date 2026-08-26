@@ -1,0 +1,127 @@
+.event-form-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  color: var(--wd-text-body);
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    h2 {
+      font-size: 1.8rem;
+      color: var(--wd-text-heading);
+    }
+  }
+
+  .form-card {
+    background-color: var(--wd-bg-card);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: var(--wd-shadow-xl);
+    border: 1px solid var(--wd-border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    label {
+      font-size: 0.9rem;
+      color: var(--wd-text-muted);
+    }
+
+    input, textarea, select {
+      background-color: var(--wd-bg-input);
+      border: 1px solid var(--wd-border-color);
+      color: var(--wd-text-body);
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      resize: none;
+      transition: all 0.2s;
+
+      &::placeholder {
+        color: var(--wd-text-muted);
+      }
+
+      &:focus {
+        outline: none;
+        border-color: var(--wd-border-focus);
+      }
+    }
+
+    .error-msg {
+      color: var(--wd-red);
+      font-size: 0.8rem;
+    }
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+
+    button {
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s, color 0.2s;
+
+      &.btn-cancel {
+        background-color: var(--wd-bg-ghost-hover);
+        color: var(--wd-text-ghost);
+        border: 1px solid var(--wd-border-color);
+
+        &:hover {
+          background-color: var(--wd-border-color);
+          color: var(--wd-text-heading);
+        }
+      }
+
+      &.btn-primary {
+        background-color: var(--wd-purple);
+        color: var(--wd-white);
+
+        &:hover {
+          background-color: var(--wd-purple-hover);
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+
+  .btn-secondary {
+    color: var(--wd-purple-light);
+    text-decoration: none;
+    font-size: 0.9rem;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

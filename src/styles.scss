@@ -34,6 +34,22 @@
   
   --wd-white: #FFFFFF;
   --wd-black: #000000;
+
+  /* ==========================================================================
+     VARIABLES ADAPTATIVAS (TEMA CLARO DEFAULT)
+     ========================================================================== */
+  --wd-bg-body: var(--wd-gray-50);
+  --wd-bg-card: var(--wd-white);
+  --wd-bg-input: var(--wd-white);
+  --wd-bg-ghost-hover: var(--wd-gray-100);
+  
+  --wd-border-color: var(--wd-gray-200);
+  --wd-border-focus: var(--wd-purple);
+  
+  --wd-text-body: var(--wd-gray-800);
+  --wd-text-heading: var(--wd-gray-900);
+  --wd-text-muted: var(--wd-gray-500);
+  --wd-text-ghost: var(--wd-gray-600);
   
   /* TIPOGRAFÍA */
   --wd-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -82,6 +98,32 @@
   --wd-container-max: 1280px;
 }
 
+/* ==========================================================================
+   SOBRESCRITURA PARA TEMA OSCURO
+   ========================================================================== */
+[data-theme="dark"] {
+  --wd-purple-bg: #2E1B4E;
+  --wd-green-light: #064E3B;
+  --wd-red-light: #7F1D1D;
+  --wd-yellow-light: #78350F;
+
+  --wd-bg-body: #111827;
+  --wd-bg-card: #1F2937;
+  --wd-bg-input: #111827;
+  --wd-bg-ghost-hover: #374151;
+  
+  --wd-border-color: #374151;
+  --wd-border-focus: #8B5CF6;
+  
+  --wd-text-body: #F3F4F6;
+  --wd-text-heading: #FFFFFF;
+  --wd-text-muted: #9CA3AF;
+  --wd-text-ghost: #D1D5DB;
+
+  --wd-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --wd-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
 /* RESET */
 *, *::before, *::after {
   margin: 0;
@@ -96,28 +138,29 @@ html {
 body {
   font-family: var(--wd-font-family);
   font-size: var(--wd-font-size-base);
-  color: var(--wd-gray-800);
-  background: var(--wd-gray-50);
+  color: var(--wd-text-body);
+  background: var(--wd-bg-body);
   line-height: 1.6;
   min-height: 100vh;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 /* ENLACES */
 a {
-  color: var(--wd-purple);
+  color: var(--wd-purple-light);
   text-decoration: none;
   transition: color 0.2s;
 }
 
 a:hover {
-  color: var(--wd-purple-dark);
+  color: var(--wd-purple);
 }
 
 /* TIPOGRAFÍA */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   line-height: 1.2;
-  color: var(--wd-gray-900);
+  color: var(--wd-text-heading);
 }
 
 h1 { font-size: var(--wd-font-size-5xl); }
@@ -171,23 +214,23 @@ h6 { font-size: var(--wd-font-size-lg); }
 
 .btn-outline {
   background: transparent;
-  color: var(--wd-purple);
-  border: 2px solid var(--wd-purple);
+  color: var(--wd-purple-light);
+  border: 2px solid var(--wd-purple-light);
 }
 
 .btn-outline:hover {
-  background: var(--wd-purple);
+  background: var(--wd-purple-light);
   color: var(--wd-white);
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--wd-gray-600);
+  color: var(--wd-text-ghost);
 }
 
 .btn-ghost:hover {
-  background: var(--wd-gray-100);
-  color: var(--wd-gray-800);
+  background: var(--wd-bg-ghost-hover);
+  color: var(--wd-text-heading);
 }
 
 .btn-success {
@@ -233,11 +276,11 @@ h6 { font-size: var(--wd-font-size-lg); }
 
 /* CARDS */
 .card {
-  background: var(--wd-white);
+  background: var(--wd-bg-card);
   border-radius: var(--wd-radius-lg);
   padding: var(--wd-spacing-6);
   box-shadow: var(--wd-shadow-sm);
-  border: 1px solid var(--wd-gray-200);
+  border: 1px solid var(--wd-border-color);
   transition: all 0.2s;
 }
 
@@ -251,18 +294,18 @@ h6 { font-size: var(--wd-font-size-lg); }
 .text-left { text-align: left; }
 .text-right { text-align: right; }
 
-.text-purple { color: var(--wd-purple); }
+.text-purple { color: var(--wd-purple-light); }
 .text-green { color: var(--wd-green); }
 .text-red { color: var(--wd-red); }
 .text-yellow { color: var(--wd-yellow); }
-.text-gray { color: var(--wd-gray-500); }
+.text-gray { color: var(--wd-text-muted); }
 
 .bg-purple { background: var(--wd-purple-bg); }
 .bg-green { background: var(--wd-green-light); }
 .bg-red { background: var(--wd-red-light); }
 .bg-yellow { background: var(--wd-yellow-light); }
-.bg-white { background: var(--wd-white); }
-.bg-gray { background: var(--wd-gray-100); }
+.bg-white { background: var(--wd-bg-card); }
+.bg-gray { background: var(--wd-bg-ghost-hover); }
 
 /* SPINNER */
 .spinner {
@@ -290,7 +333,7 @@ h6 { font-size: var(--wd-font-size-lg); }
   animation: fadeIn 0.3s ease;
 }
 
-/*  RESPONSIVE */
+/* RESPONSIVE */
 @media (max-width: 768px) {
   :root {
     --wd-navbar-height: 64px;
