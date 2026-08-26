@@ -10,10 +10,10 @@ export const routes: Routes = [
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
   },
-  /**{
+  {
     path: 'events',
     loadChildren: () => import('./features/events/events.routes').then(m => m.EVENTS_ROUTES)
-  },
+  },/**
   {
     path: 'dashboard',
     canActivate: [AuthGuard],

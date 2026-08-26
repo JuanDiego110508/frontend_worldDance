@@ -1,1 +1,64 @@
-<p>event-form works!</p>
+<div class="event-form-container">
+  <div class="header">
+    <h2>{{ isEditMode ? 'Editar Evento' : 'Crear Nuevo Evento' }}</h2>
+    <a routerLink="/events" class="btn-secondary">Volver al listado</a>
+  </div>
+
+  <form [formGroup]="eventForm" (ngSubmit)="onSubmit()" class="form-card">
+    
+    <div class="form-group">
+      <label for="title">Título del Evento *</label>
+      <input id="title" type="text" formControlName="title" placeholder="Ej. Neon Pulse International Open" />
+      <span class="error-msg" *ngIf="isFieldInvalid('title')">
+        El título es obligatorio (mínimo 3 caracteres).
+      </span>
+    </div>
+
+    <div class="form-group">
+      <label for="description">Descripción *</label>
+      <textarea id="description" formControlName="description" rows="4" placeholder="Detalles de la competencia..."></textarea>
+      <span class="error-msg" *ngIf="isFieldInvalid('description')">
+        La descripción es obligatoria.
+      </span>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="startDate">Fecha de Inicio *</label>
+        <input id="startDate" type="date" formControlName="startDate" />
+        <span class="error-msg" *ngIf="isFieldInvalid('startDate')">Fecha obligatoria.</span>
+      </div>
+
+      <div class="form-group">
+        <label for="endDate">Fecha de Cierre *</label>
+        <input id="endDate" type="date" formControlName="endDate" />
+        <span class="error-msg" *ngIf="isFieldInvalid('endDate')">Fecha obligatoria.</span>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="location">Ubicación / Sede *</label>
+        <input id="location" type="text" formControlName="location" placeholder="Ej. Movistar Arena, Bogotá" />
+        <span class="error-msg" *ngIf="isFieldInvalid('location')">La ubicación es obligatoria.</span>
+      </div>
+
+      <div class="form-group">
+        <label for="status">Estado del Evento *</label>
+        <select id="status" formControlName="status">
+          <option *ngFor="let opt of statusOptions" [value]="opt.value">
+            {{ opt.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" routerLink="/events" class="btn-cancel">Cancelar</button>
+      <button type="submit" [disabled]="eventForm.invalid" class="btn-primary">
+        {{ isEditMode ? 'Guardar Cambios' : 'Crear Evento' }}
+      </button>
+    </div>
+
+  </form>
+</div>

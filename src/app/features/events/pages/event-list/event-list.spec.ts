@@ -13,7 +13,7 @@ describe('EventList', () => {
 
     fixture = TestBed.createComponent(EventList);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+    fixture.detectChanges();
   });
 
   it('should create', () => {

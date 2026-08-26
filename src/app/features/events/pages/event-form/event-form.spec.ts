@@ -13,7 +13,7 @@ describe('EventForm', () => {
 
     fixture = TestBed.createComponent(EventForm);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+    fixture.detectChanges();
   });
 
   it('should create', () => {
