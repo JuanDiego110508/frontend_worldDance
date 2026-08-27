@@ -1,17 +1,12 @@
 <div class="profile-container">
-  <div class="container">
+  <div class="profile-card">
     <div class="profile-header">
-      <h1>Mi Perfil</h1>
-      <div class="header-actions">
-        @if (!isEditMode()) {
-          <button class="btn btn-outline" (click)="toggleEditMode()">
-            Editar perfil
-          </button>
-        }
-        <button class="btn btn-ghost" (click)="goToDashboard()">
-          Dashboard
-        </button>
+      <div class="profile-brand">
+        <img class="brand-icon" src="/FondoWorDancePNG.png" alt="World Dance">
+        <span class="brand-text">WorldDance</span>
       </div>
+      <h1>Mi Perfil</h1>
+      <p class="profile-subtitle">Gestiona tu información personal</p>
     </div>
 
     @if (isLoading()) {
@@ -20,88 +15,91 @@
         Cargando datos del usuario...
       </div>
     } @else {
-      <div class="profile-content">
-        <!-- Avatar -->
-        <div class="profile-avatar">
-          <span class="avatar">
-            {{ user()?.firstName?.charAt(0) }}{{ user()?.lastName?.charAt(0) }}
-          </span>
+      <div class="profile-avatar-section">
+        <span class="avatar">
+          {{ user()?.firstName?.charAt(0) }}{{ user()?.lastName?.charAt(0) }}
+        </span>
+        <div class="avatar-info">
+          <div class="user-name">{{ user()?.firstName }} {{ user()?.lastName }}</div>
           <span class="user-role">{{ user()?.role || 'Usuario' }}</span>
         </div>
+      </div>
 
-        <!-- Formulario de perfil -->
-        <div class="profile-card">
-          <div class="form-group">
-            <label>Nombre</label>
-            @if (isEditMode()) {
-              <input type="text" [(ngModel)]="editData.firstName" placeholder="Tu nombre">
-            } @else {
-              <p class="field-value">{{ user()?.firstName || '-' }}</p>
-            }
-          </div>
-
-          <div class="form-group">
-            <label>Apellido</label>
-            @if (isEditMode()) {
-              <input type="text" [(ngModel)]="editData.lastName" placeholder="Tu apellido">
-            } @else {
-              <p class="field-value">{{ user()?.lastName || '-' }}</p>
-            }
-          </div>
-
-          <div class="form-group">
-            <label>Número de documento</label>
-            @if (isEditMode()) {
-              <input type="text" [(ngModel)]="editData.documentNumber" placeholder="Tu documento">
-            } @else {
-              <p class="field-value">{{ user()?.documentNumber || '-' }}</p>
-            }
-          </div>
-
-          <div class="form-group">
-            <label>Correo electrónico</label>
-            @if (isEditMode()) {
-              <input type="email" [(ngModel)]="editData.email" placeholder="Tu correo">
-            } @else {
-              <p class="field-value">{{ user()?.email || '-' }}</p>
-            }
-          </div>
-
-          <!-- Estado de la cuenta -->
-          <div class="form-group">
-            <label>Estado de la cuenta</label>
-            <p class="field-value">
-              <span class="status-badge" [class.active]="user()?.active">
-                {{ user()?.active ? 'Activa' : 'Inactiva' }}
-              </span>
-            </p>
-          </div>
-
-          <!-- Mensajes de estado -->
-          @if (errorMessage()) {
-            <div class="error-message">{{ errorMessage() }}</div>
-          }
-          @if (successMessage()) {
-            <div class="success-message">{{ successMessage() }}</div>
-          }
-
-          <!-- Acciones de edición -->
+      <div class="profile-form">
+        <div class="form-group">
+          <label>Nombre</label>
           @if (isEditMode()) {
-            <div class="edit-actions">
-              <button class="btn btn-ghost" (click)="toggleEditMode()">Cancelar</button>
-              <button 
-                class="btn btn-primary" 
-                (click)="saveProfile()"
-                [disabled]="isSaving()"
-              >
-                @if (isSaving()) {
-                  <span class="spinner"></span>
-                  Guardando...
-                } @else {
-                  Guardar cambios
-                }
-              </button>
-            </div>
+            <input type="text" [(ngModel)]="editData.firstName" placeholder="Tu nombre">
+          } @else {
+            <p class="field-value">{{ user()?.firstName || '-' }}</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Apellido</label>
+          @if (isEditMode()) {
+            <input type="text" [(ngModel)]="editData.lastName" placeholder="Tu apellido">
+          } @else {
+            <p class="field-value">{{ user()?.lastName || '-' }}</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Número de documento</label>
+          @if (isEditMode()) {
+            <input type="text" [(ngModel)]="editData.documentNumber" placeholder="Tu documento">
+          } @else {
+            <p class="field-value">{{ user()?.documentNumber || '-' }}</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          @if (isEditMode()) {
+            <input type="email" [(ngModel)]="editData.email" placeholder="Tu correo">
+          } @else {
+            <p class="field-value">{{ user()?.email || '-' }}</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Estado de la cuenta</label>
+          <p class="field-value">
+            <span class="status-badge" [class.active]="user()?.active">
+              {{ user()?.active ? 'Activa' : 'Inactiva' }}
+            </span>
+          </p>
+        </div>
+
+        @if (errorMessage()) {
+          <div class="error-message">{{ errorMessage() }}</div>
+        }
+        @if (successMessage()) {
+          <div class="success-message">{{ successMessage() }}</div>
+        }
+
+        <div class="form-actions">
+          @if (isEditMode()) {
+            <button class="btn btn-ghost" (click)="toggleEditMode()">Cancelar</button>
+            <button 
+              class="btn btn-primary" 
+              (click)="saveProfile()"
+              [disabled]="isSaving()"
+            >
+              @if (isSaving()) {
+                <span class="spinner"></span>
+                Guardando...
+              } @else {
+                Guardar cambios
+              }
+            </button>
+          } @else {
+            <button class="btn btn-primary" (click)="toggleEditMode()">
+              Editar perfil
+            </button>
+            <button class="btn btn-ghost" (click)="goToDashboard()">
+              Dashboard
+            </button>
           }
         </div>
       </div>

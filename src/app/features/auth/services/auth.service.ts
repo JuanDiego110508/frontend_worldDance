@@ -46,6 +46,8 @@ export class AuthService {
   private apiUrl = environment.apiUrl + '/auth';
   private useMock = true;
 
+  private forceAuthenticated = true;
+
   login(email: string, password: string): Observable<LoginResponse> {
     if (this.useMock) {
       return this.mockLogin(email, password);
@@ -111,6 +113,18 @@ export class AuthService {
   }
 
   getCurrentUser(): User | null {
+     if (this.forceAuthenticated && !this.tokenService.getToken()) {
+      const mockUser: User = {
+        id: 1,
+        firstName: 'Juan',
+        lastName: 'Pérez',
+        documentNumber: '123456789',
+        email: 'juan@ejemplo.com',
+        role: 'organizer',  // Cambia a 'participant' o 'admin' según necesites
+        active: true
+      };
+      return mockUser;
+    }
     const token = this.tokenService.getToken();
     if (token) {
       return this.tokenService.decodeToken(token);
@@ -131,7 +145,7 @@ export class AuthService {
       lastName: 'Pérez',
       documentNumber: '123456789',
       email: email,
-      role: 'participant',
+      role: 'organizer',
       active: true
     };
 
@@ -179,7 +193,7 @@ export class AuthService {
       lastName: currentUser?.lastName || '',
       documentNumber: currentUser?.documentNumber || '',
       email: currentUser?.email || '',
-      role: currentUser?.role || 'participant',
+      role: currentUser?.role || 'organizer',
       active: currentUser?.active ?? true
     };
 

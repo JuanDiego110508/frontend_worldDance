@@ -1,0 +1,102 @@
+<div class="my-enrollments-container">
+  <div class="container">
+    <div class="page-header">
+      <h1>Mis Inscripciones</h1>
+      <p class="subtitle">Consulta el estado de tus inscripciones en eventos</p>
+      <a routerLink="/events" class="btn btn-primary">
+        Inscribirse a otro evento
+      </a>
+    </div>
+
+    <div class="filters-section">
+      <div class="search-box">
+        <input 
+          type="text" 
+          placeholder="Buscar evento o categoría..."
+          (input)="onSearch($event)"
+        >
+      </div>
+      
+      <div class="status-filters">
+        <button 
+          class="status-btn"
+          [class.active]="statusFilter() === 'all'"
+          (click)="setFilter('all')"
+        >
+          Todos
+        </button>
+        @for (option of statusOptions; track option.value) {
+          <button 
+            class="status-btn"
+            [class.active]="statusFilter() === option.value"
+            [class]="option.class"
+            (click)="setFilter(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <div class="loading-state">
+        <span class="spinner"></span>
+        Cargando tus inscripciones...
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="error-state">
+        <p>{{ errorMessage() }}</p>
+        <button class="btn btn-outline" (click)="loadMyEnrollments()">Reintentar</button>
+      </div>
+    }
+
+    @if (!isLoading() && !errorMessage()) {
+      @if (filteredEnrollments().length > 0) {
+        <div class="enrollments-grid">
+          @for (enrollment of filteredEnrollments(); track enrollment.id) {
+            <div class="enrollment-card">
+              <div class="enrollment-header">
+                <h3>{{ enrollment.eventName || 'Evento sin nombre' }}</h3>
+                <span class="status-badge" [class]="getStatusClass(enrollment.status)">
+                  {{ getStatusLabel(enrollment.status) }}
+                </span>
+              </div>
+              
+              <div class="enrollment-body">
+                <div class="enrollment-info">
+                  <span class="info-label">Categoría</span>
+                  <span class="info-value">{{ enrollment.categoryName || '-' }}</span>
+                </div>
+                <div class="enrollment-info">
+                  <span class="info-label">Fecha de inscripción</span>
+                  <span class="info-value">{{ enrollment.createdAt | date:'dd/MM/yyyy' }}</span>
+                </div>
+              </div>
+
+              <div class="enrollment-actions">
+                @if (enrollment.status === 'PENDING') {
+                  <button class="btn btn-danger btn-sm" (click)="cancelEnrollment(enrollment.id!)">
+                    Cancelar inscripción
+                  </button>
+                }
+                @if (enrollment.status === 'APPROVED') {
+                  <span class="approved-message">✅ Inscripción confirmada</span>
+                }
+                @if (enrollment.status === 'REJECTED') {
+                  <span class="rejected-message">❌ Inscripción rechazada</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <p>No tienes inscripciones activas.</p>
+          <a routerLink="/events" class="btn btn-primary">Explorar eventos</a>
+        </div>
+      }
+    }
+  </div>
+</div>
