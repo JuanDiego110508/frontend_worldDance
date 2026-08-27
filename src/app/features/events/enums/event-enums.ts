@@ -7,14 +7,14 @@ export enum EventStatus {
 
 export enum ModalityDivision {
   SOLO = 'SOLO',
-  DUO = 'DUO',
+  DUET = 'DUET',
   GROUP = 'GROUP'
 }
 
 export enum ModalityCategory {
   CLASSICAL = 'CLASSICAL',
   CONTEMPORARY = 'CONTEMPORARY',
-  FOLKLORE = 'FOLKLORE',
+  FOLK = 'FOLK',
   URBAN = 'URBAN',
   BALLROOM = 'BALLROOM',
   LATIN = 'LATIN'
@@ -29,14 +29,14 @@ export const EVENT_STATUS_LABELS: Record<EventStatus, string> = {
 
 export const MODALITY_DIVISION_LABELS: Record<ModalityDivision, string> = {
   [ModalityDivision.SOLO]: 'Solo',
-  [ModalityDivision.DUO]: 'Dúo',
+  [ModalityDivision.DUET]: 'Dúo',
   [ModalityDivision.GROUP]: 'Grupo'
 };
 
 export const MODALITY_CATEGORY_LABELS: Record<ModalityCategory, string> = {
   [ModalityCategory.CLASSICAL]: 'Clásico',
   [ModalityCategory.CONTEMPORARY]: 'Contemporáneo',
-  [ModalityCategory.FOLKLORE]: 'Folclor',
+  [ModalityCategory.FOLK]: 'Folclor',
   [ModalityCategory.URBAN]: 'Urbano',
   [ModalityCategory.BALLROOM]: 'Baile de Salón',
   [ModalityCategory.LATIN]: 'Latino'

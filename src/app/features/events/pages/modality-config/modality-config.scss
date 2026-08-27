@@ -1,0 +1,295 @@
+.modality-page-container {
+  width: 100%;
+  min-height: calc(100vh - var(--wd-navbar-height));
+  background-color: var(--wd-bg-body);
+  color: var(--wd-text-body);
+  padding: var(--wd-spacing-8) var(--wd-spacing-4);
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+/* Header de la vista */
+.modality-header {
+  margin-bottom: var(--wd-spacing-8);
+
+  .btn-back {
+    display: inline-block;
+    color: var(--wd-purple-light);
+    text-decoration: none;
+    font-size: var(--wd-font-size-sm);
+    font-weight: 600;
+    margin-bottom: var(--wd-spacing-2);
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  h1 {
+    font-size: var(--wd-font-size-3xl);
+    color: var(--wd-text-heading);
+    font-weight: 800;
+    margin-bottom: var(--wd-spacing-1);
+  }
+
+  .subtitle {
+    color: var(--wd-text-muted);
+    font-size: var(--wd-font-size-base);
+  }
+}
+
+/* Layout de 2 columnas (Formulario + Tabla) o 1 Columna Ancha (Sin Formulario) */
+.modality-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: var(--wd-spacing-6);
+  align-items: start;
+
+  &.single-column {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  @media (max-width: 992px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tarjeta del Formulario Lateral */
+.form-card {
+  background-color: var(--wd-bg-card);
+  border: 1px solid var(--wd-border-color);
+  border-radius: var(--wd-radius-xl);
+  padding: var(--wd-spacing-6);
+
+  h2 {
+    font-size: var(--wd-font-size-xl);
+    color: var(--wd-text-heading);
+    font-weight: 700;
+    margin-bottom: var(--wd-spacing-6);
+    padding-bottom: var(--wd-spacing-3);
+    border-bottom: 1px solid var(--wd-border-color);
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wd-spacing-2);
+    margin-bottom: var(--wd-spacing-4);
+
+    label {
+      font-size: var(--wd-font-size-sm);
+      font-weight: 600;
+      color: var(--wd-text-heading);
+    }
+
+    input, select {
+      width: 100%;
+      background-color: var(--wd-bg-input);
+      border: 1px solid var(--wd-border-color);
+      color: var(--wd-text-body);
+      padding: var(--wd-spacing-3);
+      border-radius: var(--wd-radius-md);
+      font-size: var(--wd-font-size-base);
+      transition: border-color 0.2s ease;
+
+      &:focus {
+        outline: none;
+        border-color: var(--wd-border-focus);
+      }
+    }
+
+    .error-text {
+      color: var(--wd-red);
+      font-size: var(--wd-font-size-xs);
+    }
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--wd-spacing-4);
+  }
+
+  .form-actions {
+    display: flex;
+    gap: var(--wd-spacing-3);
+    margin-top: var(--wd-spacing-6);
+
+    .btn {
+      flex: 1;
+      padding: var(--wd-spacing-3);
+      border-radius: var(--wd-radius-md);
+      font-weight: 600;
+      font-size: var(--wd-font-size-sm);
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    .btn-primary {
+      background: var(--wd-gradient-primary);
+      color: var(--wd-white);
+
+      &:hover:not(:disabled) {
+        opacity: 0.95;
+        transform: translateY(-1px);
+      }
+    }
+
+    .btn-secondary {
+      background-color: var(--wd-bg-input);
+      color: var(--wd-text-body);
+      border: 1px solid var(--wd-border-color);
+
+      &:hover {
+        background-color: var(--wd-bg-ghost-hover);
+      }
+    }
+  }
+}
+
+/* Tarjeta Principal con la Tabla */
+.table-card {
+  background-color: var(--wd-bg-card);
+  border: 1px solid var(--wd-border-color);
+  border-radius: var(--wd-radius-xl);
+  padding: var(--wd-spacing-6);
+
+  h2 {
+    font-size: var(--wd-font-size-xl);
+    color: var(--wd-text-heading);
+    font-weight: 700;
+    margin-bottom: var(--wd-spacing-6);
+    padding-bottom: var(--wd-spacing-3);
+    border-bottom: 1px solid var(--wd-border-color);
+  }
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.modalities-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--wd-font-size-sm);
+
+  th {
+    color: var(--wd-text-muted);
+    font-weight: 600;
+    padding: var(--wd-spacing-3) var(--wd-spacing-4);
+    border-bottom: 1px solid var(--wd-border-color);
+  }
+
+  td {
+    padding: var(--wd-spacing-4);
+    border-bottom: 1px solid var(--wd-border-color);
+    color: var(--wd-text-body);
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  .row-editing {
+    background-color: rgba(147, 51, 234, 0.08);
+  }
+
+  .style-name {
+    font-weight: 600;
+    color: var(--wd-text-heading);
+  }
+
+  .text-end {
+    text-align: right;
+  }
+
+  .actions-cell {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--wd-spacing-2);
+  }
+}
+
+/* Badges estilizados para Categoría y División */
+.badge {
+  display: inline-block;
+  font-size: var(--wd-font-size-xs);
+  font-weight: 700;
+  padding: var(--wd-spacing-1) var(--wd-spacing-3);
+  border-radius: var(--wd-radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.badge-category {
+    background-color: rgba(147, 51, 234, 0.15);
+    color: var(--wd-purple-light);
+  }
+
+  &.badge-division {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+  }
+}
+
+/* Botones de Icono y Acción */
+.btn-icon {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: var(--wd-spacing-2);
+  border-radius: var(--wd-radius-md);
+  font-size: 1rem;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: var(--wd-bg-ghost-hover);
+  }
+}
+
+.btn-success {
+  background-color: #10b981;
+  color: #ffffff;
+  border: none;
+  padding: var(--wd-spacing-2) var(--wd-spacing-4);
+  border-radius: var(--wd-radius-md);
+  font-size: var(--wd-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+
+  &:hover {
+    background-color: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
+  }
+}
+
+/* Estados Vacío y Carga */
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: var(--wd-spacing-8) 0;
+  color: var(--wd-text-muted);
+
+  .empty-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--wd-spacing-2);
+  }
+
+  p {
+    font-weight: 600;
+    color: var(--wd-text-heading);
+    margin-bottom: var(--wd-spacing-1);
+  }
+}

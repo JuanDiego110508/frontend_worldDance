@@ -7,10 +7,10 @@
   <form [formGroup]="eventForm" (ngSubmit)="onSubmit()" class="form-card">
     
     <div class="form-group">
-      <label for="title">Título del Evento *</label>
-      <input id="title" type="text" formControlName="title" placeholder="Ej. Neon Pulse International Open" />
-      <span class="error-msg" *ngIf="isFieldInvalid('title')">
-        El título es obligatorio (mínimo 3 caracteres).
+      <label for="name">Nombre del Evento *</label>
+      <input id="name" type="text" formControlName="name" placeholder="Ej. Neon Pulse International Open" />
+      <span class="error-msg" *ngIf="isFieldInvalid('name')">
+        El nombre del evento es obligatorio (mínimo 3 caracteres).
       </span>
     </div>
 

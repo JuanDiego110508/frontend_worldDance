@@ -1,1 +1,84 @@
-<p>event-list works!</p>
+<div class="events-page-container">
+  <!-- Header de la Página -->
+  <header class="events-header">
+    <div class="header-info">
+      <h1>Eventos de Danza</h1>
+      <p class="subtitle">Descubre y gestiona los próximos eventos deportivos y culturales</p>
+    </div>
+
+    <a routerLink="/events/create" class="btn-create">
+      <span>+</span> Crear Evento
+    </a>
+  </header>
+
+  <!-- Sección de Filtros -->
+  <section class="filters-section">
+    <div class="search-box">
+      <input 
+        type="text" 
+        [ngModel]="searchTerm()" 
+        (ngModelChange)="searchTerm.set($event)" 
+        placeholder="Buscar por título, ciudad o descripción..." 
+      />
+    </div>
+  </section>
+
+  <!-- Contenedor sin resultados -->
+  <div *ngIf="filteredEvents().length === 0" class="empty-state-card">
+    <div class="empty-icon">🔍</div>
+    <h3>No se encontraron eventos</h3>
+    <p>Prueba buscando con otros términos o registra un nuevo evento.</p>
+  </div>
+
+  <!-- Grid de Tarjetas -->
+  <div class="events-grid" *ngIf="filteredEvents().length > 0">
+    <article *ngFor="let event of filteredEvents()" class="event-card">
+      <!-- Badge de Estado -->
+      <span 
+        class="card-status-badge" 
+        [ngClass]="event.status ? event.status.toLowerCase() : ''">
+        {{ event.status }}
+      </span>
+
+      <!-- Cuerpo de la Tarjeta -->
+      <div class="card-body">
+        <h2 class="event-title">{{ event.name || event.title }}</h2>
+        <p class="event-description">{{ event.description }}</p>
+
+        <div class="event-details">
+          <div class="detail-item">
+            <span class="detail-label">
+              <img src="icons8-user-location-64.png" alt="Ubicación" class="icon-inline" />
+              Ubicación:
+            </span>
+            <span>{{ event.location }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">
+              <img src="icons8-timeline-week-64.png" alt="Fechas" class="icon-inline" />
+              Fechas:
+            </span>
+            <span>{{ event.startDate | date:'dd/MM/yyyy' }} - {{ event.endDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer de la Tarjeta -->
+      <div class="card-footer">
+        <a [routerLink]="['/events', event.id || event.IdEvent, 'modalities']" class="btn-outline">
+          Ver Modalidades
+        </a>
+
+        <!-- Acciones de edición/eliminación sólo si es propietario -->
+        <div class="admin-actions" *ngIf="isOwner(event)">
+          <a [routerLink]="['/events/edit', event.id || event.IdEvent]" class="btn-icon" title="Editar evento">
+            <img src="icons8-edit-pencil.svg" alt="Editar" class="icon-action" />
+          </a>
+          <button type="button" (click)="onDeleteEvent(event)" class="btn-icon" title="Eliminar evento">
+            <img src="icons8-trash-can-64.png" alt="Eliminar" class="icon-action" />
+          </button>
+        </div>
+      </div>
+    </article>
+  </div>
+</div>
