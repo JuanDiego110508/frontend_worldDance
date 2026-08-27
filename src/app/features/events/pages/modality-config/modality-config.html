@@ -1,1 +1,155 @@
-<p>modality-config works!</p>
+<div class="modality-page-container">
+
+  <!-- Header -->
+  <header class="modality-header">
+    <div class="header-info">
+      <a routerLink="/events" class="btn-back">← Volver a Eventos</a>
+      <h1>{{ isOwner() ? 'Configuración de Modalidades' : 'Modalidades Disponibles' }}</h1>
+      <p class="subtitle" *ngIf="eventId()">
+        {{ isOwner() ? 'Gestión de categorías y divisiones para el Evento #' + eventId() : 'Revisa las modalidades habilitadas para participar' }}
+      </p>
+    </div>
+  </header>
+
+  <div class="modality-layout" [class.single-column]="!isOwner()">
+
+    <!-- SOLO ORGANIZADOR: Formulario Lateral -->
+    <aside class="form-card" *ngIf="isOwner()">
+      <h2>{{ editingId() !== null ? 'Editar Modalidad' : 'Nueva Modalidad' }}</h2>
+
+      <form [formGroup]="modalityForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="category">Categoría *</label>
+          <select id="category" formControlName="category">
+            <option *ngFor="let opt of categoryOptions" [value]="opt.value">
+              {{ opt.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="division">División *</label>
+          <select id="division" formControlName="division">
+            <option *ngFor="let opt of divisionOptions" [value]="opt.value">
+              {{ opt.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="style">Estilo de Baile *</label>
+          <input 
+            type="text" 
+            id="style" 
+            formControlName="style" 
+            placeholder="Ej: Hip Hop, Salsa On1, Ballet Clásico..."
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="minAge">Edad Mínima *</label>
+            <input type="number" id="minAge" formControlName="minAge" min="0" />
+          </div>
+
+          <div class="form-group">
+            <label for="maxAge">Edad Máxima *</label>
+            <input type="number" id="maxAge" formControlName="maxAge" min="0" />
+          </div>
+        </div>
+
+        <div class="alert-warning-duplicate" *ngIf="overlappingModality()" style="color: #c53030; background-color: #fff5f5; border: 1px solid #feb2b2; padding: 10px; border-radius: 6px; margin: 15px 0; font-size: 0.85rem; line-height: 1.4;">
+          ⚠️ <strong>Solapamiento de Edad:</strong> El rango ingresado se traslapa con la modalidad de {{ categoryLabels[overlappingModality()!.category] }} ({{ divisionLabels[overlappingModality()!.division] }}) de {{ overlappingModality()!.minAge }} a {{ overlappingModality()!.maxAge }} años (Estilo: {{ overlappingModality()!.style }}).
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="modalityForm.invalid || isLoading() || overlappingModality() !== null">
+            {{ editingId() !== null ? 'Actualizar Modalidad' : 'Agregar Modalidad' }}
+          </button>
+
+          <button type="button" class="btn btn-secondary" *ngIf="editingId() !== null" (click)="resetForm()">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </aside>
+
+    <!-- Lista / Tabla de Modalidades -->
+    <main class="table-card">
+      <h2>Modalidades Registradas ({{ modalities().length }})</h2>
+
+      <div class="loading-state" *ngIf="isLoading()">
+        <p>Cargando modalidades...</p>
+      </div>
+
+      <div class="table-responsive" *ngIf="!isLoading() && modalities().length > 0">
+        <table class="modalities-table">
+          <thead>
+            <tr>
+              <th>Categoría</th>
+              <th>División</th>
+              <th>Estilo</th>
+              <th>Rango de Edad</th>
+              <th class="text-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let modality of modalities()" [class.row-editing]="editingId() === modality.id">
+              <td>
+                <span class="badge badge-category">
+                  {{ categoryLabels[modality.category] }}
+                </span>
+              </td>
+              <td>
+                <span class="badge badge-division">
+                  {{ divisionLabels[modality.division] }}
+                </span>
+              </td>
+              <td class="style-name">{{ modality.style }}</td>
+              <td>{{ modality.minAge }} - {{ modality.maxAge }} años</td>
+              
+              <td class="text-end actions-cell">
+                <!-- SOLO ORGANIZADOR: Editar / Eliminar -->
+                <ng-container *ngIf="isOwner(); else participantActions">
+                  <button 
+                    type="button" 
+                    class="btn-icon btn-edit" 
+                    (click)="onEdit(modality)" 
+                    title="Editar modalidad"
+                  >
+                    <img src="icons8-edit-pencil.svg" alt="Editar" class="icon-action" />
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn-icon btn-delete" 
+                    (click)="onDelete(modality.id)" 
+                    title="Eliminar modalidad"
+                  >
+                    <img src="icons8-trash-can-64.png" alt="Eliminar" class="icon-action" />
+                  </button>
+                </ng-container>
+
+                <!-- USUARIO NORMAL / PARTICIPANTE -->
+                <ng-template #participantActions>
+                  <button type="button" class="btn btn-sm btn-success">
+                    Inscribirme
+                  </button>
+                </ng-template>
+              </td>
+
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="empty-state" *ngIf="!isLoading() && modalities().length === 0">
+        <div class="empty-icon">🎭</div>
+        <p>No hay modalidades registradas para este evento aún.</p>
+        <small *ngIf="isOwner()">Utiliza el formulario de la izquierda para agregar la primera.</small>
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
