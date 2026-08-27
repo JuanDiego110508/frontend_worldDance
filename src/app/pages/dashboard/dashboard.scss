@@ -1,4 +1,4 @@
-@use '../../styles.scss' as *;
+@use '../../../styles.scss' as *;
 
 .dashboard-container {
   min-height: calc(100vh - var(--wd-navbar-height));
