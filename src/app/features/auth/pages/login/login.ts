@@ -41,9 +41,7 @@ export class LoginComponent {
     this.authService.login(this.email, this.password).subscribe({
       next: () => {
         this.isLoading.set(false);
-        /* Después de iniciar sesión, redirigimos al dashboard o a la URL que venía */
-        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
-        this.router.navigate([returnUrl]);
+        this.router.navigate(['/dashboard']);
       },
       error: (error) => {
         this.isLoading.set(false);

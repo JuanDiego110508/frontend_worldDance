@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError, of } from 'rxjs';
+import { Observable, throwError, of, BehaviorSubject } from 'rxjs';
 import { tap, catchError, delay } from 'rxjs/operators';
 import { TokenService } from './token.service';
 import { environment } from '../../../../enviroments/enviroment';
@@ -46,6 +46,9 @@ export class AuthService {
   private apiUrl = environment.apiUrl + '/auth';
   private useMock = true;
 
+  private authStatus = new BehaviorSubject<boolean>(this.isAuthenticated());
+  authStatus$ = this.authStatus.asObservable();
+
   login(email: string, password: string): Observable<LoginResponse> {
     if (this.useMock) {
       return this.mockLogin(email, password);
@@ -56,6 +59,7 @@ export class AuthService {
         tap(response => {
           this.tokenService.setToken(response.token);
           this.tokenService.setUser(response.user);
+          this.authStatus.next(true);
         }),
         catchError(error => {
           return throwError(() => error.error || { message: 'Error al iniciar sesión' });
@@ -104,6 +108,7 @@ export class AuthService {
 
   logout(): void {
     this.tokenService.clearAll();
+    this.authStatus.next(false);
   }
 
   isAuthenticated(): boolean {
@@ -131,7 +136,7 @@ export class AuthService {
       lastName: 'Pérez',
       documentNumber: '123456789',
       email: email,
-      role: 'participant',
+      role: 'organizer',
       active: true
     };
 

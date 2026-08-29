@@ -1,9 +1,11 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './features/auth/guards/auth.guard';
+import { RedirectGuard } from './features/auth/guards/redirect.guard';
 
 export const routes: Routes = [
   {
     path: '',
+    canActivate: [RedirectGuard],
     loadComponent: () => import('./pages/home/home').then(m => m.HomeComponent)
   },
   {
@@ -13,12 +15,12 @@ export const routes: Routes = [
   {
     path: 'events',
     loadChildren: () => import('./features/events/events.routes').then(m => m.EVENTS_ROUTES)
-  },/**
+  },
   {
     path: 'dashboard',
     canActivate: [AuthGuard],
     loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.DashboardComponent)
-  },**/
+  },
   {
     path: '**',
     loadComponent: () => import('./pages/not-found/not-found').then(m => m.NotFoundComponent)
