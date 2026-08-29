@@ -17,8 +17,13 @@ export const routes: Routes = [
     loadChildren: () => import('./features/events/events.routes').then(m => m.EVENTS_ROUTES)
   },
   {
+    path: 'enrollment',
+    // canActivate: [AuthGuard],
+    loadChildren: () => import('./features/enrollment/enrollment.routes').then(m => m.ENROLLMENT_ROUTES)
+  },
+  {
     path: 'dashboard',
-    canActivate: [AuthGuard],
+    // canActivate: [AuthGuard],
     loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.DashboardComponent)
   },
   {

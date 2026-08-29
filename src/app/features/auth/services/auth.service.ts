@@ -116,6 +116,10 @@ export class AuthService {
   }
 
   getCurrentUser(): User | null {
+    const userStored = this.tokenService.getUser();
+    if (userStored) {
+      return userStored;
+    }
     const token = this.tokenService.getToken();
     if (token) {
       return this.tokenService.decodeToken(token);

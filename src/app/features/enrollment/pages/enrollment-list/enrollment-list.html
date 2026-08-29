@@ -1,0 +1,121 @@
+<div class="enrollment-list-container">
+  <div class="container">
+    <!-- Encabezado -->
+    <div class="page-header">
+      <h1>Gestión de Inscripciones</h1>
+      <p class="subtitle">
+        @if (eventId()) {
+          Inscripciones para el evento seleccionado
+        } @else {
+          Todas las inscripciones de tus eventos
+        }
+      </p>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-section">
+      <div class="search-box">
+        <input 
+          type="text" 
+          placeholder="Buscar participante, categoría o evento..."
+          (input)="onSearch($event)"
+        >
+      </div>
+      
+      <div class="status-filters">
+        <button 
+          class="status-btn"
+          [class.active]="statusFilter() === 'all'"
+          (click)="setFilter('all')"
+        >
+          Todos
+        </button>
+        @for (option of statusOptions; track option.value) {
+          <button 
+            class="status-btn"
+            [class.active]="statusFilter() === option.value"
+            [class]="option.class"
+            (click)="setFilter(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Estado de carga -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <span class="spinner"></span>
+        Cargando inscripciones...
+      </div>
+    }
+
+    <!-- Mensaje de error -->
+    @if (errorMessage()) {
+      <div class="error-state">
+        <p>{{ errorMessage() }}</p>
+        <button class="btn btn-outline" (click)="loadEnrollments()">Reintentar</button>
+      </div>
+    }
+
+    <!-- Tabla de inscripciones -->
+    @if (!isLoading() && !errorMessage()) {
+      @if (filteredEnrollments().length > 0) {
+        <div class="table-wrapper">
+          <table class="enrollment-table">
+            <thead>
+              <tr>
+                <th>Participante</th>
+                <th>Evento</th>
+                <th>Categoría</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (enrollment of filteredEnrollments(); track enrollment.id) {
+                <tr>
+                  <td>
+                    <div class="participant-info">
+                      <strong>{{ enrollment.participant?.fullName || 'N/A' }}</strong>
+                      <span class="participant-email">{{ enrollment.participant?.email || '' }}</span>
+                    </div>
+                  </td>
+                  <td>{{ enrollment.eventName || '-' }}</td>
+                  <td>{{ enrollment.categoryName || '-' }}</td>
+                  <td>
+                    <span class="status-badge" [class]="getStatusClass(enrollment.status)">
+                      {{ getStatusLabel(enrollment.status) }}
+                    </span>
+                  </td>
+                  <td>{{ enrollment.createdAt | date:'dd/MM/yyyy' }}</td>
+                  <td>
+                    <div class="action-buttons">
+                      @if (enrollment.status === 'PENDING') {
+                        <button class="btn btn-success btn-sm" (click)="updateStatus(enrollment, 'APPROVED')">
+                          Aprobar
+                        </button>
+                        <button class="btn btn-danger btn-sm" (click)="updateStatus(enrollment, 'REJECTED')">
+                          Rechazar
+                        </button>
+                      }
+                      <button class="btn btn-ghost btn-sm" (click)="deleteEnrollment(enrollment.id!)">
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="empty-state">
+          <p>No hay inscripciones que coincidan con tu búsqueda.</p>
+        </div>
+      }
+    }
+  </div>
+</div>

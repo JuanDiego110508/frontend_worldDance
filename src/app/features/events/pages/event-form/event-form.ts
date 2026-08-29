@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { EventService } from '../../services/event';
+import { AuthService } from '../../../auth/services/auth.service';
 import { EventStatus, EVENT_STATUS_LABELS } from '../../enums/event-enums';
 import { EventRequestDto } from '../../models/event.model';
 
@@ -17,6 +18,7 @@ export class EventForm implements OnInit {
   eventForm!: FormGroup;
   isEditMode = false;
   eventId: number | null = null;
+  originalEventName: string = '';
   
   statusOptions = Object.keys(EventStatus).map((key) => ({
     value: key,
@@ -26,6 +28,7 @@ export class EventForm implements OnInit {
   constructor(
     private fb: FormBuilder,
     private eventService: EventService,
+    private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
@@ -37,7 +40,7 @@ export class EventForm implements OnInit {
 
   private initForm(): void {
     this.eventForm = this.fb.group({
-      title: ['', [Validators.required, Validators.minLength(3)]],
+      name: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', [Validators.required, Validators.maxLength(500)]],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
@@ -55,14 +58,28 @@ export class EventForm implements OnInit {
     }
   }
 
+  private formatDateForInput(dateStr: string): string {
+    if (!dateStr) return '';
+    return dateStr.split('T')[0];
+  }
+
+  private formatToIsoDateTime(val: string): string {
+    if (!val) return '';
+    if (val.includes('T')) {
+      return val.length === 16 ? `${val}:00` : val;
+    }
+    return `${val}T00:00:00`;
+  }
+
   private loadEventData(id: number): void {
     this.eventService.getEventById(id).subscribe({
       next: (event) => {
+        this.originalEventName = event.name || event.title || '';
         this.eventForm.patchValue({
-          title: event.title,
+          name: this.originalEventName,
           description: event.description,
-          startDate: event.startDate,
-          endDate: event.endDate,
+          startDate: this.formatDateForInput(event.startDate),
+          endDate: this.formatDateForInput(event.endDate),
           location: event.location,
           status: event.status
         });
@@ -80,22 +97,40 @@ export class EventForm implements OnInit {
       return;
     }
 
-    const formValue: EventRequestDto = this.eventForm.value;
+    const formValue = this.eventForm.value;
+    const currentUser = this.authService.getCurrentUser();
+    const ownerId = currentUser ? currentUser.id : 1;
 
-    if (this.isEditMode && this.eventId) {
-      this.eventService.updateEvent(this.eventId, formValue).subscribe({
+    const dto: EventRequestDto = {
+      ownerId,
+      name: formValue.name,
+      description: formValue.description,
+      startDate: this.formatToIsoDateTime(formValue.startDate),
+      endDate: this.formatToIsoDateTime(formValue.endDate),
+      location: formValue.location,
+      status: formValue.status
+    };
+
+    if (this.isEditMode) {
+      const nameParam = this.originalEventName || dto.name;
+      this.eventService.updateEvent(nameParam, dto).subscribe({
         next: () => this.router.navigate(['/events']),
-        error: (err) => console.error('Error al actualizar evento', err)
+        error: (err) => {
+          const errMsg = err?.error?.message || err?.message || 'Error al actualizar evento';
+          alert(errMsg);
+        }
       });
     } else {
-      this.eventService.createEvent(formValue).subscribe({
+      this.eventService.createEvent(dto).subscribe({
         next: () => this.router.navigate(['/events']),
-        error: (err) => console.error('Error al crear evento', err)
+        error: (err) => {
+          const errMsg = err?.error?.message || err?.message || 'Error al crear evento';
+          alert(errMsg);
+        }
       });
     }
   }
 
-  
   isFieldInvalid(field: string): boolean {
     const control = this.eventForm.get(field);
     return !!(control && control.invalid && (control.dirty || control.touched));
