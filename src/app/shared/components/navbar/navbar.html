@@ -1,5 +1,4 @@
-<nav 
-  class="navbar" 
+<nav class="navbar" 
   [class.scrolled]="isScrolled()"
   [class.navbar-dark]="darkMode()"
   role="navigation"
@@ -24,7 +23,7 @@
     </ul>
 
     <div class="navbar-actions">
-      @if (!isAuthenticated) {
+      @if (!isAuthenticated()) {
         <button class="btn btn-ghost btn-sm" (click)="goToLogin()">
           Iniciar Sesión
         </button>
@@ -33,8 +32,8 @@
         </button>
       } @else {
         <div class="user-menu">
-          <span class="user-avatar">{{ userName.charAt(0) }}</span>
-          <span class="user-name">{{ userName }}</span>
+          <span class="user-avatar">{{ userName().charAt(0) }}</span>
+          <span class="user-name">{{ userName() }}</span>
           <button class="btn btn-ghost btn-sm" (click)="goToProfile()">
             Mi Perfil
           </button>
@@ -79,7 +78,7 @@
       </ul>
       
       <div class="navbar-mobile-actions">
-        @if (!isAuthenticated) {
+        @if (!isAuthenticated()) {
           <button class="btn btn-primary btn-block" (click)="goToRegister()">
             Registrarse
           </button>

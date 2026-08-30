@@ -1,9 +1,11 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './features/auth/guards/auth.guard';
+import { RedirectGuard } from './features/auth/guards/redirect.guard';
 
 export const routes: Routes = [
   {
     path: '',
+    canActivate: [RedirectGuard],
     loadComponent: () => import('./pages/home/home').then(m => m.HomeComponent)
   },
   {

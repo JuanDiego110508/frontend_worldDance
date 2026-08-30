@@ -2,6 +2,7 @@ import { Component, signal, HostListener, input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../features/auth/services/auth.service';
+import { Subscription } from 'rxjs';
 
 interface NavItem {
   label: string;
@@ -18,11 +19,16 @@ interface NavItem {
 export class NavbarComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private authSubscription?: Subscription;
+
   
   darkMode = input<boolean>(false);
   
   isMenuOpen = signal<boolean>(false);
   isScrolled = signal<boolean>(false);
+  isAuthenticated = signal<boolean>(false);
+  userName = signal<string>('Usuario');
+
 
   navItems: NavItem[] = [
     { label: 'Inicio', route: '/' },
@@ -30,28 +36,35 @@ export class NavbarComponent {
     { label: 'Rankings', route: '/rankings' },
   ];
 
-  get isAuthenticated(): boolean {
-    return this.authService.isAuthenticated();
+  ngOnInit(): void {
+    this.updateAuthState();
+    this.authSubscription = this.authService.authStatus$.subscribe(() => {
+      this.updateAuthState();
+    });
   }
 
-  get userName(): string {
-    const user = this.authService.getCurrentUser();
-    if (user) {
-      /* Usar solo los campos que existen en la interfaz User */
-      const firstName = user.firstName || '';
-      const lastName = user.lastName || '';
-      const fullName = `${firstName} ${lastName}`.trim();
-      return fullName || user.email || 'Usuario';
+  ngOnDestroy(): void {
+    this.authSubscription?.unsubscribe();
+  }
+
+  updateAuthState(): void {
+    this.isAuthenticated.set(this.authService.isAuthenticated());
+      if(this.isAuthenticated()) {
+        const currentUser = this.authService.getCurrentUser();
+        if (currentUser) {
+          const firstName = currentUser.firstName || '';
+          const lastName = currentUser.lastName || '';
+          const fullName = `${firstName} ${lastName}`.trim();
+          this.userName.set(fullName || currentUser.email || 'Usuario');
+        }
+      }
     }
-    return 'Usuario';
-  }
-
   toggleMenu(): void {
     this.isMenuOpen.update(value => !value);
   }
 
   closeMenu(): void {
-    this.isMenuOpen.set(false);
+    this.isMenuOpen.set(false); 
   }
 
   @HostListener('window:scroll', [])
@@ -75,14 +88,15 @@ export class NavbarComponent {
     this.closeMenu();
   }
 
-  logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/']);
+  goToDashboard(): void {
+    this.router.navigate(['/dashboard']);
     this.closeMenu();
   }
 
-  goToDashboard(): void {
-    this.router.navigate(['/dashboard']);
+  logout(): void {
+    this.authService.logout();
+    this.updateAuthState();
+    this.router.navigate(['/']);
     this.closeMenu();
   }
 }
