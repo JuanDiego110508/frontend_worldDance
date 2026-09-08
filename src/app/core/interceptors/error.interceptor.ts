@@ -1,43 +1,37 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { catchError, throwError } from 'rxjs';
 import { TokenService } from '../../features/auth/services/token.service';
 
-@Injectable()
-export class ErrorInterceptor implements HttpInterceptor {
-  private router = inject(Router);
-  private tokenService = inject(TokenService);
+/** Traduce errores HTTP a mensajes en español y cierra la sesión si el token expiró. */
+export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+  const router = inject(Router);
+  const tokenService = inject(TokenService);
 
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    return next.handle(request).pipe(
-      catchError(error => {
-        let errorMessage = 'Ocurrió un error inesperado';
+  return next(req).pipe(
+    catchError((error: HttpErrorResponse) => {
+      let message = 'Ocurrió un error inesperado.';
 
-        if (error.status === 401) {
-          /* Token expirado o inválido */
-          this.tokenService.clearAll();
-          this.router.navigate(['/auth/login'], { 
-            queryParams: { sessionExpired: 'true' } 
-          });
-          errorMessage = 'Tu sesión ha expirado. Por favor inicia sesión nuevamente';
-        } else if (error.status === 403) {
-          errorMessage = 'No tienes permisos para realizar esta acción';
-        } else if (error.status === 404) {
-          errorMessage = 'El recurso solicitado no existe';
-        } else if (error.status === 500) {
-          errorMessage = 'Error interno del servidor';
-        } else if (error.error?.message) {
-          errorMessage = error.error.message;
-        }
+      if (error.status === 401) {
+        tokenService.clearAll();
+        router.navigate(['/auth/login'], { queryParams: { sessionExpired: 'true' } });
+        message = 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.';
+      } else if (error.status === 403) {
+        message = 'No tienes permisos para realizar esta acción.';
+      } else if (error.status === 404) {
+        message = 'El recurso solicitado no existe.';
+      } else if (error.status === 0) {
+        message = 'No fue posible contactar al servidor.';
+      } else if (error.status >= 500) {
+        message = 'Error interno del servidor.';
+      } else if (typeof error.error === 'string' && error.error) {
+        message = error.error;
+      } else if (error.error?.message) {
+        message = error.error.message;
+      }
 
-        return throwError(() => ({ 
-          status: error.status,
-          message: errorMessage,
-          details: error.error
-        }));
-      })
-    );
-  }
-}
+      return throwError(() => Object.assign(new Error(message), { status: error.status }));
+    })
+  );
+};

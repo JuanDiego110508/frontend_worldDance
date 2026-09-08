@@ -4,38 +4,39 @@
     <div class="page-header">
       <h1>Gestión de Inscripciones</h1>
       <p class="subtitle">
-        @if (eventId()) {
-          Inscripciones para el evento seleccionado
-        } @else {
-          Todas las inscripciones de tus eventos
-        }
+        El backend permite consultar inscripciones por categoría de danza.
       </p>
     </div>
 
     <!-- Filtros -->
     <div class="filters-section">
       <div class="search-box">
-        <input 
-          type="text" 
-          placeholder="Buscar participante, categoría o evento..."
-          (input)="onSearch($event)"
+        <select
+          [ngModel]="category()"
+          (ngModelChange)="onCategoryChange($event)"
+          aria-label="Filtrar por categoría"
         >
+          <option [ngValue]="null">Selecciona una categoría</option>
+          @for (option of categoryOptions; track option) {
+            <option [ngValue]="option">{{ categoryLabels[option] }}</option>
+          }
+        </select>
       </div>
-      
+
       <div class="status-filters">
-        <button 
+        <button
           class="status-btn"
           [class.active]="statusFilter() === 'all'"
-          (click)="setFilter('all')"
+          (click)="statusFilter.set('all')"
         >
           Todos
         </button>
         @for (option of statusOptions; track option.value) {
-          <button 
+          <button
             class="status-btn"
             [class.active]="statusFilter() === option.value"
             [class]="option.class"
-            (click)="setFilter(option.value)"
+            (click)="statusFilter.set(option.value)"
           >
             {{ option.label }}
           </button>
@@ -61,30 +62,29 @@
 
     <!-- Tabla de inscripciones -->
     @if (!isLoading() && !errorMessage()) {
-      @if (filteredEnrollments().length > 0) {
+      @if (!category()) {
+        <div class="empty-state">
+          <p>Selecciona una categoría para ver sus inscripciones.</p>
+        </div>
+      } @else if (filteredEnrollments().length > 0) {
         <div class="table-wrapper">
           <table class="enrollment-table">
             <thead>
               <tr>
-                <th>Participante</th>
+                <th>Usuario</th>
                 <th>Evento</th>
-                <th>Categoría</th>
+                <th>Modalidad</th>
                 <th>Estado</th>
                 <th>Fecha</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              @for (enrollment of filteredEnrollments(); track enrollment.id) {
+              @for (enrollment of filteredEnrollments(); track enrollment.enrollmentId) {
                 <tr>
-                  <td>
-                    <div class="participant-info">
-                      <strong>{{ enrollment.participant?.fullName || 'N/A' }}</strong>
-                      <span class="participant-email">{{ enrollment.participant?.email || '' }}</span>
-                    </div>
-                  </td>
-                  <td>{{ enrollment.eventName || '-' }}</td>
-                  <td>{{ enrollment.categoryName || '-' }}</td>
+                  <td>#{{ enrollment.userId }}</td>
+                  <td>#{{ enrollment.eventId }}</td>
+                  <td>#{{ enrollment.modalityId }}</td>
                   <td>
                     <span class="status-badge" [class]="getStatusClass(enrollment.status)">
                       {{ getStatusLabel(enrollment.status) }}
@@ -94,16 +94,13 @@
                   <td>
                     <div class="action-buttons">
                       @if (enrollment.status === 'PENDING') {
-                        <button class="btn btn-success btn-sm" (click)="updateStatus(enrollment, 'APPROVED')">
+                        <button class="btn btn-success btn-sm" (click)="approve(enrollment)">
                           Aprobar
                         </button>
-                        <button class="btn btn-danger btn-sm" (click)="updateStatus(enrollment, 'REJECTED')">
+                        <button class="btn btn-danger btn-sm" (click)="reject(enrollment)">
                           Rechazar
                         </button>
                       }
-                      <button class="btn btn-ghost btn-sm" (click)="deleteEnrollment(enrollment.id!)">
-                        Eliminar
-                      </button>
                     </div>
                   </td>
                 </tr>
@@ -113,7 +110,7 @@
         </div>
       } @else {
         <div class="empty-state">
-          <p>No hay inscripciones que coincidan con tu búsqueda.</p>
+          <p>No hay inscripciones que coincidan con el filtro seleccionado.</p>
         </div>
       }
     }

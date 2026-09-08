@@ -21,15 +21,17 @@
         </span>
         <div class="avatar-info">
           <div class="user-name">{{ user()?.firstName }} {{ user()?.lastName }}</div>
-          <span class="user-role">{{ user()?.role || 'Usuario' }}</span>
         </div>
       </div>
 
-      <div class="profile-form">
+      <div class="profile-form" [formGroup]="editForm">
         <div class="form-group">
           <label>Nombre</label>
           @if (isEditMode()) {
-            <input type="text" [(ngModel)]="editData.firstName" placeholder="Tu nombre">
+            <input type="text" formControlName="firstName" placeholder="Tu nombre">
+            @if (isFieldInvalid('firstName')) {
+              <span class="field-error">El nombre es obligatorio</span>
+            }
           } @else {
             <p class="field-value">{{ user()?.firstName || '-' }}</p>
           }
@@ -38,7 +40,10 @@
         <div class="form-group">
           <label>Apellido</label>
           @if (isEditMode()) {
-            <input type="text" [(ngModel)]="editData.lastName" placeholder="Tu apellido">
+            <input type="text" formControlName="lastName" placeholder="Tu apellido">
+            @if (isFieldInvalid('lastName')) {
+              <span class="field-error">El apellido es obligatorio</span>
+            }
           } @else {
             <p class="field-value">{{ user()?.lastName || '-' }}</p>
           }
@@ -47,7 +52,10 @@
         <div class="form-group">
           <label>Número de documento</label>
           @if (isEditMode()) {
-            <input type="text" [(ngModel)]="editData.documentNumber" placeholder="Tu documento">
+            <input type="text" formControlName="documentNumber" placeholder="Tu documento">
+            @if (isFieldInvalid('documentNumber')) {
+              <span class="field-error">Debe contener solo números, entre 6 y 20 dígitos</span>
+            }
           } @else {
             <p class="field-value">{{ user()?.documentNumber || '-' }}</p>
           }
@@ -56,7 +64,10 @@
         <div class="form-group">
           <label>Correo electrónico</label>
           @if (isEditMode()) {
-            <input type="email" [(ngModel)]="editData.email" placeholder="Tu correo">
+            <input type="email" formControlName="email" placeholder="Tu correo">
+            @if (isFieldInvalid('email')) {
+              <span class="field-error">Ingresa un correo electrónico válido</span>
+            }
           } @else {
             <p class="field-value">{{ user()?.email || '-' }}</p>
           }

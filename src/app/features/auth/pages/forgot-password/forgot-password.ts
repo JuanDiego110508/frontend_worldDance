@@ -1,28 +1,33 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule],
   templateUrl: './forgot-password.html',
-  styleUrls: ['./forgot-password.scss']
+  styleUrls: ['./forgot-password.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ForgotPasswordComponent {
-  private authService = inject(AuthService);
+  private readonly authService = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
 
-  email = '';
-  isLoading = signal<boolean>(false);
-  errorMessage = signal<string>('');
-  successMessage = signal<string>('');
-  emailSent = signal<boolean>(false);
+  readonly forgotForm = this.fb.nonNullable.group({
+    email: ['', [Validators.required, Validators.email]]
+  });
+
+  isLoading = signal(false);
+  errorMessage = signal('');
+  successMessage = signal('');
+  emailSent = signal(false);
 
   onSubmit(): void {
-    if (!this.email) {
-      this.errorMessage.set('Por favor ingresa tu correo electrónico');
+    if (this.forgotForm.invalid) {
+      this.forgotForm.markAllAsTouched();
       return;
     }
 
@@ -30,17 +35,22 @@ export class ForgotPasswordComponent {
     this.errorMessage.set('');
     this.successMessage.set('');
 
-    /* Simulación del envío de correo */
-    this.authService.requestPasswordReset(this.email).subscribe({
-      next: () => {
+    /* ms-auth-identityservice no implementa recuperación de contraseña: flujo simulado. */
+    this.authService.requestPasswordReset(this.forgotForm.getRawValue().email).subscribe({
+      next: (response) => {
         this.isLoading.set(false);
         this.emailSent.set(true);
-        this.successMessage.set('Hemos enviado un enlace de recuperación a tu correo');
+        this.successMessage.set(response.message);
       },
       error: (error) => {
         this.isLoading.set(false);
-        this.errorMessage.set(error.message || 'Error al enviar el correo de recuperación');
+        this.errorMessage.set(error?.message ?? 'Error al enviar el correo de recuperación');
       }
     });
+  }
+
+  isFieldInvalid(field: string): boolean {
+    const control = this.forgotForm.get(field);
+    return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }

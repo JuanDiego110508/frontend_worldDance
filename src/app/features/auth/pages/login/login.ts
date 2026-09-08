@@ -1,57 +1,62 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule],
   templateUrl: './login.html',
-  styleUrls: ['./login.scss']
+  styleUrls: ['./login.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LoginComponent {
-  private authService = inject(AuthService);
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
 
-  /* Variables que guardan lo que el usuario escribe en el formulario */
-  email = '';
-  password = '';
-  rememberMe = false;
-  
-  /* Estados para controlar la interfaz mientras se procesa la petición */
-  isLoading = signal<boolean>(false);
-  errorMessage = signal<string>('');
-  showPassword = signal<boolean>(false);
+  /* El backend (LoginRequestDto) exige contraseña de al menos 8 caracteres. */
+  readonly loginForm = this.fb.nonNullable.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
+    rememberMe: [false]
+  });
 
-  /* Función que se ejecuta cuando el usuario hace clic en "Iniciar Sesión" */
+  isLoading = signal(false);
+  errorMessage = signal('');
+  showPassword = signal(false);
+
   onSubmit(): void {
-    /* Validamos que los campos no estén vacíos */
-    if (!this.email || !this.password) {
-      this.errorMessage.set('Por favor completa todos los campos');
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
       return;
     }
 
     this.isLoading.set(true);
     this.errorMessage.set('');
 
-    /* Llamamos al servicio de autenticación para iniciar sesión */
-    this.authService.login(this.email, this.password).subscribe({
+    const { email, password } = this.loginForm.getRawValue();
+
+    this.authService.login(email, password).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.router.navigate(['/dashboard']);
       },
       error: (error) => {
         this.isLoading.set(false);
-        this.errorMessage.set(error.message || 'Error al iniciar sesión');
+        this.errorMessage.set(error?.message ?? 'Error al iniciar sesión');
       }
     });
   }
 
-  /* Función para mostrar u ocultar la contraseña en el campo de texto */
   togglePasswordVisibility(): void {
     this.showPassword.update(value => !value);
+  }
+
+  isFieldInvalid(field: string): boolean {
+    const control = this.loginForm.get(field);
+    return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }

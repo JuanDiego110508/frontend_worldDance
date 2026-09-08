@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -21,9 +21,10 @@ import { EventResponseDto } from '../../models/event.model';
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink],
   templateUrl: './modality-config.html',
-  styleUrls: ['./modality-config.scss']
+  styleUrls: ['./modality-config.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ModalityConfig implements OnInit {
+export class ModalityConfigComponent implements OnInit {
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private modalityService = inject(ModalityService);

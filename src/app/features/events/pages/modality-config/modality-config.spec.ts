@@ -1,17 +1,26 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 
-import { ModalityConfig } from './modality-config';
+import { ModalityConfigComponent } from './modality-config';
 
-describe('ModalityConfig', () => {
-  let component: ModalityConfig;
-  let fixture: ComponentFixture<ModalityConfig>;
+describe('ModalityConfigComponent', () => {
+  let component: ModalityConfigComponent;
+  let fixture: ComponentFixture<ModalityConfigComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ModalityConfig],
+      imports: [ModalityConfigComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({}) } } }
+      ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ModalityConfig);
+    fixture = TestBed.createComponent(ModalityConfigComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
