@@ -7,96 +7,59 @@
       </div>
       <h1>Inscripción a Evento</h1>
       <p class="enrollment-subtitle">
-        Completa tus datos para inscribirte
+        Selecciona la modalidad en la que deseas participar
       </p>
     </div>
 
-    <form (ngSubmit)="onSubmit()" #enrollmentForm="ngForm" class="enrollment-form">
-      <div class="form-group">
-        <label for="fullName">Nombre completo / Nombre del grupo *</label>
-        <input 
-          type="text" 
-          id="fullName"
-          [(ngModel)]="participant.fullName"
-          name="fullName"
-          placeholder="Ej: Juan Pérez o Grupo Étnico"
-          required
-        >
+    @if (isLoading()) {
+      <div class="loading-state">
+        <span class="spinner"></span>
+        Cargando modalidades del evento...
       </div>
-
-      <div class="form-row">
+    } @else {
+      <form (ngSubmit)="onSubmit()" class="enrollment-form">
         <div class="form-group">
-          <label for="email">Correo electrónico *</label>
-          <input 
-            type="email" 
-            id="email"
-            [(ngModel)]="participant.email"
-            name="email"
-            placeholder="contacto@ejemplo.com"
-            required
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="phone">Teléfono</label>
-          <input 
-            type="text" 
-            id="phone"
-            [(ngModel)]="participant.phone"
-            name="phone"
-            placeholder="3001234567"
-          >
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="institution">Institución / Academia</label>
-        <input 
-          type="text" 
-          id="institution"
-          [(ngModel)]="participant.institution"
-          name="institution"
-          placeholder="Ej: Academia Danza Moderna"
-        >
-      </div>
-
-      <div class="form-group">
-        <label for="categoryId">Categoría *</label>
-        <select 
-          id="categoryId"
-          [(ngModel)]="enrollment.categoryId"
-          name="categoryId"
-          required
-        >
-          <option value="">Selecciona una categoría</option>
-          @for (category of categories(); track category.id) {
-            <option [value]="category.id">
-              {{ category.name }}
-            </option>
+          <label for="modalityId">Modalidad *</label>
+          @if (modalities().length === 0) {
+            <p class="empty-hint">Este evento aún no tiene modalidades registradas.</p>
+          } @else {
+            <select
+              id="modalityId"
+              name="modalityId"
+              [(ngModel)]="selectedModalityId"
+              required
+            >
+              <option [ngValue]="null">Selecciona una modalidad</option>
+              @for (modality of modalities(); track modality.id) {
+                <option [ngValue]="modality.id">
+                  {{ categoryLabels[modality.category] }} · {{ divisionLabels[modality.division] }} · {{ modality.style }} ({{ modality.minAge }}-{{ modality.maxAge }} años)
+                </option>
+              }
+            </select>
           }
-        </select>
-      </div>
+        </div>
 
-      @if (errorMessage()) {
-        <div class="error-message">{{ errorMessage() }}</div>
-      }
-      @if (successMessage()) {
-        <div class="success-message">{{ successMessage() }}</div>
-      }
-
-      <button 
-        type="submit" 
-        class="btn btn-primary btn-block btn-lg"
-        [disabled]="isSaving()"
-      >
-        @if (isSaving()) {
-          <span class="spinner"></span>
-          Procesando...
-        } @else {
-          Inscribirse
+        @if (errorMessage()) {
+          <div class="error-message">{{ errorMessage() }}</div>
         }
-      </button>
-    </form>
+        @if (successMessage()) {
+          <div class="success-message">{{ successMessage() }}</div>
+        }
+
+        <button
+          type="submit"
+          class="btn btn-primary btn-block btn-lg"
+          [disabled]="isSaving() || modalities().length === 0"
+        >
+          @if (isSaving()) {
+            <span class="spinner"></span>
+            Procesando...
+          } @else {
+            Inscribirse
+          }
+        </button>
+      </form>
+    }
 
     <div class="enrollment-footer">
       <p>

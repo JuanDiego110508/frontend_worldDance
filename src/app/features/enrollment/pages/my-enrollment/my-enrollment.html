@@ -9,16 +9,8 @@
     </div>
 
     <div class="filters-section">
-      <div class="search-box">
-        <input 
-          type="text" 
-          placeholder="Buscar evento o categoría..."
-          (input)="onSearch($event)"
-        >
-      </div>
-      
       <div class="status-filters">
-        <button 
+        <button
           class="status-btn"
           [class.active]="statusFilter() === 'all'"
           (click)="setFilter('all')"
@@ -26,7 +18,7 @@
           Todos
         </button>
         @for (option of statusOptions; track option.value) {
-          <button 
+          <button
             class="status-btn"
             [class.active]="statusFilter() === option.value"
             [class]="option.class"
@@ -55,19 +47,19 @@
     @if (!isLoading() && !errorMessage()) {
       @if (filteredEnrollments().length > 0) {
         <div class="enrollments-grid">
-          @for (enrollment of filteredEnrollments(); track enrollment.id) {
+          @for (enrollment of filteredEnrollments(); track enrollment.enrollmentId) {
             <div class="enrollment-card">
               <div class="enrollment-header">
-                <h3>{{ enrollment.eventName || 'Evento sin nombre' }}</h3>
+                <h3>{{ eventLabel(enrollment.eventId) }}</h3>
                 <span class="status-badge" [class]="getStatusClass(enrollment.status)">
                   {{ getStatusLabel(enrollment.status) }}
                 </span>
               </div>
-              
+
               <div class="enrollment-body">
                 <div class="enrollment-info">
-                  <span class="info-label">Categoría</span>
-                  <span class="info-value">{{ enrollment.categoryName || '-' }}</span>
+                  <span class="info-label">Modalidad</span>
+                  <span class="info-value">#{{ enrollment.modalityId }}</span>
                 </div>
                 <div class="enrollment-info">
                   <span class="info-label">Fecha de inscripción</span>
@@ -77,9 +69,7 @@
 
               <div class="enrollment-actions">
                 @if (enrollment.status === 'PENDING') {
-                  <button class="btn btn-danger btn-sm" (click)="cancelEnrollment(enrollment.id!)">
-                    Cancelar inscripción
-                  </button>
+                  <span class="pending-message">⏳ Pendiente de aprobación</span>
                 }
                 @if (enrollment.status === 'APPROVED') {
                   <span class="approved-message">✅ Inscripción confirmada</span>

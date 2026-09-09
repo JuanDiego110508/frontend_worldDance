@@ -1,0 +1,9 @@
+@if (overlay(); as data) {
+  @if (data.isActive) {
+    <div class="overlay-marker">
+      <span class="overlay-slot">{{ data.currentSlotId }}</span>
+      <span class="overlay-name">{{ data.participantLabel }}</span>
+      <span class="overlay-score">{{ data.realTimeScore }}</span>
+    </div>
+  }
+}

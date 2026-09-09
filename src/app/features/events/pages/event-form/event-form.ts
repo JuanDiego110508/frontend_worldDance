@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -12,26 +12,25 @@ import { EventRequestDto } from '../../models/event.model';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './event-form.html',
-  styleUrl: './event-form.scss'
+  styleUrl: './event-form.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EventForm implements OnInit {
+export class EventFormComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly eventService = inject(EventService);
+  private readonly authService = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+
   eventForm!: FormGroup;
   isEditMode = false;
   eventId: number | null = null;
   originalEventName: string = '';
-  
+
   statusOptions = Object.keys(EventStatus).map((key) => ({
     value: key,
     label: EVENT_STATUS_LABELS[key as EventStatus]
   }));
-
-  constructor(
-    private fb: FormBuilder,
-    private eventService: EventService,
-    private authService: AuthService,
-    private route: ActivatedRoute,
-    private router: Router
-  ) {}
 
   ngOnInit(): void {
     this.initForm();
@@ -74,7 +73,7 @@ export class EventForm implements OnInit {
   private loadEventData(id: number): void {
     this.eventService.getEventById(id).subscribe({
       next: (event) => {
-        this.originalEventName = event.name || event.title || '';
+        this.originalEventName = event.name;
         this.eventForm.patchValue({
           name: this.originalEventName,
           description: event.description,
@@ -115,18 +114,12 @@ export class EventForm implements OnInit {
       const nameParam = this.originalEventName || dto.name;
       this.eventService.updateEvent(nameParam, dto).subscribe({
         next: () => this.router.navigate(['/events']),
-        error: (err) => {
-          const errMsg = err?.error?.message || err?.message || 'Error al actualizar evento';
-          alert(errMsg);
-        }
+        error: (err) => alert(err?.message ?? 'Error al actualizar evento')
       });
     } else {
       this.eventService.createEvent(dto).subscribe({
         next: () => this.router.navigate(['/events']),
-        error: (err) => {
-          const errMsg = err?.error?.message || err?.message || 'Error al crear evento';
-          alert(errMsg);
-        }
+        error: (err) => alert(err?.message ?? 'Error al crear evento')
       });
     }
   }

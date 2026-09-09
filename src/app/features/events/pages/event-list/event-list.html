@@ -42,7 +42,7 @@
 
       <!-- Cuerpo de la Tarjeta -->
       <div class="card-body">
-        <h2 class="event-title">{{ event.name || event.title }}</h2>
+        <h2 class="event-title">{{ event.name }}</h2>
         <p class="event-description">{{ event.description }}</p>
 
         <div class="event-details">
@@ -65,13 +65,13 @@
 
       <!-- Footer de la Tarjeta -->
       <div class="card-footer">
-        <a [routerLink]="['/events', event.id || event.IdEvent, 'modalities']" class="btn-outline">
+        <a [routerLink]="['/events', event.idEvent, 'modalities']" class="btn-outline">
           Ver Modalidades
         </a>
 
         <!-- Acciones de edición/eliminación sólo si es propietario -->
         <div class="admin-actions" *ngIf="isOwner(event)">
-          <a [routerLink]="['/events/edit', event.id || event.IdEvent]" class="btn-icon" title="Editar evento">
+          <a [routerLink]="['/events/edit', event.idEvent]" class="btn-icon" title="Editar evento">
             <img src="icons8-edit-pencil.svg" alt="Editar" class="icon-action" />
           </a>
           <button type="button" (click)="onDeleteEvent(event)" class="btn-icon" title="Eliminar evento">

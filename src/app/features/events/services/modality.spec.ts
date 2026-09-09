@@ -1,13 +1,17 @@
 import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { Modality } from './modality';
+import { ModalityService } from './modality';
 
-describe('Modality', () => {
-  let service: Modality;
+describe('ModalityService', () => {
+  let service: ModalityService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(Modality);
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()]
+    });
+    service = TestBed.inject(ModalityService);
   });
 
   it('should be created', () => {

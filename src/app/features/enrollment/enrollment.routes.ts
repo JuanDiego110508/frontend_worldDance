@@ -8,14 +8,9 @@ export const ENROLLMENT_ROUTES: Routes = [
     loadComponent: () => import('./pages/enrollment-list/enrollment-list').then(m => m.EnrollmentListComponent)
   },
   {
-    path: 'event/:eventId',
+    path: 'category/:category',
     canActivate: [AuthGuard],
     loadComponent: () => import('./pages/enrollment-list/enrollment-list').then(m => m.EnrollmentListComponent)
-  },
-  {
-    path: 'new',
-    canActivate: [AuthGuard],
-    loadComponent: () => import('./pages/enrollment-form/enrollment-form').then(m => m.EnrollmentFormComponent)
   },
   {
     path: 'new/:eventId',

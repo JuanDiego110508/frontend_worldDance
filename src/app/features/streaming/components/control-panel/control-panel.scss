@@ -1,0 +1,67 @@
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wd-spacing-4);
+  background: var(--wd-bg-card);
+  border: 1px solid var(--wd-border-color);
+  border-radius: var(--wd-radius-lg);
+  padding: var(--wd-spacing-5);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wd-spacing-3);
+}
+
+.live-badge {
+  font-weight: 700;
+  font-size: var(--wd-font-size-sm);
+  letter-spacing: 0.05em;
+  color: var(--wd-gray-500);
+  padding: var(--wd-spacing-1) var(--wd-spacing-3);
+  border-radius: var(--wd-radius-full);
+  background: var(--wd-bg-ghost-hover);
+}
+
+.live-badge.is-live {
+  color: var(--wd-red);
+  background: var(--wd-red-light);
+  animation: fadeIn 0.3s ease;
+}
+
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--wd-spacing-3);
+  padding: var(--wd-spacing-3);
+  background: var(--wd-bg-body);
+  border-radius: var(--wd-radius-md);
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--wd-spacing-1);
+}
+
+.metric-label {
+  font-size: var(--wd-font-size-xs);
+  color: var(--wd-text-muted);
+  text-transform: uppercase;
+}
+
+.metric-value {
+  font-size: var(--wd-font-size-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--wd-text-heading);
+}
+
+.panel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wd-spacing-2);
+}

@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth.service';
 import { TokenService } from './token.service';
-import { firstValueFrom } from 'rxjs';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -10,13 +11,10 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [AuthService, TokenService]
+      providers: [provideHttpClient(), provideHttpClientTesting(), AuthService, TokenService]
     });
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);
-        (service as any).useMock = false;
-
   });
 
   afterEach(() => {
@@ -27,34 +25,32 @@ describe('AuthService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('Debe iniciar sesión correctamente', async () => {
-    const mockResponse = {
-      token: 'mock-token-123',
-      user: {
-        id: 1,
-        firstName: 'Juan',
-        lastName: 'Pérez',
-        documentNumber: '123456789',
-        email: 'test@example.com',
-        role: 'participant',
-        active: true
-      }
-    };
+  it('Debe iniciar sesión correctamente y decodificar el userId/email del JWT', async () => {
+    // Header + payload {"sub":"test@example.com","userId":1,"iat":0,"exp":9999999999} + firma dummy
+    const fakeJwt =
+      'eyJhbGciOiJIUzI1NiJ9.' +
+      btoa(JSON.stringify({ sub: 'test@example.com', userId: 1, iat: 0, exp: 9999999999 })) +
+      '.signature';
 
-    // Llamamos al servicio y guardamos la promesa
-    const responsePromise = firstValueFrom(service.login('test@example.com', '123456'));
+    const responsePromise = firstValueFrom(service.login('test@example.com', 'password123'));
 
-    // Interceptamos la petición HTTP
-    const req = httpMock.expectOne('http://localhost:8080/api/auth/login');
+    const req = httpMock.expectOne('http://localhost:8080/api/v1/auth/login');
     expect(req.request.method).toBe('POST');
-    
-    // Respondemos con los datos simulados
-    req.flush(mockResponse);
+    req.flush({ data: { jwt: fakeJwt }, message: 'Inicio de sesión exitoso' });
 
-    // Esperamos la respuesta
-    const response = await responsePromise;
-    expect(response.token).toBe('mock-token-123');
-    expect(response.user.email).toBe('test@example.com');
+    const user = await responsePromise;
+    expect(user.id).toBe(1);
+    expect(user.email).toBe('test@example.com');
+    expect(service.isAuthenticated()).toBe(true);
+  });
+
+  it('Debe rechazar el login cuando el backend responde 202 con data null', async () => {
+    const responsePromise = firstValueFrom(service.login('test@example.com', 'wrongpass'));
+
+    const req = httpMock.expectOne('http://localhost:8080/api/v1/auth/login');
+    req.flush({ data: null, message: 'Correo o contraseña son incorrectos' });
+
+    await expect(responsePromise).rejects.toThrow('Correo o contraseña son incorrectos');
   });
 
   it('Debe registrar un usuario correctamente', async () => {
@@ -63,38 +59,26 @@ describe('AuthService', () => {
       lastName: 'User',
       documentNumber: '123456789',
       email: 'test@example.com',
-      password: '123456'
-    };
-
-    const mockResponse = {
-      message: 'Usuario registrado exitosamente',
-      userId: 1
+      password: '12345678'
     };
 
     const responsePromise = firstValueFrom(service.register(mockData));
 
-    const req = httpMock.expectOne('http://localhost:8080/api/auth/register');
+    const req = httpMock.expectOne('http://localhost:8080/api/v1/auth/register');
     expect(req.request.method).toBe('POST');
-    req.flush(mockResponse);
+    req.flush({
+      id: 1,
+      firstName: 'Test',
+      lastName: 'User',
+      documentNumber: '123456789',
+      email: 'test@example.com',
+      active: true,
+      message: 'Usuario registrado exitosamente'
+    });
 
     const response = await responsePromise;
     expect(response.message).toBe('Usuario registrado exitosamente');
-    expect(response.userId).toBe(1);
-  });
-
-  it('Debe manejar error de login con credenciales incorrectas', async () => {
-    const responsePromise = firstValueFrom(service.login('test@example.com', 'wrong'));
-
-    const req = httpMock.expectOne('http://localhost:8080/api/auth/login');
-    req.flush({ message: 'Credenciales incorrectas' }, { status: 401, statusText: 'Unauthorized' });
-
-    try {
-      await responsePromise;
-      // Si llegamos aquí, la prueba falla
-      expect(true).toBe(false);
-    } catch (error: any) {
-      expect(error.message).toBe('Credenciales incorrectas');
-    }
+    expect(response.id).toBe(1);
   });
 
   it('Debe manejar error de registro con email duplicado', async () => {
@@ -103,20 +87,14 @@ describe('AuthService', () => {
       lastName: 'User',
       documentNumber: '123456789',
       email: 'admin@worlddance.com',
-      password: '123456'
+      password: '12345678'
     };
 
     const responsePromise = firstValueFrom(service.register(mockData));
 
-    const req = httpMock.expectOne('http://localhost:8080/api/auth/register');
-    req.flush({ message: 'El correo ya está registrado' }, { status: 400, statusText: 'Bad Request' });
+    const req = httpMock.expectOne('http://localhost:8080/api/v1/auth/register');
+    req.flush({ message: 'El correo ya se encuentra registrado' }, { status: 400, statusText: 'Bad Request' });
 
-    try {
-      await responsePromise;
-      // Si llegamos aquí, la prueba falla
-      expect(true).toBe(false);
-    } catch (error: any) {
-      expect(error.message).toBe('El correo ya está registrado');
-    }
+    await expect(responsePromise).rejects.toThrow('El correo ya se encuentra registrado');
   });
 });

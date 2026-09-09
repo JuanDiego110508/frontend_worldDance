@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, OnInit } from '@angular/core';
+import { Component, signal, computed, inject, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -12,9 +12,10 @@ import { AuthService } from '../../../auth/services/auth.service';
   standalone: true,
   imports: [CommonModule, NgClass, FormsModule, RouterLink],
   templateUrl: './event-list.html',
-  styleUrls: ['./event-list.scss']
+  styleUrls: ['./event-list.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EventList implements OnInit {
+export class EventListComponent implements OnInit {
   private eventService = inject(EventService);
   private authService = inject(AuthService);
 
@@ -51,7 +52,7 @@ export class EventList implements OnInit {
     if (!term) return events;
 
     return events.filter((event: EventResponseDto) => {
-      const nameStr = this.removeAccents(event.name || event.title);
+      const nameStr = this.removeAccents(event.name);
       const location = this.removeAccents(event.location);
       const description = this.removeAccents(event.description);
 
@@ -65,22 +66,12 @@ export class EventList implements OnInit {
   }
 
   onDeleteEvent(event: EventResponseDto): void {
-    const eventId = event.id ?? event.IdEvent ?? event.idEvent;
-    const ownerId = event.ownerId;
-    const eventName = event.name || event.title;
+    if (!event.idEvent) return;
 
-    if (!eventId) return;
-
-    if (confirm(`¿Estás seguro de eliminar el evento "${eventName}"?`)) {
-      this.eventService.deleteEvent(eventId, ownerId).subscribe({
-        next: (res) => {
-          if (res && res.message) {
-            alert(res.message);
-          }
-        },
+    if (confirm(`¿Estás seguro de eliminar el evento "${event.name}"?`)) {
+      this.eventService.deleteEvent(event.idEvent).subscribe({
         error: (err) => {
-          const errMsg = err?.error?.message || err?.message || 'Error al eliminar el evento';
-          alert(errMsg);
+          alert(err?.message ?? 'Error al eliminar el evento');
         }
       });
     }

@@ -1,0 +1,31 @@
+<div class="camera-preview">
+  <div class="preview-frame">
+    @if (!isCapturing()) {
+      <div class="preview-placeholder">
+        <span class="placeholder-icon">🎥</span>
+        <p>Sin señal local</p>
+      </div>
+    }
+    <video #previewVideo class="preview-video" autoplay playsinline muted [hidden]="!isCapturing()"></video>
+
+    @if (activeSource()) {
+      <span class="source-badge">{{ activeSource() === 'camera' ? '📷 Cámara' : '🖥️ Pantalla' }}</span>
+    }
+  </div>
+
+  @if (errorMessage()) {
+    <p class="capture-error">{{ errorMessage() }}</p>
+  }
+
+  <div class="capture-actions">
+    <button type="button" class="btn btn-outline btn-sm" (click)="startCamera()" [disabled]="isCapturing()">
+      Activar cámara
+    </button>
+    <button type="button" class="btn btn-outline btn-sm" (click)="startScreenShare()" [disabled]="isCapturing()">
+      Compartir pantalla
+    </button>
+    <button type="button" class="btn btn-danger btn-sm" (click)="stopCapture()" [disabled]="!isCapturing()">
+      Detener captura
+    </button>
+  </div>
+</div>

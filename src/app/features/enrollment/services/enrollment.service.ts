@@ -1,80 +1,63 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
-import { Enrollment, EnrollmentStatus } from '../models/enrollment.interface';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, catchError, throwError } from 'rxjs';
+import { environment } from '../../../../environments/environment';
+import { ModalityCategory } from '../../events/enums/event-enums';
+import {
+  ApproveEnrollmentRequestDto,
+  EnrollmentRequestDto,
+  EnrollmentResponseDto,
+  UserEventRoleResponseDto
+} from '../models/enrollment.interface';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EnrollmentService {
-  private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/enrollment';
-  private useMock = true;
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/enrollments`;
 
-  /* Obtener todas las inscripciones (organizador) */
-  getEnrollments(eventId?: number): Observable<Enrollment[]> {
-    if (this.useMock) {
-      return of(this.mockEnrollments()).pipe(delay(500));
-    }
-    const url = eventId ? `${this.apiUrl}?eventId=${eventId}` : this.apiUrl;
-    return this.http.get<Enrollment[]>(url);
+  private handleError(err: HttpErrorResponse) {
+    const message = err.error?.message ?? err.message ?? 'No fue posible comunicarse con el servidor de inscripciones.';
+    return throwError(() => new Error(message));
   }
 
-  /* Obtener inscripciones de un usuario (participante) */
-  getMyEnrollments(userId: number): Observable<Enrollment[]> {
-    if (this.useMock) {
-      return of(this.mockEnrollments().filter(e => e.participantId === userId)).pipe(delay(500));
-    }
-    return this.http.get<Enrollment[]>(`${this.apiUrl}/user/${userId}`);
+  /** El usuario se identifica vía header X-User-Id, inyectado por el API Gateway a partir del JWT. */
+  createEnrollment(data: EnrollmentRequestDto): Observable<EnrollmentResponseDto> {
+    return this.http.post<EnrollmentResponseDto>(`${this.apiUrl}/enrollment`, data).pipe(
+      catchError(err => this.handleError(err))
+    );
   }
 
-  /* Obtener una inscripción por ID */
-  getEnrollmentById(id: number): Observable<Enrollment> {
-    if (this.useMock) {
-      const enrollment = this.mockEnrollments().find(e => e.id === id);
-      return of(enrollment || this.mockEnrollments()[0]).pipe(delay(300));
-    }
-    return this.http.get<Enrollment>(`${this.apiUrl}/${id}`);
+  /** `reason` es obligatorio cuando status es REJECTED (lo valida el backend). */
+  approveOrReject(data: ApproveEnrollmentRequestDto): Observable<EnrollmentResponseDto> {
+    return this.http.patch<EnrollmentResponseDto>(`${this.apiUrl}/approve`, data).pipe(
+      catchError(err => this.handleError(err))
+    );
   }
 
-  /* Crear una nueva inscripción */
-  createEnrollment(data: Omit<Enrollment, 'id' | 'createdAt' | 'status'>): Observable<Enrollment> {
-    if (this.useMock) {
-      const newEnrollment: Enrollment = {
-        id: Math.floor(Math.random() * 1000),
-        ...data,
-        status: 'PENDING',
-        createdAt: new Date()
-      };
-      return of(newEnrollment).pipe(delay(800));
-    }
-    return this.http.post<Enrollment>(this.apiUrl, data);
+  /** El backend lista por categoría de danza, no por evento. */
+  getEnrollmentsByCategory(category: ModalityCategory): Observable<EnrollmentResponseDto[]> {
+    return this.http.get<EnrollmentResponseDto[]>(`${this.apiUrl}/category/${category}`).pipe(
+      catchError(err => this.handleError(err))
+    );
   }
 
-  /* Actualizar el estado de una inscripción (organizador) */
-  updateEnrollmentStatus(id: number, status: EnrollmentStatus): Observable<Enrollment> {
-    if (this.useMock) {
-      const enrollment = this.mockEnrollments().find(e => e.id === id);
-      const updated = { ...enrollment, status } as Enrollment;
-      return of(updated).pipe(delay(600));
-    }
-    return this.http.patch<Enrollment>(`${this.apiUrl}/${id}/status`, { status });
+  getMyEnrollments(): Observable<EnrollmentResponseDto[]> {
+    return this.http.get<EnrollmentResponseDto[]>(`${this.apiUrl}/my`).pipe(
+      catchError(err => this.handleError(err))
+    );
   }
 
-  /* Eliminar una inscripción */
-  deleteEnrollment(id: number): Observable<void> {
-    if (this.useMock) {
-      return of(void 0).pipe(delay(500));
-    }
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  getUserEventRole(eventId: number, userId: number): Observable<UserEventRoleResponseDto> {
+    return this.http.get<UserEventRoleResponseDto>(`${this.apiUrl}/events/${eventId}/users/${userId}/role`).pipe(
+      catchError(err => this.handleError(err))
+    );
   }
 
-  private mockEnrollments(): Enrollment[] {
-    return [
-      { id: 1, participantId: 1, categoryId: 1, categoryName: 'Danza Contemporánea', eventId: 1, eventName: 'Festival de Danza 2026', status: 'PENDING', createdAt: new Date('2026-08-20') },
-      { id: 2, participantId: 2, categoryId: 2, categoryName: 'Ballet', eventId: 1, eventName: 'Festival de Danza 2026', status: 'APPROVED', createdAt: new Date('2026-08-19') },
-      { id: 3, participantId: 3, categoryId: 3, categoryName: 'Folclor', eventId: 1, eventName: 'Festival de Danza 2026', status: 'REJECTED', createdAt: new Date('2026-08-18') }
-    ];
+  getEnrollmentById(id: number): Observable<EnrollmentResponseDto> {
+    return this.http.get<EnrollmentResponseDto>(`${this.apiUrl}/${id}`).pipe(
+      catchError(err => this.handleError(err))
+    );
   }
 }

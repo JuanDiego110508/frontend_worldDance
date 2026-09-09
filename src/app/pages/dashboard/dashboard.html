@@ -6,8 +6,7 @@
     </div>
 
     <div class="dashboard-welcome">
-      <h2>Bienvenido, {{ user?.firstName || 'Usuario' }}</h2>
-      <p>Rol: <strong>{{ user?.role || 'Usuario' }}</strong></p>
+      <h2>Bienvenido, {{ user?.firstName || user?.email || 'Usuario' }}</h2>
     </div>
 
     <div class="dashboard-grid">

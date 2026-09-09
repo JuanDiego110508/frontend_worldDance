@@ -1,109 +1,78 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, throwError, of, BehaviorSubject } from 'rxjs';
-import { tap, catchError, delay } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { BehaviorSubject, Observable, catchError, delay, map, of, tap, throwError } from 'rxjs';
 import { TokenService } from './token.service';
-import { environment } from '../../../../enviroments/enviroment';
-
-/* Interfaz User - todos los campos son obligatorios */
-export interface User {
-  id: number;
-  firstName: string;
-  lastName: string;
-  documentNumber: string;
-  email: string;
-  role: string;
-  active: boolean;
-}
-
-export interface LoginResponse {
-  token: string;
-  user: User;
-}
-
-export interface RegisterData {
-  firstName: string;
-  lastName: string;
-  documentNumber: string;
-  email: string;
-  password: string;
-}
-
-export interface UpdateProfileData {
-  firstName: string;
-  lastName: string;
-  documentNumber: string;
-  email: string;
-}
+import { environment } from '../../../../environments/environment';
+import { User } from '../../../core/models/user.model';
+import {
+  HttpGlobalResponse,
+  JwtDto,
+  RegisterRequest,
+  RegisterResponse,
+  UpdateUserRequest
+} from '../models/auth.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private http = inject(HttpClient);
-  private tokenService = inject(TokenService);
-  
-  private apiUrl = environment.apiUrl + '/auth';
-  private useMock = true;
+  private readonly http = inject(HttpClient);
+  private readonly tokenService = inject(TokenService);
+  private readonly apiUrl = environment.apiUrl;
 
-  private authStatus = new BehaviorSubject<boolean>(this.isAuthenticated());
-  authStatus$ = this.authStatus.asObservable();
+  private readonly authStatus = new BehaviorSubject<boolean>(this.isAuthenticated());
+  readonly authStatus$ = this.authStatus.asObservable();
 
-  login(email: string, password: string): Observable<LoginResponse> {
-    if (this.useMock) {
-      return this.mockLogin(email, password);
-    }
-    
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password })
-      .pipe(
-        tap(response => {
-          this.tokenService.setToken(response.token);
-          this.tokenService.setUser(response.user);
-          this.authStatus.next(true);
-        }),
-        catchError(error => {
-          return throwError(() => error.error || { message: 'Error al iniciar sesión' });
-        })
-      );
+  /**
+   * El login real (POST /auth/login) responde 202 con { data: { jwt } | null, message }.
+   * `data` es null cuando el usuario no existe o la contraseña es incorrecta, aunque el status HTTP sea 202.
+   */
+  login(email: string, password: string): Observable<User> {
+    return this.http.post<HttpGlobalResponse<JwtDto | null>>(`${this.apiUrl}/auth/login`, { email, password }).pipe(
+      map(res => {
+        if (!res.data?.jwt) {
+          throw new Error(res.message || 'Correo o contraseña incorrectos');
+        }
+        return res.data.jwt;
+      }),
+      tap(jwt => {
+        this.tokenService.setToken(jwt);
+        this.authStatus.next(true);
+      }),
+      map(() => {
+        const user = this.getCurrentUser();
+        if (!user) {
+          throw new Error('No fue posible leer los datos de la sesión.');
+        }
+        return user;
+      }),
+      catchError(err => this.handleError(err))
+    );
   }
 
-  register(data: RegisterData): Observable<any> {
-    if (this.useMock) {
-      return this.mockRegister(data);
-    }
-    
-    return this.http.post(`${this.apiUrl}/register`, data)
-      .pipe(
-        catchError(error => {
-          return throwError(() => error.error || { message: 'Error en el registro' });
-        })
-      );
+  /** El registro (POST /auth/register) no autentica: devuelve los datos creados, sin JWT. */
+  register(data: RegisterRequest): Observable<RegisterResponse> {
+    return this.http.post<RegisterResponse>(`${this.apiUrl}/auth/register`, data).pipe(
+      catchError(err => this.handleError(err))
+    );
   }
 
-  requestPasswordReset(email: string): Observable<any> {
-    if (this.useMock) {
-      return this.mockRequestPasswordReset(email);
-    }
-    
-    return this.http.post(`${this.apiUrl}/forgot-password`, { email })
-      .pipe(
-        catchError(error => {
-          return throwError(() => error.error || { message: 'Error al enviar el correo' });
-        })
-      );
+  /**
+   * ms-auth-identityservice no expone ningún endpoint de recuperación de contraseña.
+   * Se mantiene como flujo simulado hasta que el backend lo implemente.
+   */
+  requestPasswordReset(email: string): Observable<{ message: string }> {
+    return of({ message: 'Si el correo existe en nuestro sistema, se enviará un enlace de recuperación.' }).pipe(
+      delay(600)
+    );
   }
 
-  updateProfile(data: UpdateProfileData): Observable<any> {
-    if (this.useMock) {
-      return this.mockUpdateProfile(data);
-    }
-    
-    return this.http.put(`${this.apiUrl}/profile`, data)
-      .pipe(
-        catchError(error => {
-          return throwError(() => error.error || { message: 'Error al actualizar el perfil' });
-        })
-      );
+  /** PUT /users/update real; cachea localmente el resultado porque no existe un endpoint /me. */
+  updateUser(data: UpdateUserRequest): Observable<UpdateUserRequest> {
+    return this.http.put<UpdateUserRequest>(`${this.apiUrl}/users/update`, data).pipe(
+      tap(updated => this.tokenService.setUser({ ...updated })),
+      catchError(err => this.handleError(err))
+    );
   }
 
   logout(): void {
@@ -115,104 +84,38 @@ export class AuthService {
     return this.tokenService.hasToken();
   }
 
+  /**
+   * El JWT solo lleva `userId` y `email` (claim `sub`); no incluye nombre ni rol.
+   * Si ya guardamos un perfil completo (tras registro/actualización) para ese mismo correo, se reutiliza.
+   */
   getCurrentUser(): User | null {
-    const userStored = this.tokenService.getUser();
-    if (userStored) {
-      return userStored;
-    }
     const token = this.tokenService.getToken();
-    if (token) {
-      return this.tokenService.decodeToken(token);
+    if (!token) return null;
+
+    const claims = this.tokenService.decodeToken(token);
+    if (!claims?.userId) return null;
+
+    const cached = this.tokenService.getUser();
+    if (cached && cached.email === claims.sub) {
+      return cached;
     }
-    return null;
+
+    return {
+      id: claims.userId,
+      email: claims.sub ?? '',
+      firstName: '',
+      lastName: '',
+      documentNumber: '',
+      active: true
+    };
   }
 
   getToken(): string | null {
     return this.tokenService.getToken();
   }
 
-  /* MOCKS */
-
-  private mockLogin(email: string, password: string): Observable<LoginResponse> {
-    const mockUser: User = {
-      id: 1,
-      firstName: 'Juan',
-      lastName: 'Pérez',
-      documentNumber: '123456789',
-      email: email,
-      role: 'organizer',
-      active: true
-    };
-
-    const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' + 
-      btoa(JSON.stringify(mockUser)) + 
-      '.mock-signature';
-
-    if (password.length < 6) {
-      return throwError(() => ({ message: 'Contraseña incorrecta' }));
-    }
-
-    this.tokenService.setToken(mockToken);
-    this.tokenService.setUser(mockUser);
-
-    return of({
-      token: mockToken,
-      user: mockUser
-    }).pipe(delay(800));
-  }
-
-  private mockRegister(data: RegisterData): Observable<any> {
-    if (data.email === 'admin@worlddance.com') {
-      return throwError(() => ({ message: 'El correo ya está registrado' }));
-    }
-
-    return of({
-      message: 'Usuario registrado exitosamente',
-      userId: 1
-    }).pipe(delay(1000));
-  }
-
-  private mockRequestPasswordReset(email: string): Observable<any> {
-    return of({
-      message: 'Correo de recuperación enviado'
-    }).pipe(delay(800));
-  }
-
-  private mockUpdateProfile(data: UpdateProfileData): Observable<any> {
-    const currentUser = this.getCurrentUser();
-    
-    /* Asegurar que currentUser no sea null y tenga todos los campos */
-    const userWithDefaults: User = {
-      id: currentUser?.id || 1,
-      firstName: currentUser?.firstName || '',
-      lastName: currentUser?.lastName || '',
-      documentNumber: currentUser?.documentNumber || '',
-      email: currentUser?.email || '',
-      role: currentUser?.role || 'participant',
-      active: currentUser?.active ?? true
-    };
-
-    /* Crear el usuario actualizado con los nuevos datos */
-    const updatedUser: User = {
-      ...userWithDefaults,
-      firstName: data.firstName || userWithDefaults.firstName,
-      lastName: data.lastName || userWithDefaults.lastName,
-      documentNumber: data.documentNumber || userWithDefaults.documentNumber,
-      email: data.email || userWithDefaults.email
-    };
-
-    return of({
-      message: 'Perfil actualizado correctamente',
-      user: updatedUser
-    }).pipe(
-      delay(1000),
-      tap(() => {
-        const newToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' + 
-          btoa(JSON.stringify(updatedUser)) + 
-          '.mock-signature-updated';
-        this.tokenService.setToken(newToken);
-        this.tokenService.setUser(updatedUser);
-      })
-    );
+  private handleError(err: HttpErrorResponse) {
+    const message = err.error?.message ?? err.message ?? 'Ocurrió un error de comunicación con el servidor.';
+    return throwError(() => new Error(message));
   }
 }

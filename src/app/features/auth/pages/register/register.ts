@@ -1,88 +1,71 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+
+function passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
+  const password = control.get('password')?.value;
+  const confirmPassword = control.get('confirmPassword')?.value;
+  return password && confirmPassword && password !== confirmPassword ? { passwordMismatch: true } : null;
+}
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule],
   templateUrl: './register.html',
-  styleUrls: ['./register.scss']
+  styleUrls: ['./register.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RegisterComponent {
-  private authService = inject(AuthService);
-  private router = inject(Router);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
 
-  /* Datos del formulario de registro según la base de datos */
-  firstName = '';
-  lastName = '';
-  documentNumber = '';
-  email = '';
-  password = '';
-  confirmPassword = '';
-  
-  /* Estados de la interfaz */
-  isLoading = signal<boolean>(false);
-  errorMessage = signal<string>('');
-  showPassword = signal<boolean>(false);
-  showConfirmPassword = signal<boolean>(false);
+  /* Validaciones alineadas con RegisterRequestDto del backend:
+     documentNumber entre 6 y 20 caracteres, password mínimo 8 caracteres. */
+  readonly registerForm = this.fb.nonNullable.group(
+    {
+      firstName: ['', Validators.required],
+      lastName: ['', Validators.required],
+      documentNumber: ['', [Validators.required, Validators.pattern(/^[0-9]+$/), Validators.minLength(6), Validators.maxLength(20)]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', Validators.required]
+    },
+    { validators: passwordsMatchValidator }
+  );
+
+  isLoading = signal(false);
+  errorMessage = signal('');
+  showPassword = signal(false);
+  showConfirmPassword = signal(false);
 
   onSubmit(): void {
-    /* Validaciones de campos obligatorios */
-    if (!this.firstName || !this.lastName || !this.documentNumber || !this.email || !this.password || !this.confirmPassword) {
-      this.errorMessage.set('Por favor completa todos los campos');
+    if (this.registerForm.invalid) {
+      this.registerForm.markAllAsTouched();
+      if (this.registerForm.hasError('passwordMismatch')) {
+        this.errorMessage.set('Las contraseñas no coinciden');
+      }
       return;
     }
-
-    /* Validación de contraseñas */
-    if (this.password !== this.confirmPassword) {
-      this.errorMessage.set('Las contraseñas no coinciden');
-      return;
-    }
-
-    if (this.password.length < 6) {
-      this.errorMessage.set('La contraseña debe tener al menos 6 caracteres');
-      return;
-    }
-
-    /* Validar formato de email */
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(this.email)) {
-      this.errorMessage.set('Ingresa un correo electrónico válido');
-      return;
-  }
-
-  /* Validar número de documento (solo números) */
-  const documentRegex = /^[0-9]+$/;
-    if (!documentRegex.test(this.documentNumber)) {
-    this.errorMessage.set('El número de documento solo debe contener números');
-    return;
-  }
 
     this.isLoading.set(true);
     this.errorMessage.set('');
 
-    /* Preparamos los datos exactamente como los espera el backend */
-    const registerData = {
-      firstName: this.firstName,
-      lastName: this.lastName,
-      documentNumber: this.documentNumber,
-      email: this.email,
-      password: this.password
-    };
+    const { firstName, lastName, documentNumber, email, password } = this.registerForm.getRawValue();
 
-    this.authService.register(registerData).subscribe({
+    this.authService.register({ firstName, lastName, documentNumber, email, password }).subscribe({
       next: () => {
         this.isLoading.set(false);
-        this.router.navigate(['/auth/login'], { 
-          queryParams: { registered: 'true' } 
+        this.router.navigate(['/auth/login'], {
+          queryParams: { registered: 'true' }
         });
       },
       error: (error) => {
         this.isLoading.set(false);
-        this.errorMessage.set(error.message || 'Error al registrarse');
+        this.errorMessage.set(error?.message ?? 'Error al registrarse');
       }
     });
   }
@@ -93,5 +76,15 @@ export class RegisterComponent {
 
   toggleConfirmPasswordVisibility(): void {
     this.showConfirmPassword.update(value => !value);
+  }
+
+  isFieldInvalid(field: string): boolean {
+    const control = this.registerForm.get(field);
+    return !!(control && control.invalid && (control.dirty || control.touched));
+  }
+
+  get passwordMismatch(): boolean {
+    const confirmControl = this.registerForm.get('confirmPassword');
+    return this.registerForm.hasError('passwordMismatch') && !!confirmControl && (confirmControl.dirty || confirmControl.touched);
   }
 }

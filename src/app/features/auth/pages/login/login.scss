@@ -238,3 +238,9 @@
     align-items: flex-start;
   }
 }
+.field-error {
+  color: var(--wd-red);
+  font-size: 0.8rem;
+  margin-top: var(--wd-spacing-1, 4px);
+  display: block;
+}
