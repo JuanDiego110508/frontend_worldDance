@@ -1,0 +1,27 @@
+<div class="stream-viewer-container">
+  @if (isLoading()) {
+    <div class="loading-state">
+      <span class="spinner"></span>
+      Cargando transmisión...
+    </div>
+  } @else {
+    <header class="event-header">
+      <div class="event-header-main">
+        <h1>{{ event()?.name ?? 'Evento en vivo' }}</h1>
+        @if (event()?.description) {
+          <p class="event-description">{{ event()?.description }}</p>
+        }
+      </div>
+
+      <a [routerLink]="['/stream/admin', eventId]" class="btn btn-primary btn-manage-stream">
+        Gestionar mi Stream
+      </a>
+    </header>
+
+    @if (errorMessage() && !stream()) {
+      <div class="error-message">{{ errorMessage() }}</div>
+    } @else {
+      <app-viewer-player [stream]="stream()" />
+    }
+  }
+</div>

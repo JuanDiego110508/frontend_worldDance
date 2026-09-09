@@ -1,0 +1,32 @@
+<div class="viewer-layout">
+  <div class="player-frame">
+    <span class="live-flag" [class.is-live]="stream()?.statusStream === StatusStream.LIVE">
+      @if (stream()?.statusStream === StatusStream.LIVE) {
+        ⬤ EN VIVO
+      } @else {
+        ⬤ OFFLINE
+      }
+    </span>
+
+    @if (safePlayerUrl(); as playerUrl) {
+      <iframe
+        class="player-iframe"
+        [src]="playerUrl"
+        title="Reproductor en vivo"
+        allow="autoplay; fullscreen"
+        allowfullscreen
+      ></iframe>
+    } @else {
+      <div class="player-placeholder">
+        <span class="placeholder-icon">📡</span>
+        <p>El evento aún no ha iniciado su transmisión.</p>
+      </div>
+    }
+
+    <app-overlay-display [overlay]="stream()?.liveOverlayData ?? null" />
+  </div>
+
+  @if (safeChatUrl(); as chatUrl) {
+    <iframe class="chat-iframe" [src]="chatUrl" title="Chat en vivo"></iframe>
+  }
+</div>

@@ -11,7 +11,7 @@
     <ul class="navbar-nav-desktop">
       @for (item of navItems; track item.route) {
         <li>
-          <a 
+          <a
             [routerLink]="[item.route]"
             routerLinkActive="active"
             [routerLinkActiveOptions]="{ exact: true }"
@@ -20,6 +20,39 @@
           </a>
         </li>
       }
+
+      <li class="live-nav-item">
+        <button
+          type="button"
+          class="live-nav-button"
+          [class.has-live]="hasLiveStreams()"
+          (click)="onLiveClick()"
+          [attr.aria-expanded]="isLiveMenuOpen()"
+        >
+          En Vivo
+          @if (hasLiveStreams()) {
+            <span class="live-dot" aria-hidden="true"></span>
+          }
+        </button>
+
+        @if (isLiveMenuOpen()) {
+          <div class="live-dropdown-backdrop" (click)="closeLiveMenu()"></div>
+          <ul class="live-dropdown">
+            @if (liveStreams().length === 0) {
+              <li class="live-dropdown-empty">No hay transmisiones en vivo en este momento.</li>
+            } @else {
+              @for (item of liveStreams(); track item.eventId) {
+                <li>
+                  <button type="button" (click)="goToLiveEvent(item.eventId)">
+                    <span class="live-dot small" aria-hidden="true"></span>
+                    {{ item.eventName }}
+                  </button>
+                </li>
+              }
+            }
+          </ul>
+        }
+      </li>
     </ul>
 
     <div class="navbar-actions">
@@ -66,13 +99,42 @@
       <ul class="navbar-nav-mobile">
         @for (item of navItems; track item.route) {
           <li>
-            <a 
+            <a
               [routerLink]="[item.route]"
               routerLinkActive="active"
               (click)="closeMenu()"
             >
               {{ item.label }}
             </a>
+          </li>
+        }
+
+        @if (liveStreams().length <= 1) {
+          <li>
+            <button
+              type="button"
+              class="live-nav-button-mobile"
+              [class.has-live]="hasLiveStreams()"
+              (click)="onLiveClick()"
+            >
+              En Vivo
+              @if (hasLiveStreams()) {
+                <span class="live-dot" aria-hidden="true"></span>
+              }
+            </button>
+          </li>
+        } @else {
+          <li class="live-nav-group-mobile">
+            <span class="live-nav-group-label">
+              En Vivo
+              <span class="live-dot" aria-hidden="true"></span>
+            </span>
+            @for (item of liveStreams(); track item.eventId) {
+              <a [routerLink]="['/stream/watch', item.eventId]" (click)="closeMenu()">
+                <span class="live-dot small" aria-hidden="true"></span>
+                {{ item.eventName }}
+              </a>
+            }
           </li>
         }
       </ul>

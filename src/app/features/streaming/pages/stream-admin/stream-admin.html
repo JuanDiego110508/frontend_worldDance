@@ -1,0 +1,109 @@
+<div class="stream-admin-container">
+  <header class="admin-header">
+    <div>
+      <h1>Panel de Transmisión</h1>
+      <p class="subtitle">Evento #{{ eventId }}</p>
+    </div>
+    <a [routerLink]="['/stream/watch', eventId]" class="btn btn-ghost btn-sm" target="_blank">
+      Ver como espectador ↗
+    </a>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <span class="spinner"></span>
+      Cargando panel de transmisión...
+    </div>
+  } @else if (setupMode()) {
+    <div class="setup-card">
+      <h2>Configura la sesión de streaming</h2>
+      <p class="subtitle">Este evento aún no tiene una sesión de transmisión creada.</p>
+
+      <form [formGroup]="setupForm" (ngSubmit)="submitSetup()" class="setup-form">
+        <div class="form-group">
+          <label for="channelUrl">URL del canal de Kick *</label>
+          <input type="url" id="channelUrl" formControlName="channelUrl" placeholder="https://kick.com/tu-canal">
+          @if (isSetupFieldInvalid('channelUrl')) {
+            <span class="field-error">La URL del canal es obligatoria</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="rtmpUrl">URL RTMP de destino *</label>
+          <input type="text" id="rtmpUrl" formControlName="rtmpUrl" placeholder="rtmps://...">
+          @if (isSetupFieldInvalid('rtmpUrl')) {
+            <span class="field-error">La URL RTMP es obligatoria</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="streamKey">Stream key *</label>
+          <input type="text" id="streamKey" formControlName="streamKey" placeholder="Clave de transmisión">
+          @if (isSetupFieldInvalid('streamKey')) {
+            <span class="field-error">La stream key es obligatoria</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="scheduleFor">Fecha/hora programada *</label>
+          <input type="datetime-local" id="scheduleFor" formControlName="scheduleFor">
+          @if (isSetupFieldInvalid('scheduleFor')) {
+            <span class="field-error">Selecciona una fecha y hora</span>
+          }
+        </div>
+
+        @if (errorMessage()) {
+          <div class="error-message">{{ errorMessage() }}</div>
+        }
+
+        <button type="submit" class="btn btn-primary btn-block" [disabled]="isBusy()">
+          @if (isBusy()) {
+            <span class="spinner"></span>
+            Creando sesión...
+          } @else {
+            Crear sesión de streaming
+          }
+        </button>
+      </form>
+    </div>
+  } @else if (session(); as data) {
+    @if (errorMessage()) {
+      <div class="error-message">{{ errorMessage() }}</div>
+    }
+    @if (ingestError()) {
+      <div class="error-message">Ingesta: {{ ingestError() }}</div>
+    }
+
+    <div class="admin-grid">
+      <section class="preview-column">
+        <app-camera-preview (streamChanged)="onLocalStreamChanged($event)" />
+        <p class="whip-status">
+          Estado ingesta: <strong>{{ ingestState() }}</strong>
+          · Conexión: <strong [class.whip-live]="ingestFlowing()">{{ ingestConnectionState() }}</strong>
+        </p>
+      </section>
+
+      <section class="panel-column">
+        <app-control-panel
+          [statusStream]="data.statusStream"
+          [status]="status()"
+          [isBusy]="isBusy()"
+          [kickLinked]="false"
+          [mediaReady]="ingestFlowing()"
+          (linkKick)="linkKick()"
+          (goLive)="goLive()"
+          (stopLive)="stopLive()"
+          (finish)="finishStreaming()"
+        />
+      </section>
+
+      <section class="overlay-column">
+        <app-overlay-editor
+          [overlay]="data.liveOverlayData"
+          [isSaving]="isSavingOverlay()"
+          (save)="saveOverlay($event)"
+        />
+      </section>
+    </div>
+  }
+</div>

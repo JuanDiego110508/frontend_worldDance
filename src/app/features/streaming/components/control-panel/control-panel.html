@@ -1,0 +1,58 @@
+<div class="control-panel">
+  <div class="panel-header">
+    <span class="live-badge" [class.is-live]="statusStream() === StatusStream.LIVE">
+      @if (statusStream() === StatusStream.LIVE) {
+        ⬤ EN VIVO
+      } @else {
+        ⬤ OFFLINE
+      }
+    </span>
+
+    <button type="button" class="btn btn-outline btn-sm" (click)="linkKick.emit()" [disabled]="kickLinked()">
+      {{ kickLinked() ? 'Kick vinculado ✓' : 'Vincular Kick' }}
+    </button>
+  </div>
+
+  <div class="metrics-row">
+    <div class="metric">
+      <span class="metric-label">Bitrate</span>
+      <span class="metric-value">{{ status()?.bitrate ?? '—' }} kbps</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">Latencia</span>
+      <span class="metric-value">{{ status()?.latency ?? '—' }} ms</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">Espectadores</span>
+      <span class="metric-value">{{ status()?.viewers ?? '—' }}</span>
+    </div>
+  </div>
+
+  <div class="panel-actions">
+    @if (statusStream() !== StatusStream.LIVE) {
+      <button type="button" class="btn btn-success btn-lg btn-block" (click)="goLive.emit()" [disabled]="isBusy() || !mediaReady()">
+        @if (isBusy()) {
+          <span class="spinner"></span>
+          Iniciando FFmpeg...
+        } @else if (!mediaReady()) {
+          Esperando señal local (WebRTC)...
+        } @else {
+          ▶ Iniciar Directo
+        }
+      </button>
+    } @else {
+      <button type="button" class="btn btn-outline btn-lg btn-block" (click)="stopLive.emit()" [disabled]="isBusy()">
+        @if (isBusy()) {
+          <span class="spinner"></span>
+          Deteniendo...
+        } @else {
+          ⏸ Detener Directo
+        }
+      </button>
+    }
+
+    <button type="button" class="btn btn-danger btn-block" (click)="finish.emit()">
+      ⏹ Finalizar Transmisión
+    </button>
+  </div>
+</div>
