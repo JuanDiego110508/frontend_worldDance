@@ -1,0 +1,104 @@
+<div class="results-page">
+  <!-- Back -->
+  <div class="page-back">
+    <button class="btn-back" (click)="goBack()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Back to Scoring History
+    </button>
+  </div>
+
+  <!-- Header -->
+  <header class="results-header">
+    <div class="header-info">
+      <h1>Results</h1>
+      <p class="subtitle">
+        Event: {{ eventId() }} &bull; Modality: {{ modalityId() }}
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-close-session" (click)="onCloseSession()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0110 0v4"/>
+        </svg>
+        Close Session
+      </button>
+      <button class="btn-publish-results" (click)="onPublish()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 5l7 7-7 7"/>
+        </svg>
+        Publish Results
+      </button>
+    </div>
+  </header>
+
+  <!-- Messages -->
+  @if (errorMessage()) {
+    <div class="alert alert-error">{{ errorMessage() }}</div>
+  }
+  @if (publishMessage()) {
+    <div class="alert alert-success">{{ publishMessage() }}</div>
+  }
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Loading results...</p>
+    </div>
+  }
+
+  <!-- Results Table -->
+  @if (!isLoading() && sortedResults().length > 0) {
+    <section class="results-table-container">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th class="th-rank">RANK</th>
+            <th>PARTICIPANT</th>
+            <th class="th-score">FINAL SCORE</th>
+            <th>STATUS</th>
+            <th>PUBLISHED AT</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (result of sortedResults(); track result.id) {
+            <tr class="result-row" [class]="getRankingClass(result.ranking)">
+              <td class="td-rank">
+                <span class="rank-badge" [class]="getRankingClass(result.ranking)">
+                  {{ getRankingEmoji(result.ranking) }}
+                </span>
+              </td>
+              <td class="td-participant-name">
+                <span class="participant-name">{{ result.participantName || result.enrollmentId }}</span>
+              </td>
+              <td class="td-final-score">
+                <span class="final-score">{{ result.finalScore | number:'1.1-1' }}</span>
+              </td>
+              <td class="td-status">
+                <span class="status-badge" [class]="getStatusClass(result.status)">
+                  {{ getStatusLabel(result.status) }}
+                </span>
+              </td>
+              <td class="td-published">
+                {{ result.publishedAt ? (result.publishedAt | date:'short') : '—' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+
+  <!-- Empty -->
+  @if (!isLoading() && sortedResults().length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">📊</span>
+      <h3>No results available</h3>
+      <p>Results will appear here once evaluations are completed and the session is closed.</p>
+    </div>
+  }
+</div>
