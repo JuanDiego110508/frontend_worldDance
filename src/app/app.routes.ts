@@ -22,6 +22,11 @@ export const routes: Routes = [
     loadChildren: () => import('./features/enrollment/enrollment.routes').then(m => m.ENROLLMENT_ROUTES)
   },
   {
+    path: 'scoring',
+    canActivate: [AuthGuard],
+    loadChildren: () => import('./features/scoring/scoring.routes').then(m => m.SCORING_ROUTES)
+  },
+  {
     path: 'stream',
     loadChildren: () => import('./features/streaming/streaming.routes').then(m => m.STREAMING_ROUTES)
   },

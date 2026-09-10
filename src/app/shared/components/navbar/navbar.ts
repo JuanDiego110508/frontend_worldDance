@@ -44,8 +44,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   readonly hasLiveStreams = computed(() => this.liveStreams().length > 0);
 
   navItems: NavItem[] = [
-    { label: 'Inicio', route: '/' },
+    { label: 'Dashboard', route: '/' },
     { label: 'Eventos', route: '/events' },
+    { label: 'Scoring', route: '/scoring' },
     { label: 'Rankings', route: '/rankings' },
   ];
 
@@ -140,7 +141,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   goToDashboard(): void {
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/scoring']);
     this.closeMenu();
   }
 
