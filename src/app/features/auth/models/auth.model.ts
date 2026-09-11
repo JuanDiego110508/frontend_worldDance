@@ -5,6 +5,14 @@ export interface HttpGlobalResponse<T> {
 
 export interface JwtDto {
   jwt: string;
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    documentNumber: string;
+    email: string;
+    active: boolean;
+  };
 }
 
 /** Coincide con RegisterRequestDto de ms-auth-identityservice. */

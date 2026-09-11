@@ -33,6 +33,9 @@ export class AuthService {
         if (!res.data?.jwt) {
           throw new Error(res.message || 'Correo o contraseña incorrectos');
         }
+        if (res.data.user) {
+          this.tokenService.setUser(res.data.user);
+        }
         return res.data.jwt;
       }),
       tap(jwt => {
