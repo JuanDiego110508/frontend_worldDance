@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { eventEditResolver } from './resolvers/event-edit.resolver';
 
 export const EVENTS_ROUTES: Routes = [
   {
@@ -11,7 +12,8 @@ export const EVENTS_ROUTES: Routes = [
   },
   {
     path: 'edit/:id',
-    loadComponent: () => import('./pages/event-form/event-form').then(m => m.EventFormComponent)
+    loadComponent: () => import('./pages/event-form/event-form').then(m => m.EventFormComponent),
+    resolve: { event: eventEditResolver }
   },
   {
     path: ':id/modalities',

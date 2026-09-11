@@ -11,14 +11,42 @@
     </a>
   </header>
 
+  <!-- Tabs de estado: solo tiene sentido para el organizador gestionando sus propios eventos -->
+  <div class="status-tabs" *ngIf="currentUserId() !== null" role="tablist">
+    <button
+      type="button"
+      role="tab"
+      [class.active]="statusFilter() === 'ALL'"
+      (click)="setStatusFilter('ALL')"
+    >
+      Todos
+    </button>
+    <button
+      type="button"
+      role="tab"
+      [class.active]="statusFilter() === 'ACTIVE'"
+      (click)="setStatusFilter('ACTIVE')"
+    >
+      Activos
+    </button>
+    <button
+      type="button"
+      role="tab"
+      [class.active]="statusFilter() === 'INACTIVE'"
+      (click)="setStatusFilter('INACTIVE')"
+    >
+      Borradores/Inactivos
+    </button>
+  </div>
+
   <!-- Sección de Filtros -->
   <section class="filters-section">
     <div class="search-box">
-      <input 
-        type="text" 
-        [ngModel]="searchTerm()" 
-        (ngModelChange)="searchTerm.set($event)" 
-        placeholder="Buscar por título, ciudad o descripción..." 
+      <input
+        type="text"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+        placeholder="Buscar por título, ciudad o descripción..."
       />
     </div>
   </section>
@@ -69,8 +97,11 @@
           Ver Modalidades
         </a>
 
-        <!-- Acciones de edición/eliminación sólo si es propietario -->
-        <div class="admin-actions" *ngIf="isOwner(event)">
+        <!-- Acciones de edición/eliminación sólo si es propietario y el evento tiene un id válido -->
+        <div class="admin-actions" *ngIf="isOwner(event) && event.idEvent">
+          <a [routerLink]="['/events', event.idEvent, 'modalities']" class="btn-icon" title="Agregar modalidad">
+            <span class="icon-plus">+</span>
+          </a>
           <a [routerLink]="['/events/edit', event.idEvent]" class="btn-icon" title="Editar evento">
             <img src="icons8-edit-pencil.svg" alt="Editar" class="icon-action" />
           </a>
