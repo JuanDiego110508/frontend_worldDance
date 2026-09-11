@@ -16,7 +16,7 @@ interface CriterionFormRow {
 @Component({
   selector: 'app-evaluation-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './evaluation-form.html',
   styleUrls: ['./evaluation-form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

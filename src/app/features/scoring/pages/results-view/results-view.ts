@@ -11,7 +11,7 @@ import { RESULT_STATUS_LABELS } from '../../enums/scoring-enums';
 @Component({
   selector: 'app-results-view',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './results-view.html',
   styleUrls: ['./results-view.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
