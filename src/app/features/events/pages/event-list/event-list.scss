@@ -52,6 +52,37 @@
   }
 }
 
+/* Tabs de estado ("Mis Eventos") */
+.status-tabs {
+  display: flex;
+  gap: var(--wd-spacing-2, 0.5rem);
+  margin-bottom: var(--wd-spacing-4, 1rem);
+  flex-wrap: wrap;
+
+  button {
+    background: transparent;
+    border: 1px solid var(--wd-border-color, #cbd5e1);
+    color: var(--wd-text-muted, #64748b);
+    padding: var(--wd-spacing-2, 0.5rem) var(--wd-spacing-4, 1rem);
+    border-radius: var(--wd-radius-full, 9999px);
+    font-size: var(--wd-font-size-sm, 0.875rem);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+
+    &:hover {
+      border-color: var(--wd-purple-light, #a78bfa);
+      color: var(--wd-purple-light, #7c3aed);
+    }
+
+    &.active {
+      background: var(--wd-gradient-primary, linear-gradient(135deg, #7c3aed 0%, #6366f1 100%));
+      border-color: transparent;
+      color: var(--wd-white, #ffffff);
+    }
+  }
+}
+
 /* Sección de Filtros */
 .filters-section {
   display: flex;
@@ -243,6 +274,13 @@
   height: 20px;
   object-fit: contain;
   vertical-align: middle;
+}
+
+.icon-plus {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--wd-purple-light, #7c3aed);
 }
 
 /* Contenedor sin resultados */

@@ -15,6 +15,7 @@ import { ModalityService } from '../../services/modality';
 import { EventService } from '../../services/event';
 import { AuthService } from '../../../auth/services/auth.service';
 import { EventResponseDto } from '../../models/event.model';
+import { isSameUser, resolveEventOwnerId } from '../../utils/event-normalize';
 
 @Component({
   selector: 'app-modality-config',
@@ -44,7 +45,7 @@ export class ModalityConfigComponent implements OnInit {
     const user = this.authService.getCurrentUser();
     const event = this.currentEvent();
     if (!user || !event) return false;
-    return user.id === event.ownerId;
+    return isSameUser(user.id, resolveEventOwnerId(event));
   });
 
   divisionOptions = Object.values(ModalityDivision).map(val => ({

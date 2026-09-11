@@ -6,6 +6,10 @@ import { RouterLink } from '@angular/router';
 import { EventResponseDto } from '../../models/event.model';
 import { EventService } from '../../services/event';
 import { AuthService } from '../../../auth/services/auth.service';
+import { isSameUser, resolveEventId, resolveEventOwnerId } from '../../utils/event-normalize';
+import { EventStatus } from '../../enums/event-enums';
+
+export type EventStatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 
 @Component({
   selector: 'app-event-list',
@@ -20,12 +24,30 @@ export class EventListComponent implements OnInit {
   private authService = inject(AuthService);
 
   searchTerm = signal<string>('');
-  eventsList = computed(() => this.eventService.events());
+  statusFilter = signal<EventStatusFilter>('ALL');
+
+  /** Normaliza idEvent/ownerId (casing y tipo) antes de que la vista los use. */
+  eventsList = computed<EventResponseDto[]>(() =>
+    this.eventService.events().map(event => ({
+      ...event,
+      idEvent: resolveEventId(event) ?? event.idEvent,
+      ownerId: resolveEventOwnerId(event) ?? event.ownerId
+    }))
+  );
 
   currentUserId = computed<number | null>(() => {
     const user = this.authService.getCurrentUser();
-    return user ? user.id : null;
+    return user?.id != null ? Number(user.id) : null;
   });
+
+  /**
+   * Catálogo público: un visitante/usuario general solo ve eventos ACTIVOS.
+   * El propietario siempre ve sus propios eventos sin importar el estado
+   * (borrador, finalizado, cancelado) para poder gestionarlos.
+   */
+  visibleEvents = computed<EventResponseDto[]>(() =>
+    this.eventsList().filter(event => event.status === EventStatus.ACTIVE || this.isOwner(event))
+  );
 
   ngOnInit(): void {
     this.loadEvents();
@@ -45,9 +67,21 @@ export class EventListComponent implements OnInit {
       .toLowerCase();
   }
 
+  /** Tabs de "Mis Eventos": filtra por estado dentro del conjunto ya visible para el usuario. */
+  private matchesStatusFilter(event: EventResponseDto): boolean {
+    switch (this.statusFilter()) {
+      case 'ACTIVE':
+        return event.status === EventStatus.ACTIVE;
+      case 'INACTIVE':
+        return event.status !== EventStatus.ACTIVE;
+      default:
+        return true;
+    }
+  }
+
   filteredEvents = computed<EventResponseDto[]>(() => {
     const term = this.removeAccents(this.searchTerm().trim());
-    const events = this.eventsList();
+    const events = this.visibleEvents().filter(event => this.matchesStatusFilter(event));
 
     if (!term) return events;
 
@@ -60,9 +94,12 @@ export class EventListComponent implements OnInit {
     });
   });
 
+  setStatusFilter(filter: EventStatusFilter): void {
+    this.statusFilter.set(filter);
+  }
+
   isOwner(event: EventResponseDto): boolean {
-    const userId = this.currentUserId();
-    return userId !== null && userId !== undefined && event.ownerId === userId;
+    return isSameUser(this.currentUserId(), event.ownerId);
   }
 
   onDeleteEvent(event: EventResponseDto): void {
@@ -70,6 +107,7 @@ export class EventListComponent implements OnInit {
 
     if (confirm(`¿Estás seguro de eliminar el evento "${event.name}"?`)) {
       this.eventService.deleteEvent(event.idEvent).subscribe({
+        next: () => alert('Evento eliminado exitosamente.'),
         error: (err) => {
           alert(err?.message ?? 'Error al eliminar el evento');
         }

@@ -5,7 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { EventService } from '../../services/event';
 import { AuthService } from '../../../auth/services/auth.service';
 import { EventStatus, EVENT_STATUS_LABELS } from '../../enums/event-enums';
-import { EventRequestDto } from '../../models/event.model';
+import { EventRequestDto, EventResponseDto } from '../../models/event.model';
 
 @Component({
   selector: 'app-event-form',
@@ -50,10 +50,12 @@ export class EventFormComponent implements OnInit {
 
   private checkEditMode(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
-    if (idParam) {
+    const resolvedEvent = this.route.snapshot.data['event'] as EventResponseDto | undefined;
+
+    if (idParam && resolvedEvent) {
       this.isEditMode = true;
-      this.eventId = Number(idParam);
-      this.loadEventData(this.eventId);
+      this.eventId = resolvedEvent.idEvent;
+      this.populateForm(resolvedEvent);
     }
   }
 
@@ -70,23 +72,15 @@ export class EventFormComponent implements OnInit {
     return `${val}T00:00:00`;
   }
 
-  private loadEventData(id: number): void {
-    this.eventService.getEventById(id).subscribe({
-      next: (event) => {
-        this.originalEventName = event.name;
-        this.eventForm.patchValue({
-          name: this.originalEventName,
-          description: event.description,
-          startDate: this.formatDateForInput(event.startDate),
-          endDate: this.formatDateForInput(event.endDate),
-          location: event.location,
-          status: event.status
-        });
-      },
-      error: (err) => {
-        console.error('Error al cargar datos del evento', err);
-        this.router.navigate(['/events']);
-      }
+  private populateForm(event: EventResponseDto): void {
+    this.originalEventName = event.name;
+    this.eventForm.patchValue({
+      name: this.originalEventName,
+      description: event.description,
+      startDate: this.formatDateForInput(event.startDate),
+      endDate: this.formatDateForInput(event.endDate),
+      location: event.location,
+      status: event.status
     });
   }
 
