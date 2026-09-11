@@ -19,7 +19,7 @@ import { ModalityCategory, MODALITY_CATEGORY_LABELS } from '../../../events/enum
 @Component({
   selector: 'app-scoring-history',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './scoring-history.html',
   styleUrls: ['./scoring-history.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
