@@ -1,6 +1,6 @@
-import { Component, DestroyRef, ChangeDetectionStrategy, OnInit, inject, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, ChangeDetectionStrategy, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, interval, of, startWith, switchMap } from 'rxjs';
@@ -11,6 +11,8 @@ import { CameraPreviewComponent } from '../../components/camera-preview/camera-p
 import { ControlPanelComponent } from '../../components/control-panel/control-panel';
 import { OverlayEditorComponent } from '../../components/overlay-editor/overlay-editor';
 import { StreamAdminResponse, StreamStatus, UpdateOverlayRequest } from '../../models/stream.model';
+import { EventService } from '../../../events/services/event';
+import { EventResponseDto } from '../../../events/models/event.model';
 
 @Component({
   selector: 'app-stream-admin',
@@ -23,7 +25,9 @@ import { StreamAdminResponse, StreamStatus, UpdateOverlayRequest } from '../../m
 export class StreamAdminComponent implements OnInit {
   private readonly streamService = inject(StreamService);
   private readonly streamIngest = inject(StreamIngestService);
+  private readonly eventService = inject(EventService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
 
@@ -31,6 +35,7 @@ export class StreamAdminComponent implements OnInit {
 
   eventId = 0;
 
+  event = signal<EventResponseDto | null>(null);
   session = signal<StreamAdminResponse | null>(null);
   status = signal<StreamStatus | null>(null);
   isLoading = signal(true);
@@ -38,6 +43,20 @@ export class StreamAdminComponent implements OnInit {
   isSavingOverlay = signal(false);
   errorMessage = signal('');
   setupMode = signal(false);
+  isEditingConfig = signal(false);
+  isSavingConfig = signal(false);
+  /** Aviso transitorio del regreso del callback OAuth de Kick (?kick=success|error en la URL). */
+  kickCallbackNotice = signal<'success' | 'error' | null>(null);
+
+  /** Nombre real del evento cuando ya se cargó; cae al ID solo mientras tanto (nunca lo oculta del todo). */
+  readonly headerTitle = computed(() => this.event()?.name ?? `Evento #${this.eventId}`);
+
+  /** Muestra solo los últimos 4 caracteres de la stream key en el resumen de configuración. */
+  readonly maskedStreamKey = computed(() => {
+    const key = this.session()?.streamKey ?? '';
+    if (key.length <= 4) return key ? '••••' : '—';
+    return `${'•'.repeat(key.length - 4)}${key.slice(-4)}`;
+  });
 
   readonly ingestState = this.streamIngest.state;
   readonly ingestError = this.streamIngest.errorMessage;
@@ -45,16 +64,21 @@ export class StreamAdminComponent implements OnInit {
   /** true solo cuando el WebSocket de ingesta está abierto y MediaRecorder está enviando chunks. */
   readonly ingestFlowing = this.streamIngest.isFlowing;
 
-  /**
-   * El backend no expone si la cuenta de Kick ya quedó vinculada (el token OAuth vive
-   * solo server-side); el botón "Vincular Kick" queda siempre disponible por ese motivo.
-   */
   readonly setupForm = this.fb.nonNullable.group({
     provider: ['KICK', Validators.required],
     channelUrl: ['', Validators.required],
     rtmpUrl: ['', Validators.required],
     streamKey: ['', Validators.required],
     scheduleFor: ['', Validators.required]
+  });
+
+  /** Edición de la configuración de una sesión ya creada (servidor RTMP, stream key, canal, título). */
+  readonly configForm = this.fb.nonNullable.group({
+    channelUrl: ['', Validators.required],
+    rtmpUrl: ['', Validators.required],
+    streamKey: ['', Validators.required],
+    title: [''],
+    description: ['']
   });
 
   private readonly refreshOnFocus = (): void => {
@@ -72,11 +96,38 @@ export class StreamAdminComponent implements OnInit {
     }
 
     this.eventId = Number(idParam);
+    this.loadEventInfo();
     this.loadAdminEvent();
     this.startStatusPolling();
+    this.readKickCallbackNotice();
 
     window.addEventListener('focus', this.refreshOnFocus);
     this.destroyRef.onDestroy(() => window.removeEventListener('focus', this.refreshOnFocus));
+  }
+
+  private loadEventInfo(): void {
+    this.eventService.getEventById(this.eventId).subscribe({
+      next: (event) => this.event.set(event),
+      // Si falla, el header cae al fallback "Evento #{id}" vía headerTitle(); no es un error bloqueante.
+      error: () => this.event.set(null)
+    });
+  }
+
+  /**
+   * El callback OAuth de Kick (backend) redirige de vuelta aquí con `?kick=success|error` en vez de
+   * devolver un JSON crudo. Se lee una sola vez y se limpia de la URL para que un refresh no
+   * repita el aviso ni reintente nada.
+   */
+  private readKickCallbackNotice(): void {
+    const kick = this.route.snapshot.queryParamMap.get('kick');
+    if (kick === 'success' || kick === 'error') {
+      this.kickCallbackNotice.set(kick);
+      this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+    }
+  }
+
+  dismissKickCallbackNotice(): void {
+    this.kickCallbackNotice.set(null);
   }
 
   loadAdminEvent(): void {
@@ -135,15 +186,14 @@ export class StreamAdminComponent implements OnInit {
     this.isBusy.set(true);
     this.errorMessage.set('');
 
-    // El backend concatena `rtmpUrl + "/" + streamKey` literalmente: una barra final aquí
-    // produciría "rtmps://host/app//streamKey" (doble barra) en el destino real de Kick.
-    const normalizedRtmpUrl = value.rtmpUrl.trim().replace(/\/+$/, '');
-
+    // La URL RTMP se guarda tal cual la escribió el usuario, sin recortar barras: el saneo para
+    // evitar barras dobles al construir el destino de FFmpeg ocurre en el backend, solo en el
+    // momento de concatenar con la stream key (ver KickApiClientServiceImpl.buildDestinationUrl).
     this.streamService.createStreamSession({
       eventId: this.eventId,
       provider: value.provider,
       channelUrl: value.channelUrl,
-      rtmpUrl: normalizedRtmpUrl,
+      rtmpUrl: value.rtmpUrl.trim(),
       streamKey: value.streamKey.trim(),
       scheduleFor: new Date(value.scheduleFor).toISOString()
     }).subscribe({
@@ -157,6 +207,62 @@ export class StreamAdminComponent implements OnInit {
         this.isBusy.set(false);
       }
     });
+  }
+
+  openConfigEditor(): void {
+    const data = this.session();
+    if (!data) return;
+
+    this.configForm.setValue({
+      channelUrl: data.channelUrl ?? '',
+      rtmpUrl: data.rtmpUrl ?? '',
+      streamKey: data.streamKey ?? '',
+      title: data.title ?? '',
+      description: data.description ?? ''
+    });
+    this.errorMessage.set('');
+    this.isEditingConfig.set(true);
+  }
+
+  cancelConfigEdit(): void {
+    this.isEditingConfig.set(false);
+  }
+
+  submitConfigEdit(): void {
+    if (this.configForm.invalid) {
+      this.configForm.markAllAsTouched();
+      return;
+    }
+
+    const value = this.configForm.getRawValue();
+    this.isSavingConfig.set(true);
+    this.errorMessage.set('');
+
+    // La URL RTMP se guarda tal cual la escribió el usuario, sin recortar barras: el saneo para
+    // evitar barras dobles al construir el destino de FFmpeg ocurre en el backend, solo en el
+    // momento de concatenar con la stream key (ver KickApiClientServiceImpl.buildDestinationUrl).
+    this.streamService.updateStreamConfig(this.eventId, {
+      channelUrl: value.channelUrl.trim(),
+      rtmpUrl: value.rtmpUrl.trim(),
+      streamKey: value.streamKey.trim(),
+      title: value.title.trim() || undefined,
+      description: value.description.trim() || undefined
+    }).subscribe({
+      next: (updated) => {
+        this.session.set(updated);
+        this.isEditingConfig.set(false);
+        this.isSavingConfig.set(false);
+      },
+      error: (err) => {
+        this.errorMessage.set(err?.message ?? 'No fue posible actualizar la configuración de la transmisión.');
+        this.isSavingConfig.set(false);
+      }
+    });
+  }
+
+  isConfigFieldInvalid(field: string): boolean {
+    const control = this.configForm.get(field);
+    return !!(control && control.invalid && (control.dirty || control.touched));
   }
 
   async onLocalStreamChanged(stream: MediaStream | null): Promise<void> {
@@ -186,11 +292,17 @@ export class StreamAdminComponent implements OnInit {
       return;
     }
 
+    // Nunca se sustituye por un valor por defecto: si no hay una fuente activa real (cámara o
+    // pantalla), el backend terminaría "encendiendo" con un patrón sintético (testsrc) en silencio
+    // — Kick reportaría is_live=true sin que llegue ninguna señal real. Mejor negarse aquí mismo.
+    const sourceType = this.cameraPreview()?.activeSource();
+    if (!sourceType) {
+      this.errorMessage.set('No se detectó una fuente de video activa (cámara o pantalla). Actívala antes de iniciar el directo.');
+      return;
+    }
+
     this.isBusy.set(true);
     this.errorMessage.set('');
-
-    // ffmpeg-manager solo reconoce 'camera' | 'screen' (todo lo demás cae a 'testsrc', el patrón sintético).
-    const sourceType = this.cameraPreview()?.activeSource() ?? 'camera';
 
     this.streamService.toggleState(this.eventId, { enable: true, sourceType }).subscribe({
       next: (updated) => {

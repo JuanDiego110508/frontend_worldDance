@@ -11,7 +11,8 @@ import {
   StreamPublicResponse,
   StreamStatus,
   ToggleStreamStateRequest,
-  UpdateOverlayRequest
+  UpdateOverlayRequest,
+  UpdateStreamConfigRequest
 } from '../models/stream.model';
 
 @Injectable({
@@ -86,6 +87,14 @@ export class StreamService {
 
   getAdminEvent(eventId: number): Observable<StreamAdminResponse> {
     return this.http.get<HttpGlobalResponse<StreamAdminResponse>>(`${this.apiUrl}/admin/event/${eventId}`).pipe(
+      map(res => res.data),
+      catchError(err => this.handleError(err))
+    );
+  }
+
+  /** Edita el servidor RTMP/ingesta, la clave de retransmisión, el canal y el título/descripción de una sesión ya creada. */
+  updateStreamConfig(eventId: number, data: UpdateStreamConfigRequest): Observable<StreamAdminResponse> {
+    return this.http.put<HttpGlobalResponse<StreamAdminResponse>>(`${this.apiUrl}/config/${eventId}`, data).pipe(
       map(res => res.data),
       catchError(err => this.handleError(err))
     );

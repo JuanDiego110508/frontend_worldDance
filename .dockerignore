@@ -1,0 +1,9 @@
+# El Dockerfile hace su propio "npm ci" dentro del contenedor, no necesita
+# node_modules del host. Sin este archivo, Docker intenta enviar node_modules
+# completo (miles de archivos chicos, ej. @angular/compiler-cli/linker) como
+# build context sobre el puente /mnt/c/ de WSL2, lo cual es lento y puede
+# agotar memoria ("cannot allocate memory").
+node_modules
+dist
+.angular
+.git

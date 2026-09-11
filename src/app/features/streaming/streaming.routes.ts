@@ -3,6 +3,11 @@ import { AuthGuard } from '../auth/guards/auth.guard';
 
 export const STREAMING_ROUTES: Routes = [
   {
+    path: 'admin',
+    canActivate: [AuthGuard],
+    loadComponent: () => import('./pages/my-streams/my-streams').then(m => m.MyStreamsComponent)
+  },
+  {
     path: 'admin/:eventId',
     canActivate: [AuthGuard],
     loadComponent: () => import('./pages/stream-admin/stream-admin').then(m => m.StreamAdminComponent)
