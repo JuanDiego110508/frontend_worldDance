@@ -93,19 +93,16 @@
 
       <!-- Footer de la Tarjeta -->
       <div class="card-footer">
-        <a [routerLink]="['/events', event.idEvent, 'modalities']" class="btn-outline">
-          Ver Modalidades
+        <a [routerLink]="['/events', event.idEvent, 'modalities']" class="btn-primary-action">
+          {{ isOwner(event) ? 'Gestionar Modalidades' : 'Ver Modalidades' }}
         </a>
 
         <!-- Acciones de edición/eliminación sólo si es propietario y el evento tiene un id válido -->
         <div class="admin-actions" *ngIf="isOwner(event) && event.idEvent">
-          <a [routerLink]="['/events', event.idEvent, 'modalities']" class="btn-icon" title="Agregar modalidad">
-            <span class="icon-plus">+</span>
-          </a>
-          <a [routerLink]="['/events/edit', event.idEvent]" class="btn-icon" title="Editar evento">
+          <a [routerLink]="['/events/edit', event.idEvent]" class="btn-icon btn-icon-edit" title="Editar evento">
             <img src="icons8-edit-pencil.svg" alt="Editar" class="icon-action" />
           </a>
-          <button type="button" (click)="onDeleteEvent(event)" class="btn-icon" title="Eliminar evento">
+          <button type="button" (click)="onDeleteEvent(event)" class="btn-icon btn-icon-delete" title="Eliminar evento">
             <img src="icons8-trash-can-64.png" alt="Eliminar" class="icon-action" />
           </button>
         </div>
