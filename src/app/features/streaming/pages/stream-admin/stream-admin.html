@@ -1,13 +1,24 @@
 <div class="stream-admin-container">
   <header class="admin-header">
     <div>
-      <h1>Panel de Transmisión</h1>
-      <p class="subtitle">Evento #{{ eventId }}</p>
+      <h1>{{ headerTitle() }}</h1>
+      <p class="subtitle admin-header-id">Panel de transmisión · ID {{ eventId }}</p>
     </div>
     <a [routerLink]="['/stream/watch', eventId]" class="btn btn-ghost btn-sm" target="_blank">
       Ver como espectador ↗
     </a>
   </header>
+
+  @if (kickCallbackNotice(); as notice) {
+    <div class="callback-notice" [class.is-error]="notice === 'error'">
+      @if (notice === 'success') {
+        ✓ Kick vinculado con éxito.
+      } @else {
+        No fue posible completar la vinculación con Kick. Intenta de nuevo.
+      }
+      <button type="button" class="callback-notice-close" (click)="dismissKickCallbackNotice()" aria-label="Cerrar aviso">✕</button>
+    </div>
+  }
 
   @if (isLoading()) {
     <div class="loading-state">
@@ -74,6 +85,95 @@
       <div class="error-message">Ingesta: {{ ingestError() }}</div>
     }
 
+    <section class="config-card">
+      @if (!isEditingConfig()) {
+        <div class="config-summary">
+          <div>
+            <h2>Configuración de transmisión</h2>
+            @if (data.title) {
+              <p class="config-title">{{ data.title }}</p>
+            }
+            @if (data.description) {
+              <p class="subtitle">{{ data.description }}</p>
+            }
+            <dl class="config-details">
+              <div>
+                <dt>Canal</dt>
+                <dd>{{ data.channelUrl }}</dd>
+              </div>
+              <div>
+                <dt>Servidor de ingesta / RTMP</dt>
+                <dd>{{ data.rtmpUrl }}</dd>
+              </div>
+              <div>
+                <dt>Clave de retransmisión</dt>
+                <dd>{{ maskedStreamKey() }}</dd>
+              </div>
+            </dl>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" (click)="openConfigEditor()">
+            Editar configuración
+          </button>
+        </div>
+      } @else {
+        <form [formGroup]="configForm" (ngSubmit)="submitConfigEdit()" class="setup-form">
+          <h2>Editar configuración de transmisión</h2>
+
+          <div class="form-group">
+            <label for="cfgTitle">Título de la sesión</label>
+            <input type="text" id="cfgTitle" formControlName="title" placeholder="ej. Ronda final - Salsa">
+          </div>
+
+          <div class="form-group">
+            <label for="cfgDescription">Descripción</label>
+            <textarea id="cfgDescription" formControlName="description" rows="2" placeholder="Descripción opcional"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="cfgChannelUrl">URL del canal de Kick *</label>
+            <input type="url" id="cfgChannelUrl" formControlName="channelUrl" placeholder="https://kick.com/tu-canal">
+            @if (isConfigFieldInvalid('channelUrl')) {
+              <span class="field-error">La URL del canal es obligatoria</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="cfgRtmpUrl">Servidor de ingesta / URL RTMP *</label>
+            <input type="text" id="cfgRtmpUrl" formControlName="rtmpUrl" placeholder="rtmps://...">
+            @if (isConfigFieldInvalid('rtmpUrl')) {
+              <span class="field-error">La URL RTMP es obligatoria</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="cfgStreamKey">Clave de retransmisión (Stream key) *</label>
+            <input type="text" id="cfgStreamKey" formControlName="streamKey" placeholder="Clave de transmisión">
+            @if (isConfigFieldInvalid('streamKey')) {
+              <span class="field-error">La stream key es obligatoria</span>
+            }
+          </div>
+
+          @if (errorMessage()) {
+            <div class="error-message">{{ errorMessage() }}</div>
+          }
+
+          <div class="config-form-actions">
+            <button type="submit" class="btn btn-primary" [disabled]="isSavingConfig()">
+              @if (isSavingConfig()) {
+                <span class="spinner"></span>
+                Guardando...
+              } @else {
+                Guardar cambios
+              }
+            </button>
+            <button type="button" class="btn btn-ghost" (click)="cancelConfigEdit()" [disabled]="isSavingConfig()">
+              Cancelar
+            </button>
+          </div>
+        </form>
+      }
+    </section>
+
     <div class="admin-grid">
       <section class="preview-column">
         <app-camera-preview (streamChanged)="onLocalStreamChanged($event)" />
@@ -88,7 +188,8 @@
           [statusStream]="data.statusStream"
           [status]="status()"
           [isBusy]="isBusy()"
-          [kickLinked]="false"
+          [kickLinked]="data.kickTokenLinked ?? false"
+          [kickTokenExpiresAt]="data.kickTokenExpiresAt"
           [mediaReady]="ingestFlowing()"
           (linkKick)="linkKick()"
           (goLive)="goLive()"

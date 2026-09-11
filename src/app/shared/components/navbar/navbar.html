@@ -39,7 +39,12 @@
           <div class="live-dropdown-backdrop" (click)="closeLiveMenu()"></div>
           <ul class="live-dropdown">
             @if (liveStreams().length === 0) {
-              <li class="live-dropdown-empty">No hay transmisiones en vivo en este momento.</li>
+              <li class="live-dropdown-empty">
+                <p>No hay transmisiones en vivo en este momento.</p>
+                <a routerLink="/stream/admin" class="btn btn-primary btn-sm btn-block" (click)="closeLiveMenu()">
+                  Ir a Administración de Streams
+                </a>
+              </li>
             } @else {
               @for (item of liveStreams(); track item.eventId) {
                 <li>
@@ -49,6 +54,12 @@
                   </button>
                 </li>
               }
+              <li class="live-dropdown-divider" role="separator"></li>
+              <li>
+                <a routerLink="/stream/admin" class="live-dropdown-manage-link" (click)="closeLiveMenu()">
+                  ⚙ Administración de Streams
+                </a>
+              </li>
             }
           </ul>
         }
@@ -134,6 +145,12 @@
             }
           </li>
         }
+
+        <li>
+          <a routerLink="/stream/admin" class="live-nav-manage-mobile" (click)="closeMenu()">
+            ⚙ Administración de Streams
+          </a>
+        </li>
       </ul>
       
       <div class="navbar-mobile-actions">

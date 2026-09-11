@@ -31,6 +31,33 @@
   animation: fadeIn 0.3s ease;
 }
 
+.kick-link-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--wd-spacing-1);
+}
+
+.kick-status-badge {
+  font-size: var(--wd-font-size-xs);
+  font-weight: 600;
+  padding: 2px var(--wd-spacing-2);
+  border-radius: var(--wd-radius-full);
+  color: var(--wd-text-muted);
+  background: var(--wd-bg-ghost-hover);
+  white-space: nowrap;
+
+  &.is-linked {
+    color: var(--wd-green);
+    background: var(--wd-green-light, rgba(34, 197, 94, 0.12));
+  }
+
+  &.is-expired {
+    color: #92400e;
+    background: #fef3c7;
+  }
+}
+
 .metrics-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

@@ -88,7 +88,23 @@ export interface StreamAdminResponse extends StreamPublicResponse {
    */
   ingestUrl: string;
   channelUrl: string;
+  /** Título/descripción propios de la sesión de transmisión (distintos del nombre del evento). */
+  title?: string;
+  description?: string;
+  /** true si hay un token OAuth de Kick guardado y todavía vigente (no expirado). */
+  kickTokenLinked?: boolean;
+  /** Instant ISO-8601 de expiración del token; ausente/null si nunca se vinculó Kick. */
+  kickTokenExpiresAt?: string | null;
   timestamps: StreamTimestamps;
+}
+
+/** Coincide con UpdateStreamConfigRequestDto (PUT /stream/config/{eventId}). */
+export interface UpdateStreamConfigRequest {
+  channelUrl: string;
+  rtmpUrl: string;
+  streamKey: string;
+  title?: string;
+  description?: string;
 }
 
 /** Coincide con LiveStreamResponseDto (GET /stream/live, público, sin autenticación). */
@@ -99,15 +115,17 @@ export interface LiveStreamSummary {
 
 /**
  * GET /stream/status/{eventId} devuelve un passthrough crudo del ffmpeg-manager
- * (HttpGlobalResponse<Map<String,Object>>), sin forma fija garantizada por el backend.
+ * (HttpGlobalResponse<Map<String,Object>>). Estos son los campos que ffmpeg-manager realmente
+ * envía hoy (ver GET /api/stream/status/:streamId) — no incluye bitrate/latencia/espectadores:
+ * ese monitoreo no existe todavía, así que el frontend no debe fingir que sí.
  */
 export interface StreamStatus {
   streamId?: string;
   active?: boolean;
   status?: string;
-  bitrate?: number;
-  viewers?: number;
-  latency?: number;
+  sourceType?: string;
+  destinationUrl?: string;
+  startedAt?: string;
   message?: string;
   [key: string]: unknown;
 }

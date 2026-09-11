@@ -8,24 +8,46 @@
       }
     </span>
 
-    <button type="button" class="btn btn-outline btn-sm" (click)="linkKick.emit()" [disabled]="kickLinked()">
-      {{ kickLinked() ? 'Kick vinculado ✓' : 'Vincular Kick' }}
-    </button>
+    <div class="kick-link-group">
+      <!--
+        Sin [disabled]: el usuario debe poder reautorizar/re-vincular Kick en cualquier momento
+        (ej. si vinculó la cuenta equivocada, o el token está por expirar), no solo la primera vez.
+      -->
+      <button type="button" class="btn btn-outline btn-sm" (click)="linkKick.emit()">
+        {{ kickLinked() ? 'Reautorizar Kick' : 'Vincular Kick' }}
+      </button>
+
+      <span class="kick-status-badge" [class.is-linked]="kickTokenStatus() === 'linked'" [class.is-expired]="kickTokenStatus() === 'expired'">
+        @switch (kickTokenStatus()) {
+          @case ('linked') { Vinculación activa }
+          @case ('expired') { Token expirado, vincula de nuevo }
+          @default { Requiere vinculación }
+        }
+      </span>
+    </div>
   </div>
 
+  <!--
+    Solo se muestran datos que ffmpeg-manager realmente reporta (GET /api/stream/status/:streamId).
+    No hay monitoreo real de bitrate/latencia/espectadores todavía: mostrar esos campos con un
+    placeholder fijo ("—") simulaba una telemetría en vivo que no existe. Cuando ese monitoreo se
+    implemente, este panel debe conectarse a datos reales, no a contadores decorativos.
+  -->
   <div class="metrics-row">
     <div class="metric">
-      <span class="metric-label">Bitrate</span>
-      <span class="metric-value">{{ status()?.bitrate ?? '—' }} kbps</span>
+      <span class="metric-label">Proceso FFmpeg</span>
+      <span class="metric-value">{{ status()?.active ? 'Activo' : 'Detenido' }}</span>
     </div>
     <div class="metric">
-      <span class="metric-label">Latencia</span>
-      <span class="metric-value">{{ status()?.latency ?? '—' }} ms</span>
+      <span class="metric-label">Fuente</span>
+      <span class="metric-value">{{ status()?.sourceType ?? '—' }}</span>
     </div>
-    <div class="metric">
-      <span class="metric-label">Espectadores</span>
-      <span class="metric-value">{{ status()?.viewers ?? '—' }}</span>
-    </div>
+    @if (status()?.startedAt; as startedAt) {
+      <div class="metric">
+        <span class="metric-label">Iniciado</span>
+        <span class="metric-value">{{ startedAt | date: 'short' }}</span>
+      </div>
+    }
   </div>
 
   <div class="panel-actions">

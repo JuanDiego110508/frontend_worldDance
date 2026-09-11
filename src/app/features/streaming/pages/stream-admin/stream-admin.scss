@@ -23,8 +23,14 @@
   margin: 0;
 }
 
+.admin-header-id {
+  font-size: var(--wd-font-size-xs);
+  opacity: 0.7;
+}
+
 .loading-state,
-.error-message {
+.error-message,
+.callback-notice {
   display: flex;
   align-items: center;
   gap: var(--wd-spacing-2);
@@ -35,6 +41,30 @@
 .error-message {
   background: var(--wd-red-light);
   color: var(--wd-red);
+}
+
+.callback-notice {
+  justify-content: space-between;
+  background: var(--wd-green-light, rgba(34, 197, 94, 0.12));
+  color: var(--wd-green);
+
+  &.is-error {
+    background: var(--wd-red-light);
+    color: var(--wd-red);
+  }
+}
+
+.callback-notice-close {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: var(--wd-font-size-sm);
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
 }
 
 .setup-card {
@@ -64,17 +94,82 @@
   color: var(--wd-text-body);
 }
 
-.form-group input {
+.form-group input,
+.form-group textarea {
   padding: var(--wd-spacing-2) var(--wd-spacing-3);
   border-radius: var(--wd-radius-md);
   border: 1px solid var(--wd-border-color);
   background: var(--wd-bg-input);
   color: var(--wd-text-body);
+  font-family: inherit;
+  resize: vertical;
 }
 
 .field-error {
   color: var(--wd-red);
   font-size: 0.8rem;
+}
+
+.config-card {
+  background: var(--wd-bg-card);
+  border: 1px solid var(--wd-border-color);
+  border-radius: var(--wd-radius-lg);
+  padding: var(--wd-spacing-5);
+}
+
+.config-summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--wd-spacing-4);
+  flex-wrap: wrap;
+}
+
+.config-summary h2 {
+  margin: 0 0 var(--wd-spacing-1);
+  color: var(--wd-text-heading);
+  font-size: var(--wd-font-size-lg);
+}
+
+.config-title {
+  font-weight: 600;
+  color: var(--wd-text-body);
+  margin: 0;
+}
+
+.config-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wd-spacing-1);
+  margin: var(--wd-spacing-3) 0 0;
+
+  div {
+    display: flex;
+    gap: var(--wd-spacing-2);
+    font-size: var(--wd-font-size-sm);
+  }
+
+  dt {
+    color: var(--wd-text-muted);
+    min-width: 180px;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--wd-text-body);
+    word-break: break-all;
+  }
+}
+
+.config-card .setup-form h2 {
+  margin: 0 0 var(--wd-spacing-2);
+  color: var(--wd-text-heading);
+  font-size: var(--wd-font-size-lg);
+}
+
+.config-form-actions {
+  display: flex;
+  gap: var(--wd-spacing-3);
 }
 
 .admin-grid {
