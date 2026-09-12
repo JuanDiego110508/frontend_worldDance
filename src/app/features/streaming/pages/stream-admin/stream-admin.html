@@ -55,14 +55,6 @@
           }
         </div>
 
-        <div class="form-group">
-          <label for="scheduleFor">Fecha/hora programada *</label>
-          <input type="datetime-local" id="scheduleFor" formControlName="scheduleFor">
-          @if (isSetupFieldInvalid('scheduleFor')) {
-            <span class="field-error">Selecciona una fecha y hora</span>
-          }
-        </div>
-
         @if (errorMessage()) {
           <div class="error-message">{{ errorMessage() }}</div>
         }

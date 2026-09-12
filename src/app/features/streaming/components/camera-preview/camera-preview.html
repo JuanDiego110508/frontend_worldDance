@@ -8,8 +8,8 @@
     }
     <video #previewVideo class="preview-video" autoplay playsinline muted [hidden]="!isCapturing()"></video>
 
-    @if (activeSource()) {
-      <span class="source-badge">{{ activeSource() === 'camera' ? '📷 Cámara' : '🖥️ Pantalla' }}</span>
+    @if (isCapturing()) {
+      <span class="source-badge">📷 Cámara</span>
     }
   </div>
 
@@ -21,10 +21,7 @@
     <button type="button" class="btn btn-outline btn-sm" (click)="startCamera()" [disabled]="isCapturing()">
       Activar cámara
     </button>
-    <button type="button" class="btn btn-outline btn-sm" (click)="startScreenShare()" [disabled]="isCapturing()">
-      Compartir pantalla
-    </button>
-    <button type="button" class="btn btn-danger btn-sm" (click)="stopCapture()" [disabled]="!isCapturing()">
+    <button type="button" class="btn btn-danger btn-sm" (click)="stopStream()" [disabled]="!isCapturing()">
       Detener captura
     </button>
   </div>

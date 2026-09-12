@@ -1,18 +1,19 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { StreamIngestService } from './stream-ingest.service';
 
-export type CaptureSource = 'camera' | 'screen';
-
 const LOG_PREFIX = '[CameraCapture]';
 
 /**
- * Propietario único del `MediaStream` de cámara/pantalla y del ciclo de vida
+ * Propietario único del `MediaStream` de cámara/micrófono y del ciclo de vida
  * captura->ingesta. Se provee en 'root' a propósito: si esta responsabilidad viviera en
  * `CameraPreviewComponent` (como antes), navegar fuera de la página de administración del stream
  * destruye el componente y con él el `DestroyRef.onDestroy` detiene las pistas de hardware — cortando
  * en seco una transmisión en vivo por una simple navegación dentro de la SPA. Al vivir aquí, el
  * stream y el WebSocket de ingesta (también root, ver StreamIngestService) sobreviven a cualquier
- * componente que se monte/desmonte; solo `stopCapture()` (acción explícita del usuario) los libera.
+ * componente que se monte/desmonte; solo `stopStream()` (acción explícita del usuario) los libera.
+ *
+ * Solo captura cámara vía `getUserMedia`: no existe soporte de "compartir pantalla"
+ * (`getDisplayMedia`) en este flujo, por decisión explícita de producto.
  */
 @Injectable({
   providedIn: 'root'
@@ -25,7 +26,6 @@ export class CameraCaptureService {
   /** Stream activo (o null). Los componentes de presentación se suscriben a esto para pintar el <video>. */
   readonly stream = signal<MediaStream | null>(null);
   readonly isCapturing = signal(false);
-  readonly activeSource = signal<CaptureSource | null>(null);
   readonly errorMessage = signal('');
 
   constructor() {
@@ -43,41 +43,8 @@ export class CameraCaptureService {
   }
 
   async startCamera(ingestUrl: string | null | undefined): Promise<void> {
-    await this.startCapture('camera', () =>
-      navigator.mediaDevices.getUserMedia({ video: true, audio: true }), ingestUrl);
-  }
-
-  async startScreenShare(ingestUrl: string | null | undefined): Promise<void> {
-    await this.startCapture('screen', () =>
-      navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }), ingestUrl);
-  }
-
-  /**
-   * Única vía para liberar el hardware y cortar la ingesta: debe llamarse solo ante una acción
-   * explícita del usuario (botón "Detener captura"/"Apagar Stream"/"Finalizar"), nunca desde el
-   * ciclo de vida de un componente — ese acoplamiento es exactamente el bug que este servicio existe
-   * para eliminar.
-   */
-  async stopCapture(): Promise<void> {
-    this.releaseTracks();
-    this.isCapturing.set(false);
-    this.activeSource.set(null);
-    this.stream.set(null);
-    await this.ingest.stop();
-  }
-
-  private releaseTracks(): void {
-    this.mediaStream?.getTracks().forEach(track => track.stop());
-    this.mediaStream = null;
-  }
-
-  private async startCapture(
-    source: CaptureSource,
-    getStream: () => Promise<MediaStream>,
-    ingestUrl: string | null | undefined
-  ): Promise<void> {
     this.errorMessage.set('');
-    await this.stopCapture();
+    await this.stopStream();
 
     if (!window.isSecureContext) {
       this.errorMessage.set(
@@ -88,21 +55,20 @@ export class CameraCaptureService {
     }
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      this.errorMessage.set('Este navegador no soporta el acceso a cámara/pantalla (MediaDevices API no disponible).');
+      this.errorMessage.set('Este navegador no soporta el acceso a la cámara (MediaDevices API no disponible).');
       return;
     }
 
     try {
-      const stream = await getStream();
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 
       this.mediaStream = stream;
       this.isCapturing.set(true);
-      this.activeSource.set(source);
       this.stream.set(stream);
 
       stream.getVideoTracks()[0]?.addEventListener('ended', () => {
-        console.warn(`${LOG_PREFIX} La pista de video terminó (dispositivo desconectado o "Dejar de compartir").`);
-        this.stopCapture();
+        console.warn(`${LOG_PREFIX} La pista de video terminó (cámara desconectada o permiso revocado).`);
+        this.stopStream();
       });
 
       if (ingestUrl) {
@@ -116,16 +82,31 @@ export class CameraCaptureService {
         console.warn(`${LOG_PREFIX} No hay ingestUrl disponible todavía; solo se activó la vista previa local.`);
       }
     } catch (error) {
-      this.errorMessage.set(this.describeCaptureError(error, source));
+      this.errorMessage.set(this.describeCaptureError(error));
     }
   }
 
   /**
-   * Traduce las excepciones más comunes de getUserMedia/getDisplayMedia a un mensaje accionable,
-   * en vez de mostrar el `error.message` crudo del navegador (ej. "Permission denied" a secas).
+   * Único punto de entrada para apagar la cámara y la transmisión: detiene el `MediaRecorder` y
+   * cierra el WebSocket (vía `StreamIngestService.stop()`), detiene las pistas de hardware y limpia
+   * las señales de estado. Debe llamarse solo ante una acción explícita del usuario (botón "Apagar
+   * Stream"/"Detener captura"/"Finalizar"), nunca desde el ciclo de vida de un componente — ese
+   * acoplamiento es exactamente el bug que este servicio existe para eliminar.
    */
-  private describeCaptureError(error: unknown, source: CaptureSource): string {
-    const label = source === 'camera' ? 'la cámara y el micrófono' : 'la pantalla';
+  async stopStream(): Promise<void> {
+    await this.ingest.stop();
+    this.mediaStream?.getTracks().forEach(track => track.stop());
+    this.mediaStream = null;
+    this.isCapturing.set(false);
+    this.stream.set(null);
+  }
+
+  /**
+   * Traduce las excepciones más comunes de getUserMedia a un mensaje accionable, en vez de mostrar
+   * el `error.message` crudo del navegador (ej. "Permission denied" a secas).
+   */
+  private describeCaptureError(error: unknown): string {
+    const label = 'la cámara y el micrófono';
 
     if (error instanceof DOMException) {
       switch (error.name) {
