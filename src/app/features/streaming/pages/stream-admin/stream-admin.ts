@@ -123,6 +123,13 @@ export class StreamAdminComponent implements OnInit {
     if (kick === 'success' || kick === 'error') {
       this.kickCallbackNotice.set(kick);
       this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+
+      if (kick === 'success') {
+        // Refresca el estado de vinculación de Kick (kickTokenLinked/kickTokenExpiresAt) sin pasar
+        // por isLoading: recargar toda la página destruiría <app-camera-preview> y cortaría de
+        // raíz cualquier captura/ingesta que ya estuviera activa en esta misma pestaña.
+        this.refreshAdminEventSilently();
+      }
     }
   }
 
@@ -265,20 +272,6 @@ export class StreamAdminComponent implements OnInit {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 
-  async onLocalStreamChanged(stream: MediaStream | null): Promise<void> {
-    const ingestUrl = this.session()?.ingestUrl;
-
-    if (stream && ingestUrl) {
-      try {
-        await this.streamIngest.publish(ingestUrl, stream);
-      } catch {
-        // El detalle del error ya queda reflejado en streamIngest.errorMessage().
-      }
-    } else if (!stream) {
-      await this.streamIngest.stop();
-    }
-  }
-
   linkKick(): void {
     this.streamService.getKickLoginUrl(this.eventId).subscribe({
       next: (url) => window.open(url, '_blank', 'noopener'),
@@ -341,8 +334,9 @@ export class StreamAdminComponent implements OnInit {
 
     this.streamService.finishStream(streamId).subscribe({
       next: async (updated) => {
-        await this.streamIngest.stop();
-        this.cameraPreview()?.stopCapture();
+        // stopCapture() ya libera el hardware y detiene la ingesta (StreamIngestService.stop())
+        // internamente; no hace falta llamarlo por separado aquí.
+        await this.cameraPreview()?.stopCapture();
         this.session.update(current => (current ? { ...current, statusStream: updated.statusStream } : current));
       },
       error: (err) => this.errorMessage.set(err?.message ?? 'No fue posible finalizar la transmisión.')

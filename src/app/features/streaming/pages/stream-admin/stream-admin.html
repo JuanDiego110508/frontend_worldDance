@@ -176,7 +176,7 @@
 
     <div class="admin-grid">
       <section class="preview-column">
-        <app-camera-preview (streamChanged)="onLocalStreamChanged($event)" />
+        <app-camera-preview [ingestUrl]="session()?.ingestUrl ?? null" />
         <p class="whip-status">
           Estado ingesta: <strong>{{ ingestState() }}</strong>
           · Conexión: <strong [class.whip-live]="ingestFlowing()">{{ ingestConnectionState() }}</strong>
