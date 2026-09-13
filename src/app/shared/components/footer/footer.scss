@@ -1,11 +1,23 @@
 @use '../../../../styles.scss' as *;
 
 .footer {
-  background: var(--wd-gray-900);
-  color: var(--wd-text-muted);
-  padding: var(--wd-spacing-12) 0 var(--wd-spacing-6);
+  position: relative;
+  background: linear-gradient(180deg, rgba(11, 15, 26, 0.95) 0%, rgba(7, 10, 18, 1) 100%);
+  color: var(--wd-gray-400);
+  padding: var(--wd-spacing-16) 0 var(--wd-spacing-6);
   margin-top: auto;
-  border-top: 4px solid var(--wd-purple);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.footer-glow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 75%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.4), transparent);
 }
 
 .footer .container {
@@ -18,36 +30,71 @@
   display: grid;
   grid-template-columns: 1.5fr 2.5fr;
   gap: var(--wd-spacing-12);
+  padding-bottom: var(--wd-spacing-8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .footer-brand {
   display: flex;
   flex-direction: column;
-  gap: var(--wd-spacing-3);
+  justify-content: space-between;
+  gap: var(--wd-spacing-6);
 
   .brand-header {
-    display: flex;
-    align-items: center;
-    gap: var(--wd-spacing-2);
+    display: inline-flex;
+    margin-bottom: var(--wd-spacing-3);
   }
 
   .brand-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--wd-radius-sm);
-  }
-
-  .brand-text {
-    font-size: var(--wd-font-size-2xl);
-    font-weight: 800;
-    color: var(--wd-white);
+    width: 150px;
+    height: auto;
   }
 
   .brand-description {
     color: var(--wd-gray-400);
     font-size: var(--wd-font-size-sm);
-    max-width: 320px;
+    max-width: 360px;
     line-height: 1.7;
+  }
+}
+
+.footer-social-label {
+  display: block;
+  margin-bottom: var(--wd-spacing-3);
+  font-size: var(--wd-font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--wd-gray-400);
+}
+
+.footer-social-icons {
+  display: flex;
+  align-items: center;
+  gap: var(--wd-spacing-2);
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--wd-radius-xl);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--wd-gray-400);
+  transition: all 0.2s;
+
+  .material-symbols-outlined {
+    font-size: 1.1rem;
+  }
+
+  &:hover {
+    background: rgba(124, 58, 237, 0.3);
+    border-color: rgba(124, 58, 237, 0.4);
+    color: #C4B5FD;
+    transform: scale(1.05);
   }
 }
 
@@ -60,41 +107,74 @@
 .footer-links-group {
   display: flex;
   flex-direction: column;
-  gap: var(--wd-spacing-2);
+  gap: var(--wd-spacing-3);
 
   h4 {
+    display: flex;
+    align-items: center;
+    gap: var(--wd-spacing-2);
     color: var(--wd-white);
     font-size: var(--wd-font-size-sm);
-    font-weight: 600;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     margin-bottom: var(--wd-spacing-2);
   }
 
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--wd-radius-full);
+    flex-shrink: 0;
+
+    &.dot-purple { background: var(--wd-purple-light); }
+    &.dot-cyan { background: #22D3EE; }
+    &.dot-pink { background: #F472B6; }
+  }
+
   a {
+    display: flex;
+    align-items: center;
+    gap: var(--wd-spacing-2);
     color: var(--wd-gray-400);
     font-size: var(--wd-font-size-sm);
-    transition: color 0.2s;
+    transition: all 0.2s ease;
     text-decoration: none;
 
-    &:hover {
-      color: var(--wd-white);
+    .material-symbols-outlined {
+      font-size: 1rem;
     }
+
+    &:hover {
+      color: #A78BFA;
+      transform: translateX(3px);
+    }
+  }
+
+  .footer-sena-link {
+    color: var(--wd-purple-light);
+    font-weight: 500;
   }
 }
 
 .footer-bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: var(--wd-spacing-6);
+  padding-top: var(--wd-spacing-2);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: var(--wd-font-size-sm);
+  flex-wrap: wrap;
+  gap: var(--wd-spacing-3);
+  font-size: var(--wd-font-size-xs);
   color: var(--wd-gray-500);
 
   .footer-version {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(124, 58, 237, 0.15);
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    color: #C4B5FD;
     padding: var(--wd-spacing-1) var(--wd-spacing-3);
     border-radius: var(--wd-radius-full);
     font-size: var(--wd-font-size-xs);
+    font-family: monospace;
   }
 }
 

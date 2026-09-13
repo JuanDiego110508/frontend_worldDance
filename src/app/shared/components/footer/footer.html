@@ -1,27 +1,50 @@
-<footer class="footer">
+<footer class="footer" id="site-footer">
+  <div class="footer-glow" aria-hidden="true"></div>
+
   <div class="container">
     <div class="footer-content">
       <div class="footer-brand">
-        <div class="brand-header">
-          <img class="brand-icon" src="/FondoWorDancePNG.png" alt="World Dance">
-          <span class="brand-text">WorldDance</span>
+        <div>
+          <a class="brand-header" routerLink="/">
+            <img class="brand-icon" src="/FondoWorDancePNG.png" alt="World Dance">
+          </a>
+          <p class="brand-description">
+            Plataforma tecnológica integral para la gestión, arbitraje digital y transmisión de
+            competencias de danza. Conectando bailarines, academias y jurados bajo estándares de
+            alto rendimiento.
+          </p>
         </div>
-        <p class="brand-description">
-          Plataforma de gestión de competencias de danza.
-          Organiza, participa, evalúa y celebra el talento.
-        </p>
+
+        <div class="footer-social">
+          <span class="footer-social-label">Comunidad en redes</span>
+          <div class="footer-social-icons">
+            <a href="#" class="social-icon" title="Instagram WorldDance" aria-label="Instagram">
+              <span class="material-symbols-outlined" aria-hidden="true">photo_camera</span>
+            </a>
+            <a href="#" class="social-icon" title="YouTube WorldDance" aria-label="YouTube">
+              <span class="material-symbols-outlined" aria-hidden="true">smart_display</span>
+            </a>
+            <a href="#" class="social-icon" title="TikTok WorldDance" aria-label="TikTok">
+              <span class="material-symbols-outlined" aria-hidden="true">music_note</span>
+            </a>
+            <a href="#" class="social-icon" title="Discord WorldDance" aria-label="Discord">
+              <span class="material-symbols-outlined" aria-hidden="true">forum</span>
+            </a>
+          </div>
+        </div>
       </div>
 
       <div class="footer-links">
         <div class="footer-links-group">
-          <h4>Navegación</h4>
+          <h4><span class="dot dot-purple"></span> Navegación</h4>
           <a routerLink="/">Inicio</a>
           <a routerLink="/events">Eventos</a>
+          <a routerLink="/scoring">Scoring</a>
           <a routerLink="/rankings">Rankings</a>
         </div>
 
         <div class="footer-links-group">
-          <h4>Soporte</h4>
+          <h4><span class="dot dot-cyan"></span> Soporte</h4>
           <a href="#">Ayuda</a>
           <a href="#">Contacto</a>
           <a href="#">Términos y condiciones</a>
@@ -29,17 +52,21 @@
         </div>
 
         <div class="footer-links-group">
-          <h4>Comunidad</h4>
+          <h4><span class="dot dot-pink"></span> Comunidad</h4>
           <a href="#">Blog</a>
           <a href="#">Foro</a>
           <a href="#">Eventos destacados</a>
+          <a href="#" class="footer-sena-link">
+            <span class="material-symbols-outlined" aria-hidden="true">school</span>
+            Alianza SENA
+          </a>
         </div>
       </div>
     </div>
 
     <div class="footer-bottom">
       <p>
-        &copy; {{ currentYear }} WorldDance - SENA. 
+        &copy; {{ currentYear }} <strong>WorldDance</strong> - SENA.
         Todos los derechos reservados.
       </p>
       <span class="footer-version">v{{ version }}</span>

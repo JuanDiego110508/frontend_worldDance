@@ -10,6 +10,7 @@ import { LiveStreamSummary } from '../../../features/streaming/models/stream.mod
 interface NavItem {
   label: string;
   route: string;
+  icon: string;
 }
 
 /** Cada cuánto se revisa si hay eventos en vivo, para refrescar el indicador de la navbar. */
@@ -44,11 +45,16 @@ export class NavbarComponent implements OnInit, OnDestroy {
   readonly hasLiveStreams = computed(() => this.liveStreams().length > 0);
 
   navItems: NavItem[] = [
-    { label: 'Dashboard', route: '/' },
-    { label: 'Eventos', route: '/events' },
-    { label: 'Scoring', route: '/scoring' },
-    { label: 'Rankings', route: '/rankings' },
+    { label: 'Dashboard', route: '/', icon: 'dashboard' },
+    { label: 'Eventos', route: '/events', icon: 'celebration' },
+    { label: 'Scoring', route: '/scoring', icon: 'sports_score' },
+    { label: 'Rankings', route: '/rankings', icon: 'leaderboard' },
   ];
+
+  /** Enlaces visibles directamente en la barra; el resto se agrupa en el menú "Más" al pasar el mouse. */
+  readonly primaryNavItems: NavItem[] = this.navItems.slice(0, 3);
+
+  private liveMenuCloseTimer?: ReturnType<typeof setTimeout>;
 
   ngOnInit(): void {
     this.updateAuthState();
@@ -63,6 +69,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.authSubscription?.unsubscribe();
+    clearTimeout(this.liveMenuCloseTimer);
   }
 
   updateAuthState(): void {
@@ -116,6 +123,19 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   closeLiveMenu(): void {
     this.isLiveMenuOpen.set(false);
+  }
+
+  /** Al pasar el mouse por encima (desktop), previsualiza el menú de "En Vivo" sin necesidad de clic. */
+  onLiveMouseEnter(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    clearTimeout(this.liveMenuCloseTimer);
+    this.isLiveMenuOpen.set(true);
+  }
+
+  /** Pequeño margen antes de cerrar para permitir mover el mouse del botón al menú desplegado. */
+  onLiveMouseLeave(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.liveMenuCloseTimer = setTimeout(() => this.isLiveMenuOpen.set(false), 200);
   }
 
   @HostListener('window:scroll', [])

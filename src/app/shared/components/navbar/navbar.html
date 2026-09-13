@@ -9,19 +9,47 @@
     </a>
 
     <ul class="navbar-nav-desktop">
-      @for (item of navItems; track item.route) {
+      @for (item of primaryNavItems; track item.route) {
         <li>
           <a
             [routerLink]="[item.route]"
             routerLinkActive="active"
             [routerLinkActiveOptions]="{ exact: true }"
           >
+            <span class="material-symbols-outlined nav-icon" aria-hidden="true">{{ item.icon }}</span>
             {{ item.label }}
           </a>
         </li>
       }
 
-      <li class="live-nav-item">
+      <li class="nav-more">
+        <button type="button" class="nav-more-trigger" aria-haspopup="true">
+          <span class="material-symbols-outlined nav-icon" aria-hidden="true">apps</span>
+          Más
+          <span class="material-symbols-outlined nav-caret" aria-hidden="true">expand_more</span>
+        </button>
+
+        <ul class="nav-more-dropdown">
+          @for (item of navItems; track item.route) {
+            <li>
+              <a
+                [routerLink]="[item.route]"
+                routerLinkActive="active"
+                [routerLinkActiveOptions]="{ exact: true }"
+              >
+                <span class="material-symbols-outlined nav-icon" aria-hidden="true">{{ item.icon }}</span>
+                {{ item.label }}
+              </a>
+            </li>
+          }
+        </ul>
+      </li>
+
+      <li
+        class="live-nav-item"
+        (mouseenter)="onLiveMouseEnter()"
+        (mouseleave)="onLiveMouseLeave()"
+      >
         <button
           type="button"
           class="live-nav-button"
@@ -29,19 +57,30 @@
           (click)="onLiveClick()"
           [attr.aria-expanded]="isLiveMenuOpen()"
         >
-          En Vivo
           @if (hasLiveStreams()) {
-            <span class="live-dot" aria-hidden="true"></span>
+            <span class="live-ping" aria-hidden="true">
+              <span class="live-ping-outer"></span>
+              <span class="live-ping-inner"></span>
+            </span>
           }
+          <span class="material-symbols-outlined nav-icon" aria-hidden="true">live_tv</span>
+          En Vivo
         </button>
 
         @if (isLiveMenuOpen()) {
           <div class="live-dropdown-backdrop" (click)="closeLiveMenu()"></div>
           <ul class="live-dropdown">
+            <li class="live-dropdown-header">
+              <span class="material-symbols-outlined" aria-hidden="true">live_tv</span>
+              Transmisiones en Vivo
+            </li>
+
             @if (liveStreams().length === 0) {
               <li class="live-dropdown-empty">
+                <span class="material-symbols-outlined live-dropdown-empty-icon" aria-hidden="true">sensors_off</span>
                 <p>No hay transmisiones en vivo en este momento.</p>
-                <a routerLink="/stream/admin" class="btn btn-primary btn-sm btn-block" (click)="closeLiveMenu()">
+                <a routerLink="/stream/admin" class="live-dropdown-cta" (click)="closeLiveMenu()">
+                  <span class="material-symbols-outlined" aria-hidden="true">settings</span>
                   Ir a Administración de Streams
                 </a>
               </li>
@@ -57,7 +96,8 @@
               <li class="live-dropdown-divider" role="separator"></li>
               <li>
                 <a routerLink="/stream/admin" class="live-dropdown-manage-link" (click)="closeLiveMenu()">
-                  ⚙ Administración de Streams
+                  <span class="material-symbols-outlined nav-icon" aria-hidden="true">settings</span>
+                  Administración de Streams
                 </a>
               </li>
             }
@@ -79,9 +119,11 @@
           <span class="user-avatar">{{ userName().charAt(0) }}</span>
           <span class="user-name">{{ userName() }}</span>
           <button class="btn btn-ghost btn-sm" (click)="goToProfile()">
+            <span class="material-symbols-outlined nav-icon" aria-hidden="true">person</span>
             Mi Perfil
           </button>
-          <button class="btn btn-outline btn-sm" (click)="logout()">
+          <button class="btn btn-outline btn-sm btn-logout" (click)="logout()">
+            <span class="material-symbols-outlined nav-icon" aria-hidden="true">logout</span>
             Cerrar Sesión
           </button>
         </div>
@@ -112,6 +154,7 @@
               routerLinkActive="active"
               (click)="closeMenu()"
             >
+              <span class="material-symbols-outlined nav-icon" aria-hidden="true">{{ item.icon }}</span>
               {{ item.label }}
             </a>
           </li>
@@ -148,7 +191,8 @@
 
         <li>
           <a routerLink="/stream/admin" class="live-nav-manage-mobile" (click)="closeMenu()">
-            ⚙ Administración de Streams
+            <span class="material-symbols-outlined nav-icon" aria-hidden="true">settings</span>
+            Administración de Streams
           </a>
         </li>
       </ul>
