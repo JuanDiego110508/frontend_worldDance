@@ -14,9 +14,17 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       let message = 'Ocurrió un error inesperado.';
 
       if (error.status === 401) {
+        /* Solo se considera "sesión expirada" si había un token guardado. Una petición anónima
+           (p. ej. el navbar consultando streams en vivo sin sesión) no debe expulsar al usuario
+           de la página pública en la que está. */
+        const hadToken = !!tokenService.getToken();
         tokenService.clearAll();
-        router.navigate(['/auth/login'], { queryParams: { sessionExpired: 'true' } });
-        message = 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.';
+        if (hadToken) {
+          router.navigate(['/auth/login'], { queryParams: { sessionExpired: 'true' } });
+          message = 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.';
+        } else {
+          message = 'No tienes autorización para realizar esta acción.';
+        }
       } else if (error.status === 403) {
         message = 'No tienes permisos para realizar esta acción.';
       } else if (error.status === 404) {

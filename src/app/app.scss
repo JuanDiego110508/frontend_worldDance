@@ -11,6 +11,10 @@
 .app-main {
   flex: 1;
   width: 100%;
-  padding-top: var(--wd-navbar-height); 
+  padding-top: var(--wd-navbar-height);
   background-color: var(--wd-bg-body);
+}
+
+.app-main--full {
+  padding-top: 0;
 }
