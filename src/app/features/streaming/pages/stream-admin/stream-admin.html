@@ -55,14 +55,6 @@
           }
         </div>
 
-        <div class="form-group">
-          <label for="scheduleFor">Fecha/hora programada *</label>
-          <input type="datetime-local" id="scheduleFor" formControlName="scheduleFor">
-          @if (isSetupFieldInvalid('scheduleFor')) {
-            <span class="field-error">Selecciona una fecha y hora</span>
-          }
-        </div>
-
         @if (errorMessage()) {
           <div class="error-message">{{ errorMessage() }}</div>
         }
@@ -176,7 +168,7 @@
 
     <div class="admin-grid">
       <section class="preview-column">
-        <app-camera-preview (streamChanged)="onLocalStreamChanged($event)" />
+        <app-camera-preview [ingestUrl]="session()?.ingestUrl ?? null" />
         <p class="whip-status">
           Estado ingesta: <strong>{{ ingestState() }}</strong>
           · Conexión: <strong [class.whip-live]="ingestFlowing()">{{ ingestConnectionState() }}</strong>

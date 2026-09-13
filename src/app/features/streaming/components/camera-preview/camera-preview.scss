@@ -46,8 +46,14 @@
 }
 
 .capture-error {
+  display: flex;
+  align-items: center;
+  gap: var(--wd-spacing-2);
   color: var(--wd-red);
+  background: var(--wd-red-light);
   font-size: var(--wd-font-size-sm);
+  padding: var(--wd-spacing-2) var(--wd-spacing-3);
+  border-radius: var(--wd-radius-md);
   margin: 0;
 }
 

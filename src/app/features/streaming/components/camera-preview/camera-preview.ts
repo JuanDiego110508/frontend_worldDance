@@ -1,19 +1,28 @@
 import {
   Component,
   ElementRef,
-  DestroyRef,
   PLATFORM_ID,
   ChangeDetectionStrategy,
+  effect,
   inject,
-  output,
-  signal,
+  input,
   viewChild
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CameraCaptureService } from '../../services/camera-capture.service';
 
-export type CaptureSource = 'camera' | 'screen';
-
-/** Captura local de cámara/pantalla y previsualización; no conoce nada de la ingesta ni del backend. */
+/**
+ * Presentación pura: solo pinta el `MediaStream` que expone `CameraCaptureService` (root) y delega
+ * en él el arranque/parada de la captura. Deliberadamente NO posee el `MediaStream` ni lo detiene
+ * al destruirse — si lo hiciera, navegar fuera de esta pantalla (destruyendo este componente)
+ * cortaría de raíz una transmisión en vivo. El servicio, al ser root, sigue vivo y sigue enviando
+ * frames aunque este componente se desmonte; al volver a montarse (misma sesión de captura), el
+ * `effect()` de abajo vuelve a enganchar el <video> al stream que ya seguía activo.
+ *
+ * Al destruirse, el `effect()` limpia únicamente `videoEl.srcObject = null` (la asignación del DOM
+ * de ESTE elemento de video) — nunca detiene tracks ni el MediaRecorder, eso solo ocurre vía
+ * `stopStream()`.
+ */
 @Component({
   selector: 'app-camera-preview',
   standalone: true,
@@ -24,95 +33,54 @@ export type CaptureSource = 'camera' | 'screen';
 })
 export class CameraPreviewComponent {
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly capture = inject(CameraCaptureService);
   private readonly videoRef = viewChild<ElementRef<HTMLVideoElement>>('previewVideo');
 
-  private mediaStream: MediaStream | null = null;
+  /** URL de ingesta WS del evento actual; puede llegar más tarde que el propio componente. */
+  readonly ingestUrl = input<string | null>(null);
 
-  /**
-   * Evita el error NG0953 (emitir un `output()` tras destruir el componente): al destruirse solo
-   * se liberan los tracks de hardware, nunca se emite `streamChanged` porque ya no hay padre que
-   * lo escuche de forma segura.
-   */
-  private destroyed = false;
-
-  readonly isCapturing = signal(false);
-  readonly activeSource = signal<CaptureSource | null>(null);
-  readonly errorMessage = signal('');
-
-  /** Emite el MediaStream activo (o null cuando se detiene) para que el contenedor lo publique vía la ingesta WebSocket. */
-  readonly streamChanged = output<MediaStream | null>();
+  readonly isCapturing = this.capture.isCapturing;
+  readonly errorMessage = this.capture.errorMessage;
 
   constructor() {
-    this.destroyRef.onDestroy(() => {
-      this.destroyed = true;
-      this.releaseTracks();
+    effect((onCleanup) => {
+      if (!isPlatformBrowser(this.platformId)) return;
+
+      // Si el servicio ya tenía un stream activo (llegamos/volvimos a esta vista con la cámara ya
+      // encendida desde otra pantalla), se asigna de inmediato; si no hay stream, no se inicia nada
+      // automáticamente — arrancar la captura sigue siendo una acción explícita del usuario.
+      const stream = this.capture.stream();
+      const videoEl = this.videoRef()?.nativeElement;
+      if (!videoEl) return;
+
+      videoEl.srcObject = stream;
+      if (stream) {
+        // El atributo `autoplay` del template ya dispara play() por su cuenta, pero esa promesa
+        // interna del navegador no queda expuesta a nuestro código: si el navegador la rechaza
+        // (elemento desmontado antes de que carguen los metadatos, track que termina en ese
+        // instante, etc.) queda como un rechazo de promesa no manejado en la consola. Se espera a
+        // 'loadedmetadata' y se llama play() explícitamente, con su propio catch.
+        videoEl.addEventListener('loadedmetadata', () => {
+          videoEl.play().catch(err => {
+            console.warn('[CameraPreview] No se pudo iniciar la reproducción de la vista previa:', err);
+          });
+        }, { once: true });
+      }
+
+      // Limpieza al destruirse el componente (o antes de la próxima ejecución del efecto): solo se
+      // desvincula el elemento <video> de ESTE componente del stream. El MediaStream en sí, sus
+      // tracks y el MediaRecorder siguen vivos en CameraCaptureService — no se tocan aquí.
+      onCleanup(() => {
+        videoEl.srcObject = null;
+      });
     });
   }
 
-  async startCamera(): Promise<void> {
-    await this.startCapture('camera', () =>
-      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-    );
+  startCamera(): Promise<void> {
+    return this.capture.startCamera(this.ingestUrl());
   }
 
-  async startScreenShare(): Promise<void> {
-    await this.startCapture('screen', () =>
-      navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
-    );
-  }
-
-  stopCapture(): void {
-    this.releaseTracks();
-    this.isCapturing.set(false);
-    this.activeSource.set(null);
-    if (!this.destroyed) {
-      this.streamChanged.emit(null);
-    }
-  }
-
-  private releaseTracks(): void {
-    this.mediaStream?.getTracks().forEach(track => track.stop());
-    this.mediaStream = null;
-  }
-
-  private async startCapture(source: CaptureSource, getStream: () => Promise<MediaStream>): Promise<void> {
-    if (!isPlatformBrowser(this.platformId)) return;
-
-    this.errorMessage.set('');
-    this.stopCapture();
-
-    try {
-      const stream = await getStream();
-
-      // El diálogo de permisos/selector de pantalla es asíncrono; si el componente ya fue
-      // destruido mientras se esperaba (ej. navegación fuera de la pantalla) no debe tocarse
-      // ningún signal ni emitirse el output, solo liberar el stream recién obtenido.
-      if (this.destroyed) {
-        stream.getTracks().forEach(track => track.stop());
-        return;
-      }
-
-      this.mediaStream = stream;
-      this.isCapturing.set(true);
-      this.activeSource.set(source);
-
-      const videoEl = this.videoRef()?.nativeElement;
-      if (videoEl) {
-        videoEl.srcObject = stream;
-      }
-
-      // `ended` solo se dispara cuando el usuario presiona "Dejar de compartir" en la barra del
-      // navegador o desconecta físicamente el dispositivo; cambiar de pestaña o perder el foco de
-      // la ventana NO dispara este evento, así que no corta la sesión en esos casos.
-      stream.getVideoTracks()[0]?.addEventListener('ended', () => this.stopCapture());
-
-      this.streamChanged.emit(stream);
-    } catch (error) {
-      if (this.destroyed) return;
-      this.errorMessage.set(
-        error instanceof Error ? error.message : 'No fue posible acceder a la cámara o pantalla.'
-      );
-    }
+  stopStream(): Promise<void> {
+    return this.capture.stopStream();
   }
 }

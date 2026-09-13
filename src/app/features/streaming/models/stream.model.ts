@@ -41,8 +41,6 @@ export interface CreateStreamSessionRequest {
   channelUrl: string;
   rtmpUrl: string;
   streamKey: string;
-  /** Instant ISO-8601, ej. 2026-09-10T20:00:00Z */
-  scheduleFor: string;
 }
 
 /** Coincide con ToggleStreamStateRequestDto. */
@@ -83,7 +81,7 @@ export interface StreamAdminResponse extends StreamPublicResponse {
   rtmpUrl: string;
   streamKey: string;
   /**
-   * URL de WebSocket para la ingesta de cámara/pantalla: wss://api.worlddance.win/ws/ingest/{eventId}.
+   * URL de WebSocket para la ingesta de cámara: wss://api.worlddance.win/ws/ingest/{eventId}.
    * TCP puro (no WHIP/WebRTC) porque el túnel de Cloudflare descarta el UDP de ICE.
    */
   ingestUrl: string;

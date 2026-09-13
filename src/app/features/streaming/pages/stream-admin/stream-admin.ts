@@ -68,8 +68,7 @@ export class StreamAdminComponent implements OnInit {
     provider: ['KICK', Validators.required],
     channelUrl: ['', Validators.required],
     rtmpUrl: ['', Validators.required],
-    streamKey: ['', Validators.required],
-    scheduleFor: ['', Validators.required]
+    streamKey: ['', Validators.required]
   });
 
   /** Edición de la configuración de una sesión ya creada (servidor RTMP, stream key, canal, título). */
@@ -123,6 +122,13 @@ export class StreamAdminComponent implements OnInit {
     if (kick === 'success' || kick === 'error') {
       this.kickCallbackNotice.set(kick);
       this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+
+      if (kick === 'success') {
+        // Refresca el estado de vinculación de Kick (kickTokenLinked/kickTokenExpiresAt) sin pasar
+        // por isLoading: recargar toda la página destruiría <app-camera-preview> y cortaría de
+        // raíz cualquier captura/ingesta que ya estuviera activa en esta misma pestaña.
+        this.refreshAdminEventSilently();
+      }
     }
   }
 
@@ -194,8 +200,7 @@ export class StreamAdminComponent implements OnInit {
       provider: value.provider,
       channelUrl: value.channelUrl,
       rtmpUrl: value.rtmpUrl.trim(),
-      streamKey: value.streamKey.trim(),
-      scheduleFor: new Date(value.scheduleFor).toISOString()
+      streamKey: value.streamKey.trim()
     }).subscribe({
       next: (created) => {
         this.session.set(created);
@@ -265,20 +270,6 @@ export class StreamAdminComponent implements OnInit {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 
-  async onLocalStreamChanged(stream: MediaStream | null): Promise<void> {
-    const ingestUrl = this.session()?.ingestUrl;
-
-    if (stream && ingestUrl) {
-      try {
-        await this.streamIngest.publish(ingestUrl, stream);
-      } catch {
-        // El detalle del error ya queda reflejado en streamIngest.errorMessage().
-      }
-    } else if (!stream) {
-      await this.streamIngest.stop();
-    }
-  }
-
   linkKick(): void {
     this.streamService.getKickLoginUrl(this.eventId).subscribe({
       next: (url) => window.open(url, '_blank', 'noopener'),
@@ -288,23 +279,15 @@ export class StreamAdminComponent implements OnInit {
 
   goLive(): void {
     if (!this.streamIngest.isFlowing()) {
-      this.errorMessage.set('Activa la cámara o pantalla y espera a que la ingesta confirme la conexión (estado "connected") antes de iniciar el directo.');
-      return;
-    }
-
-    // Nunca se sustituye por un valor por defecto: si no hay una fuente activa real (cámara o
-    // pantalla), el backend terminaría "encendiendo" con un patrón sintético (testsrc) en silencio
-    // — Kick reportaría is_live=true sin que llegue ninguna señal real. Mejor negarse aquí mismo.
-    const sourceType = this.cameraPreview()?.activeSource();
-    if (!sourceType) {
-      this.errorMessage.set('No se detectó una fuente de video activa (cámara o pantalla). Actívala antes de iniciar el directo.');
+      this.errorMessage.set('Activa la cámara y espera a que la ingesta confirme la conexión (estado "connected") antes de iniciar el directo.');
       return;
     }
 
     this.isBusy.set(true);
     this.errorMessage.set('');
 
-    this.streamService.toggleState(this.eventId, { enable: true, sourceType }).subscribe({
+    // Única fuente soportada por este flujo: cámara/micrófono vía getUserMedia (sin captura de pantalla).
+    this.streamService.toggleState(this.eventId, { enable: true, sourceType: 'camera' }).subscribe({
       next: (updated) => {
         this.session.update(current => (current ? { ...current, statusStream: updated.statusStream } : current));
         this.isBusy.set(false);
@@ -320,9 +303,7 @@ export class StreamAdminComponent implements OnInit {
     this.isBusy.set(true);
     this.errorMessage.set('');
 
-    const sourceType = this.cameraPreview()?.activeSource() ?? 'camera';
-
-    this.streamService.toggleState(this.eventId, { enable: false, sourceType }).subscribe({
+    this.streamService.toggleState(this.eventId, { enable: false, sourceType: 'camera' }).subscribe({
       next: (updated) => {
         this.session.update(current => (current ? { ...current, statusStream: updated.statusStream } : current));
         this.isBusy.set(false);
@@ -341,8 +322,9 @@ export class StreamAdminComponent implements OnInit {
 
     this.streamService.finishStream(streamId).subscribe({
       next: async (updated) => {
-        await this.streamIngest.stop();
-        this.cameraPreview()?.stopCapture();
+        // stopStream() ya libera el hardware y detiene la ingesta (StreamIngestService.stop())
+        // internamente; no hace falta llamarlo por separado aquí.
+        await this.cameraPreview()?.stopStream();
         this.session.update(current => (current ? { ...current, statusStream: updated.statusStream } : current));
       },
       error: (err) => this.errorMessage.set(err?.message ?? 'No fue posible finalizar la transmisión.')
