@@ -4,14 +4,17 @@ import { AuthGuard } from './guards/auth.guard';
 export const AUTH_ROUTES: Routes = [
   {
     path: 'login',
+    data: { hideChrome: true },
     loadComponent: () => import('./pages/login/login').then(m => m.LoginComponent)
   },
   {
     path: 'register',
+    data: { hideChrome: true },
     loadComponent: () => import('./pages/register/register').then(m => m.RegisterComponent)
   },
   {
     path: 'forgot-password',
+    data: { hideChrome: true },
     loadComponent: () => import('./pages/forgot-password/forgot-password').then(m => m.ForgotPasswordComponent)
   },
   {

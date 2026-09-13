@@ -32,7 +32,8 @@ export class RegisterComponent {
       documentNumber: ['', [Validators.required, Validators.pattern(/^[0-9]+$/), Validators.minLength(6), Validators.maxLength(20)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
-      confirmPassword: ['', Validators.required]
+      confirmPassword: ['', Validators.required],
+      terms: [false, Validators.requiredTrue]
     },
     { validators: passwordsMatchValidator }
   );

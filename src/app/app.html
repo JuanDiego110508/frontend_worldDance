@@ -1,9 +1,13 @@
 <div class="app-layout">
-  <app-navbar></app-navbar>
-  
-  <main class="app-main">
+  @if (!hideChrome()) {
+    <app-navbar></app-navbar>
+  }
+
+  <main class="app-main" [class.app-main--full]="hideChrome()">
     <router-outlet></router-outlet>
   </main>
-  
-  <app-footer></app-footer>
+
+  @if (!hideChrome()) {
+    <app-footer></app-footer>
+  }
 </div>
