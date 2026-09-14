@@ -1,7 +1,8 @@
 .viewer-layout {
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: var(--wd-spacing-4);
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--wd-spacing-5);
+  align-items: stretch;
 }
 
 @media (max-width: 900px) {
@@ -14,9 +15,10 @@
   position: relative;
   aspect-ratio: 16 / 9;
   background: #000;
-  border-radius: var(--wd-radius-lg);
+  border-radius: var(--wd-radius-2xl);
   overflow: hidden;
-  border: 1px solid var(--wd-border-color);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: var(--wd-shadow-xl);
 }
 
 .player-iframe {
@@ -44,23 +46,41 @@
   top: var(--wd-spacing-3);
   right: var(--wd-spacing-3);
   z-index: 6;
-  font-weight: 700;
-  font-size: var(--wd-font-size-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--wd-spacing-2);
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
   padding: var(--wd-spacing-1) var(--wd-spacing-3);
   border-radius: var(--wd-radius-full);
-  background: rgba(0, 0, 0, 0.6);
-  color: var(--wd-gray-300);
+  background: rgba(0, 0, 0, 0.8);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.live-flag::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #64748b;
 }
 
 .live-flag.is-live {
   color: var(--wd-white);
-  background: var(--wd-red);
+
+  &::before {
+    background: var(--wd-red);
+  }
 }
 
 .chat-iframe {
   width: 100%;
   min-height: 400px;
-  border: 1px solid var(--wd-border-color);
-  border-radius: var(--wd-radius-lg);
-  background: var(--wd-bg-card);
+  height: 100%;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: var(--wd-radius-2xl);
+  background: #0c1322;
+  box-shadow: var(--wd-shadow-xl);
 }

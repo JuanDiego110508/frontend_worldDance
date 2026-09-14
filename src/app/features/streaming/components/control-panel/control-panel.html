@@ -1,31 +1,33 @@
 <div class="control-panel">
   <div class="panel-header">
     <span class="live-badge" [class.is-live]="statusStream() === StatusStream.LIVE">
+      <span class="live-dot"></span>
       @if (statusStream() === StatusStream.LIVE) {
-        ⬤ EN VIVO
+        EN VIVO
       } @else {
-        ⬤ OFFLINE
+        OFFLINE
       }
     </span>
 
-    <div class="kick-link-group">
-      <!--
-        Sin [disabled]: el usuario debe poder reautorizar/re-vincular Kick en cualquier momento
-        (ej. si vinculó la cuenta equivocada, o el token está por expirar), no solo la primera vez.
-      -->
-      <button type="button" class="btn btn-outline btn-sm" (click)="linkKick.emit()">
-        {{ kickLinked() ? 'Reautorizar Kick' : 'Vincular Kick' }}
-      </button>
-
-      <span class="kick-status-badge" [class.is-linked]="kickTokenStatus() === 'linked'" [class.is-expired]="kickTokenStatus() === 'expired'">
-        @switch (kickTokenStatus()) {
-          @case ('linked') { Vinculación activa }
-          @case ('expired') { Token expirado, vincula de nuevo }
-          @default { Requiere vinculación }
-        }
-      </span>
-    </div>
+    <!--
+      Sin [disabled]: el usuario debe poder reautorizar/re-vincular Kick en cualquier momento
+      (ej. si vinculó la cuenta equivocada, o el token está por expirar), no solo la primera vez.
+    -->
+    <button type="button" class="kick-link-btn" (click)="linkKick.emit()">
+      {{ kickLinked() ? 'Reautorizar Kick' : 'Vincular Kick' }}
+    </button>
   </div>
+
+  @if (kickTokenStatus() !== 'linked') {
+    <div class="kick-warning-banner">
+      <span class="warning-icon">⚠</span>
+      @if (kickTokenStatus() === 'expired') {
+        Token expirado, vincula de nuevo
+      } @else {
+        Vincula tu cuenta de Kick para poder transmitir
+      }
+    </div>
+  }
 
   <!--
     Solo se muestran datos que ffmpeg-manager realmente reporta (GET /api/stream/status/:streamId).
@@ -52,16 +54,21 @@
 
   <div class="panel-actions">
     @if (statusStream() !== StatusStream.LIVE) {
-      <button type="button" class="btn btn-success btn-lg btn-block" (click)="goLive.emit()" [disabled]="isBusy() || !mediaReady()">
-        @if (isBusy()) {
-          <span class="spinner"></span>
-          Iniciando FFmpeg...
-        } @else if (!mediaReady()) {
+      @if (!mediaReady() && !isBusy()) {
+        <button type="button" class="btn-waiting" disabled>
+          <span class="waiting-dot"></span>
           Esperando señal local (WebRTC)...
-        } @else {
-          ▶ Iniciar Directo
-        }
-      </button>
+        </button>
+      } @else {
+        <button type="button" class="btn btn-success btn-lg btn-block" (click)="goLive.emit()" [disabled]="isBusy() || !mediaReady()">
+          @if (isBusy()) {
+            <span class="spinner"></span>
+            Iniciando FFmpeg...
+          } @else {
+            ▶ Iniciar Directo
+          }
+        </button>
+      }
     } @else {
       <button type="button" class="btn btn-outline btn-lg btn-block" (click)="stopLive.emit()" [disabled]="isBusy()">
         @if (isBusy()) {
@@ -73,8 +80,8 @@
       </button>
     }
 
-    <button type="button" class="btn btn-danger btn-block" (click)="finish.emit()">
-      ⏹ Finalizar Transmisión
+    <button type="button" class="btn-finalize" (click)="finish.emit()">
+      ■ Finalizar Transmisión
     </button>
   </div>
 </div>

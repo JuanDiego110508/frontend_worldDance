@@ -5,6 +5,10 @@
         <span class="placeholder-icon">🎥</span>
         <p>Sin señal local</p>
       </div>
+      <span class="standby-badge">
+        <span class="standby-dot"></span>
+        STANDBY
+      </span>
     }
     <video #previewVideo class="preview-video" autoplay playsinline muted [hidden]="!isCapturing()"></video>
 
@@ -18,7 +22,7 @@
   }
 
   <div class="capture-actions">
-    <button type="button" class="btn btn-outline btn-sm" (click)="startCamera()" [disabled]="isCapturing()">
+    <button type="button" class="btn btn-primary btn-sm" (click)="startCamera()" [disabled]="isCapturing()">
       Activar cámara
     </button>
     <button type="button" class="btn btn-danger btn-sm" (click)="stopStream()" [disabled]="!isCapturing()">

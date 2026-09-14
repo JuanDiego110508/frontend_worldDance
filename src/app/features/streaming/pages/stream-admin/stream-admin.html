@@ -2,7 +2,9 @@
   <header class="admin-header">
     <div>
       <h1>{{ headerTitle() }}</h1>
-      <p class="subtitle admin-header-id">Panel de transmisión · ID {{ eventId }}</p>
+      <p class="subtitle admin-header-id">
+        Panel de transmisión <span class="id-separator">·</span> <span class="id-chip">ID {{ eventId }}</span>
+      </p>
     </div>
     <a [routerLink]="['/stream/watch', eventId]" class="btn btn-ghost btn-sm" target="_blank">
       Ver como espectador ↗
@@ -80,32 +82,34 @@
     <section class="config-card">
       @if (!isEditingConfig()) {
         <div class="config-summary">
-          <div>
-            <h2>Configuración de transmisión</h2>
-            @if (data.title) {
-              <p class="config-title">{{ data.title }}</p>
-            }
-            @if (data.description) {
-              <p class="subtitle">{{ data.description }}</p>
-            }
-            <dl class="config-details">
-              <div>
-                <dt>Canal</dt>
-                <dd>{{ data.channelUrl }}</dd>
-              </div>
-              <div>
-                <dt>Servidor de ingesta / RTMP</dt>
-                <dd>{{ data.rtmpUrl }}</dd>
-              </div>
-              <div>
-                <dt>Clave de retransmisión</dt>
-                <dd>{{ maskedStreamKey() }}</dd>
-              </div>
-            </dl>
+          <div class="config-summary-heading">
+            <div class="config-summary-title-row">
+              <h2>Configuración de transmisión</h2>
+              @if (data.title) {
+                <p class="config-title">{{ data.title }}</p>
+              }
+              @if (data.description) {
+                <p class="subtitle">{{ data.description }}</p>
+              }
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" (click)="openConfigEditor()">
+              Editar configuración
+            </button>
           </div>
-          <button type="button" class="btn btn-outline btn-sm" (click)="openConfigEditor()">
-            Editar configuración
-          </button>
+          <dl class="config-details">
+            <div>
+              <dt>Canal</dt>
+              <dd>{{ data.channelUrl }}</dd>
+            </div>
+            <div>
+              <dt>Servidor de ingesta / RTMP</dt>
+              <dd>{{ data.rtmpUrl }}</dd>
+            </div>
+            <div>
+              <dt>Clave de retransmisión</dt>
+              <dd>{{ maskedStreamKey() }}</dd>
+            </div>
+          </dl>
         </div>
       } @else {
         <form [formGroup]="configForm" (ngSubmit)="submitConfigEdit()" class="setup-form">
