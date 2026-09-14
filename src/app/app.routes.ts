@@ -36,6 +36,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.DashboardComponent)
   },
   {
+    path: 'reports',
+    canActivate: [AuthGuard],
+    loadChildren: () => import('./features/reports/reports.routes').then(m => m.REPORTS_ROUTES)
+  },
+  {
     path: '**',
     loadComponent: () => import('./pages/not-found/not-found').then(m => m.NotFoundComponent)
   }
