@@ -49,6 +49,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     { label: 'Eventos', route: '/events', icon: 'celebration' },
     { label: 'Evaluar', route: '/scoring', icon: 'sports_score' },
     { label: 'Rankings', route: '/rankings', icon: 'leaderboard' },
+    { label: 'Reportes', route: '/reports', icon: 'bar_chart' },
   ];
 
   /** Enlaces visibles directamente en la barra; el resto se agrupa en el menú "Más" al pasar el mouse. */

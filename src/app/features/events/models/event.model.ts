@@ -30,6 +30,8 @@ export interface EventRequestDto {
 /** Refleja EventResponseDto real de ms-event-category: Jackson serializa el campo `idEvent`. */
 export interface EventResponseDto {
   idEvent: number;
+  id?: number;
+  IdEvent?: number;
   ownerId: number;
   name: string;
   description: string;

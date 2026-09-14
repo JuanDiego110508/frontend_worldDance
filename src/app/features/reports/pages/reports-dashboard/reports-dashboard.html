@@ -1,0 +1,84 @@
+<div class="w-full min-h-screen bg-[#0c1322] text-[#dce2f7]">
+  <div class="relative w-full overflow-hidden">
+    <div class="absolute -top-40 left-1/4 -translate-x-1/2 w-[650px] h-[350px] bg-[#7c3aed]/20 rounded-full blur-[130px] pointer-events-none"></div>
+    <div class="absolute top-48 right-10 w-[450px] h-[300px] bg-[#571bc1]/15 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <div class="relative max-w-[1280px] w-full mx-auto px-4 sm:px-8 py-10 flex flex-col gap-8">
+
+      <!-- Header -->
+      <div class="flex flex-col gap-1 max-w-2xl">
+        <div class="flex items-center gap-1.5">
+          <span class="inline-flex w-2 h-2 rounded-full bg-[#d2bbff] animate-ping"></span>
+          <span class="font-['Sora'] text-[12px] font-bold uppercase text-[#d0bcff] tracking-widest">Panel Administrativo</span>
+        </div>
+        <h1 class="font-['Sora'] text-[32px] sm:text-[40px] font-bold text-[#dce2f7] tracking-tight leading-tight">Reportes</h1>
+        <p class="text-[#ccc3d8] text-[15px]">Estadísticas generales y generación de reportes por evento.</p>
+      </div>
+
+      <section class="flex flex-col gap-4">
+        <h2 class="font-['Sora'] text-xl font-semibold text-[#dce2f7] border-b border-[#232a3a] pb-2">Reportes por Evento</h2>
+        
+        <div class="text-center py-16 text-[#ccc3d8]" *ngIf="isLoadingEvents()">
+          Cargando eventos...
+        </div>
+
+        <div class="flex flex-col items-center justify-center py-16 text-center gap-4 bg-[#141b2b] rounded-xl p-10" *ngIf="!isLoadingEvents() && events().length === 0">
+          <div class="w-16 h-16 rounded-full bg-[#232a3a] flex items-center justify-center text-[#958da1]">
+            <span class="material-symbols-outlined text-4xl">inbox</span>
+          </div>
+          <h4 class="font-['Sora'] text-lg text-[#dce2f7]">No hay eventos disponibles</h4>
+          <p class="text-sm text-[#ccc3d8]">Para generar reportes, primero debes crear al menos un evento.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" *ngIf="events().length > 0">
+          <article *ngFor="let event of events()"
+                   class="group flex flex-col justify-between rounded-xl bg-[#141b2b] hover:bg-[#191f2f] transition-all duration-300 shadow-lg hover:shadow-[0_8px_30px_rgba(124,58,237,0.2)] hover:-translate-y-1 overflow-hidden p-5 border border-[#232a3a]">
+            
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center justify-between mb-2">
+                <span [ngClass]="event.status === 'ACTIVE' ? 'bg-emerald-950/70 text-emerald-300' : 'bg-[#2e3545]/90 text-[#ccc3d8]'"
+                      class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider">
+                  <span class="w-1.5 h-1.5 rounded-full" [ngClass]="event.status === 'ACTIVE' ? 'bg-emerald-400' : 'bg-[#958da1]'"></span>
+                  {{ event.status }}
+                </span>
+              </div>
+              <h3 class="font-['Sora'] text-lg font-semibold text-[#dce2f7]">{{ event.name }}</h3>
+              
+              <div class="flex flex-col gap-1 pt-2">
+                <div class="flex items-center gap-1.5 text-[#ccc3d8] text-sm">
+                  <span class="material-symbols-outlined text-[#d0bcff] text-base shrink-0">location_on</span>
+                  <span class="truncate">{{ event.location }}</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-[#ccc3d8] text-sm">
+                  <span class="material-symbols-outlined text-[#d0bcff] text-base shrink-0">calendar_today</span>
+                  {{ event.startDate | date:'dd/MM/yyyy' }} - {{ event.endDate | date:'dd/MM/yyyy' }}
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-5 mt-4 flex items-center justify-between gap-3 border-t border-[#232a3a]/50">
+              <button class="flex-1 px-3 py-2 rounded-lg bg-[#93000a]/20 hover:bg-[#93000a]/40 text-[#ffb4ab] text-sm font-medium transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                      (click)="downloadPdf(event.idEvent || event['id'] || event['IdEvent'] || 0, event.name)" [disabled]="isDownloading()">
+                <span class="material-symbols-outlined text-base">picture_as_pdf</span>
+                PDF
+              </button>
+              <button class="flex-1 px-3 py-2 rounded-lg bg-emerald-900/20 hover:bg-emerald-900/40 text-emerald-400 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                      (click)="downloadExcel(event.idEvent || event['id'] || event['IdEvent'] || 0, event.name)" [disabled]="isDownloading()">
+                <span class="material-symbols-outlined text-base">table_view</span>
+                Excel
+              </button>
+            </div>
+
+          </article>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="fixed inset-0 bg-[#0c1322]/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center" *ngIf="isDownloading()">
+    <div class="w-12 h-12 border-4 border-[#7c3aed]/30 border-t-[#7c3aed] rounded-full animate-spin mb-4"></div>
+    <p class="text-[#dce2f7] font-semibold text-lg font-['Sora']">Generando reporte...</p>
+    <p class="text-[#ccc3d8] text-sm mt-1">Por favor espera, esto puede tomar unos segundos.</p>
+  </div>
+</div>
