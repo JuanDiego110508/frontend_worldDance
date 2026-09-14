@@ -40,6 +40,40 @@ export class ModalityConfigComponent implements OnInit {
   modalities = signal<ModalityResponseDto[]>([]);
   isLoading = signal<boolean>(false);
   editingId = signal<number | null>(null);
+  divisionFilter = signal<ModalityDivision | 'ALL'>('ALL');
+
+  filteredModalities = computed<ModalityResponseDto[]>(() => {
+    const filter = this.divisionFilter();
+    const list = this.modalities();
+    return filter === 'ALL' ? list : list.filter(m => m.division === filter);
+  });
+
+  setDivisionFilter(filter: ModalityDivision | 'ALL'): void {
+    this.divisionFilter.set(filter);
+  }
+
+  private readonly categoryBadgeClasses: Record<ModalityCategory, string> = {
+    [ModalityCategory.URBAN]: 'bg-[#7c3aed]/20 text-[#d2bbff]',
+    [ModalityCategory.FOLK]: 'bg-[#7c3aed]/20 text-[#d2bbff]',
+    [ModalityCategory.BALLROOM]: 'bg-[#7a47d5]/25 text-[#ebddff]',
+    [ModalityCategory.CLASSICAL]: 'bg-[#7a47d5]/25 text-[#ebddff]',
+    [ModalityCategory.LATIN]: 'bg-[#571bc1]/30 text-[#d0bcff]',
+    [ModalityCategory.CONTEMPORARY]: 'bg-[#571bc1]/30 text-[#d0bcff]'
+  };
+
+  private readonly divisionBadgeClasses: Record<ModalityDivision, string> = {
+    [ModalityDivision.SOLO]: 'bg-[#571bc1]/40 text-[#c4abff]',
+    [ModalityDivision.DUET]: 'bg-[#2e3545] text-[#dce2f7]',
+    [ModalityDivision.GROUP]: 'bg-[#7c3aed] text-white shadow-[0_0_12px_rgba(124,58,237,0.3)]'
+  };
+
+  categoryBadgeClass(category: ModalityCategory): string {
+    return this.categoryBadgeClasses[category] ?? 'bg-[#7c3aed]/20 text-[#d2bbff]';
+  }
+
+  divisionBadgeClass(division: ModalityDivision): string {
+    return this.divisionBadgeClasses[division] ?? 'bg-[#2e3545] text-[#dce2f7]';
+  }
 
   isOwner = computed(() => {
     const user = this.authService.getCurrentUser();

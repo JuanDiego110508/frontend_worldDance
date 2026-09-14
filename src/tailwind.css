@@ -1,0 +1,30 @@
+/*
+ * No importamos 'tailwindcss' completo (incluye Preflight, el reset global de
+ * estilos base para h1/p/button/etc.) porque el resto de la app ya tiene su
+ * propio sistema de estilos en styles.scss y se rompería visualmente en todas
+ * las páginas existentes. Solo se cargan theme + utilities: las clases
+ * utilitarias de Tailwind quedan disponibles (para el módulo de eventos) sin
+ * tocar los estilos base del resto de la aplicación.
+ */
+/*
+ * Orden explícito de capas CSS: "utilities" debe tener la prioridad más alta
+ * para que las clases de Tailwind (p-4, px-8, gap-2, etc.) puedan ganarle al
+ * reset global `*{margin:0;padding:0}` de styles.scss. Sin esto, ese reset
+ * (fuera de cualquier @layer) le gana a CUALQUIER regla dentro de una @layer
+ * sin importar el orden o la especificidad — así es como funciona la cascada
+ * de capas en CSS. "base" es donde se mueve ese reset (ver styles.scss).
+ */
+@layer base, theme, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/*
+ * La detección automática de clases de Tailwind no está encontrando de forma
+ * consistente las plantillas de componentes standalone con lazy-loading
+ * (loadComponent) bajo `ng serve` — el build de producción sí las detecta,
+ * pero el dev server generaba una hoja de estilos incompleta. Se declaran
+ * explícitamente las rutas fuente para que ambos entornos escaneen lo mismo.
+ */
+@source './app/**/*.html';
+@source './app/**/*.ts';

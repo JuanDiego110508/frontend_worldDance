@@ -1,127 +1,25 @@
-.event-form-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-  color: var(--wd-text-body);
+/* Estilos de "Crear Nuevo Evento Pro" implementados con utilidades de Tailwind
+   directamente en la plantilla (event-form.html), a partir del diseño Stitch. */
+:host {
+  display: block;
+}
 
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
+/* No cargamos Preflight de Tailwind (rompería el resto de la app), así que los
+   <button> nativos conservan el borde por defecto del navegador salvo que una
+   utilidad lo cubra explícitamente. Solo reseteamos `border`: el CSS de este
+   componente no usa @layer, así que cualquier otra propiedad de aquí (como
+   `background`) le ganaría siempre a las utilidades de Tailwind (@layer
+   utilities) sin importar la especificidad, rompiendo los botones con color. */
+button {
+  border: none;
+}
 
-    h2 {
-      font-size: 1.8rem;
-      color: var(--wd-text-heading);
-    }
-  }
-
-  .form-card {
-    background-color: var(--wd-bg-card);
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: var(--wd-shadow-xl);
-    border: 1px solid var(--wd-border-color);
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-    transition: background-color 0.2s, border-color 0.2s;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-
-    label {
-      font-size: 0.9rem;
-      color: var(--wd-text-muted);
-    }
-
-    input, textarea, select {
-      background-color: var(--wd-bg-input);
-      border: 1px solid var(--wd-border-color);
-      color: var(--wd-text-body);
-      padding: 0.75rem 1rem;
-      border-radius: 6px;
-      font-size: 1rem;
-      resize: none;
-      transition: all 0.2s;
-
-      &::placeholder {
-        color: var(--wd-text-muted);
-      }
-
-      &:focus {
-        outline: none;
-        border-color: var(--wd-border-focus);
-      }
-    }
-
-    .error-msg {
-      color: var(--wd-red);
-      font-size: 0.8rem;
-    }
-  }
-
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-
-    @media (max-width: 600px) {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 1rem;
-
-    button {
-      padding: 0.75rem 1.5rem;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.2s, color 0.2s;
-
-      &.btn-cancel {
-        background-color: var(--wd-bg-ghost-hover);
-        color: var(--wd-text-ghost);
-        border: 1px solid var(--wd-border-color);
-
-        &:hover {
-          background-color: var(--wd-border-color);
-          color: var(--wd-text-heading);
-        }
-      }
-
-      &.btn-primary {
-        background-color: var(--wd-purple);
-        color: var(--wd-white);
-
-        &:hover {
-          background-color: var(--wd-purple-hover);
-        }
-
-        &:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-      }
-    }
-  }
-
-  .btn-secondary {
-    color: var(--wd-purple-light);
-    text-decoration: none;
-    font-size: 0.9rem;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
+/*
+ * styles.scss define `a { color: var(--wd-purple-light); }` sin @layer, así
+ * que ninguna utilidad de Tailwind (con @layer) puede ganarle. Se sobreescribe
+ * con una clase propia, más específica por el scoping de Angular.
+ */
+a.link-accent {
+  color: #d0bcff;
+  &:hover { color: #ede0ff; }
 }
