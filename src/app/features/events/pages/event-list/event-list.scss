@@ -1,323 +1,37 @@
-.events-page-container {
-  width: 100%;
-  min-height: calc(100vh - var(--wd-navbar-height, 64px));
-  background-color: var(--wd-bg-body, #f8fafc);
-  color: var(--wd-text-body, #334155);
-  padding: var(--wd-spacing-8, 2rem) var(--wd-spacing-4, 1rem);
-  max-width: 1200px;
-  margin: 0 auto;
-  box-sizing: border-box;
+/* Estilos del "Listado de Eventos Pro" implementados con utilidades de Tailwind
+   directamente en la plantilla (event-list.html), a partir del diseño Stitch. */
+:host {
+  display: block;
 }
 
-/* Header de la Página */
-.events-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--wd-spacing-4, 1rem);
-  margin-bottom: var(--wd-spacing-6, 1.5rem);
-  flex-wrap: wrap;
-
-  .header-info {
-    h1 {
-      font-size: var(--wd-font-size-3xl, 2rem);
-      color: var(--wd-text-heading, #0f172a);
-      font-weight: 800;
-      margin: 0 0 var(--wd-spacing-1, 0.25rem) 0;
-    }
-
-    .subtitle {
-      color: var(--wd-text-muted, #64748b);
-      font-size: var(--wd-font-size-base, 1rem);
-      margin: 0;
-    }
-  }
-
-  .btn-create {
-    background: var(--wd-gradient-primary, linear-gradient(135deg, #7c3aed 0%, #6366f1 100%));
-    color: var(--wd-white, #ffffff);
-    padding: var(--wd-spacing-3, 0.75rem) var(--wd-spacing-5, 1.25rem);
-    border-radius: var(--wd-radius-md, 8px);
-    text-decoration: none;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--wd-spacing-2, 0.5rem);
-    transition: transform 0.2s ease, opacity 0.2s ease;
-
-    &:hover {
-      opacity: 0.95;
-      transform: translateY(-2px);
-    }
-  }
+/* No cargamos Preflight de Tailwind (rompería el resto de la app), así que los
+   <button> nativos conservan el borde por defecto del navegador salvo que una
+   utilidad lo cubra explícitamente. Solo reseteamos `border`: el CSS de este
+   componente no usa @layer, así que cualquier otra propiedad de aquí (como
+   `background`) le ganaría siempre a las utilidades de Tailwind (@layer
+   utilities) sin importar la especificidad, rompiendo los botones con color. */
+button {
+  border: none;
 }
 
-/* Tabs de estado ("Mis Eventos"): pill tabs sobre fondo gris, tab activo resaltado en blanco */
-.status-tabs {
-  display: inline-flex;
-  gap: var(--wd-spacing-1, 0.25rem);
-  margin-bottom: var(--wd-spacing-4, 1rem);
-  padding: var(--wd-spacing-1, 0.25rem);
-  background-color: var(   --wd-gray-700, #f3f4f6);
-  border-radius: var(--wd-radius-xl, 16px);
-  flex-wrap: wrap;
-  max-width: 100%;
-
-  button {
-    background: transparent;
-    border: none;
-    color: var(--wd-text-muted, #64748b);
-    padding: var(--wd-spacing-2, 0.5rem) var(--wd-spacing-4, 1rem);
-    border-radius: var(--wd-radius-lg, 12px);
-    font-size: var(--wd-font-size-sm, 0.875rem);
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-
-    &:hover {
-      color: var(--wd-purple-light, #7c3aed);
-    }
-
-    &.active {
-      background-color: var(--wd-bg-card, #ffffff);
-      color: var(--wd-purple-light, #7c3aed);
-      box-shadow: var(--wd-shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
-    }
-  }
+/*
+ * styles.scss define `a { color: var(--wd-purple-light); }` sin @layer, y ese
+ * color (#8B5CF6) es casi idéntico al morado de fondo de los botones
+ * principales (#7c3aed) — el texto de los enlaces-botón quedaba casi
+ * invisible. Como esa regla global tampoco usa @layer, ninguna utilidad de
+ * Tailwind (text-white, text-[#dce2f7], etc.) puede ganarle sin importar el
+ * orden: las reglas sin capa siempre le ganan a las reglas con capa. Se
+ * sobreescribe aquí con clases propias, más específicas por el scoping de
+ * Angular, que si le ganan a la regla global.
+ */
+a.link-onprimary {
+  color: #fff;
 }
-
-/* Sección de Filtros */
-.filters-section {
-  display: flex;
-  gap: var(--wd-spacing-4, 1rem);
-  margin-bottom: var(--wd-spacing-8, 2rem);
-  flex-wrap: wrap;
-
-  .search-box {
-    flex: 1;
-    min-width: 260px;
-
-    input {
-      width: 100%;
-      box-sizing: border-box;
-      background-color: var(--wd-bg-input, #ffffff);
-      border: 1px solid var(--wd-border-color, #cbd5e1);
-      color: var(--wd-text-body, #334155);
-      padding: var(--wd-spacing-3, 0.75rem) var(--wd-spacing-4, 1rem);
-      border-radius: var(--wd-radius-md, 8px);
-      font-size: var(--wd-font-size-base, 1rem);
-      transition: border-color 0.2s ease;
-
-      &:focus {
-        outline: none;
-        border-color: var(--wd-border-focus, #7c3aed);
-      }
-    }
-  }
+a.link-soft {
+  color: #dce2f7;
+  &:hover { color: #d2bbff; }
 }
-
-/* Grid de Tarjetas */
-.events-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: var(--wd-spacing-6, 1.5rem);
-}
-
-/* Tarjeta individual de evento */
-.event-card {
-  background-color: var(--wd-bg-card, #ffffff);
-  border: 1px solid var(--wd-border-color, #e2e8f0);
-  border-radius: var(--wd-radius-xl, 16px);
-  padding: var(--wd-spacing-6, 1.5rem);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  position: relative;
-  box-shadow: var(--wd-shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--wd-shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
-    border-color: var(--wd-purple-light, #a78bfa);
-  }
-
-  /* Badges de estado según toLowerCase() */
-  .card-status-badge {
-    position: absolute;
-    top: var(--wd-spacing-4, 1rem);
-    right: var(--wd-spacing-4, 1rem);
-    font-size: var(--wd-font-size-xs, 0.75rem);
-    font-weight: 700;
-    padding: var(--wd-spacing-1, 0.25rem) var(--wd-spacing-3, 0.75rem);
-    border-radius: var(--wd-radius-full, 9999px);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-
-    &.active {
-      background-color: rgba(16, 185, 129, 0.15);
-      color: #10b981;
-    }
-    &.draft {
-      background-color: rgba(156, 163, 175, 0.15);
-      color: var(--wd-text-muted, #64748b);
-    }
-    &.finished {
-      background-color: rgba(59, 130, 246, 0.15);
-      color: #3b82f6;
-    }
-    &.cancelled {
-      background-color: rgba(239, 68, 68, 0.15);
-      color: var(--wd-red, #ef4444);
-    }
-  }
-
-  .card-body {
-    margin-bottom: var(--wd-spacing-6, 1.5rem);
-
-    .event-title {
-      font-size: var(--wd-font-size-xl, 1.25rem);
-      color: var(--wd-text-heading, #0f172a);
-      font-weight: 700;
-      margin: 0 0 var(--wd-spacing-2, 0.5rem) 0;
-      padding-right: 90px;
-    }
-
-    .event-description {
-      color: var(--wd-text-muted, #64748b);
-      font-size: var(--wd-font-size-sm, 0.875rem);
-      line-height: 1.5;
-      margin: 0 0 var(--wd-spacing-4, 1rem) 0;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .event-details {
-      display: flex;
-      flex-direction: column;
-      gap: var(--wd-spacing-2, 0.5rem);
-      font-size: var(--wd-font-size-sm, 0.875rem);
-
-      .detail-item {
-        display: flex;
-        gap: var(--wd-spacing-2, 0.5rem);
-
-        .detail-label {
-          font-weight: 600;
-          color: var(--wd-text-heading, #0f172a);
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-        }
-      }
-    }
-  }
-
-  .card-footer {
-    display: flex;
-    align-items: center;
-    gap: var(--wd-spacing-3, 0.75rem);
-    padding-top: var(--wd-spacing-4, 1rem);
-    margin-top: auto;
-    border-top: 1px solid var(--wd-border-color, #f1f5f9);
-    flex-wrap: wrap;
-
-    /* Bloque destacado: "Ver / Gestionar Modalidades" */
-    .btn-primary-action {
-      flex: 1 1 auto;
-      min-width: 170px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--wd-spacing-2, 0.5rem);
-      background: var(--wd-gradient-primary, linear-gradient(135deg, #7c3aed 0%, #6366f1 100%));
-      color: var(--wd-white, #ffffff);
-      padding: var(--wd-spacing-2, 0.5rem) var(--wd-spacing-4, 1rem);
-      border-radius: var(--wd-radius-md, 8px);
-      text-decoration: none;
-      font-size: var(--wd-font-size-sm, 0.875rem);
-      font-weight: 600;
-      text-align: center;
-      line-height: 1.2;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-
-      .btn-primary-icon {
-        font-size: 1rem;
-        line-height: 1;
-      }
-
-      &:hover {
-        opacity: 0.92;
-        transform: translateY(-1px);
-      }
-    }
-
-    /* Barra secundaria compacta: Editar / Eliminar (solo propietario) */
-    .admin-actions {
-      display: flex;
-      gap: var(--wd-spacing-1, 0.25rem);
-      flex-shrink: 0;
-
-      .btn-icon {
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        width: 36px;
-        height: 36px;
-        padding: 0;
-        border-radius: var(--wd-radius-md, 8px);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.2s ease;
-
-        &.btn-icon-edit:hover {
-          background-color: var(--wd-bg-ghost-hover, #f1f5f9);
-        }
-
-        &.btn-icon-delete:hover {
-          background-color: var(--wd-red-light, #fef2f2);
-        }
-      }
-    }
-  }
-}
-
-.icon-inline {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  vertical-align: middle;
-}
-
-.icon-action {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-  vertical-align: middle;
-}
-
-/* Contenedor sin resultados */
-.empty-state-card {
-  text-align: center;
-  padding: var(--wd-spacing-8, 2rem);
-  background-color: var(--wd-bg-card, #ffffff);
-  border-radius: var(--wd-radius-xl, 16px);
-  border: 1px solid var(--wd-border-color, #e2e8f0);
-
-  .empty-icon {
-    font-size: 3rem;
-    margin-bottom: var(--wd-spacing-3, 0.75rem);
-  }
-
-  h3 {
-    color: var(--wd-text-heading, #0f172a);
-    margin-bottom: var(--wd-spacing-2, 0.5rem);
-  }
-
-  p {
-    color: var(--wd-text-muted, #64748b);
-  }
+a.link-muted {
+  color: #ccc3d8;
+  &:hover { color: #d2bbff; }
 }

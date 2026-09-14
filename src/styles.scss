@@ -145,10 +145,14 @@
 }
 
 /* RESET */
-*, *::before, *::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* En @layer base: así las utilidades de Tailwind (p-4, px-8, gap-2, etc. en
+   el módulo de eventos) pueden sobrescribir este reset. Ver tailwind.css. */
+@layer base {
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 }
 
 html {

@@ -1,155 +1,225 @@
-<div class="modality-page-container">
+<div class="w-full min-h-screen bg-[#0c1322] text-[#dce2f7] relative overflow-hidden">
+  <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[720px] h-[340px] bg-[#7c3aed]/20 rounded-full blur-[140px] pointer-events-none"></div>
+  <div class="absolute top-48 -right-24 w-[380px] h-[380px] bg-[#571bc1]/25 rounded-full blur-[120px] pointer-events-none"></div>
 
-  <!-- Header -->
-  <header class="modality-header">
-    <div class="header-info">
-      <a routerLink="/events" class="btn-back">← Volver a Eventos</a>
-      <h1>{{ isOwner() ? 'Configuración de Modalidades' : 'Modalidades Disponibles' }}</h1>
-      <p class="subtitle" *ngIf="eventId()">
-        {{ isOwner() ? 'Gestión de categorías y divisiones para el Evento #' + eventId() : 'Revisa las modalidades habilitadas para participar' }}
-      </p>
+  <div class="relative w-full max-w-[1280px] mx-auto px-4 sm:px-8 py-10">
+
+    <div class="flex items-center justify-between gap-4 mb-6">
+      <a routerLink="/events" class="link-muted inline-flex items-center gap-1.5 transition-colors group text-sm font-semibold">
+        <span class="material-symbols-outlined text-lg group-hover:-translate-x-1 transition-transform">arrow_back</span>
+        Volver a Eventos
+      </a>
     </div>
-  </header>
 
-  <div class="modality-layout" [class.single-column]="!isOwner()">
-
-    <!-- SOLO ORGANIZADOR: Formulario Lateral -->
-    <aside class="form-card" *ngIf="isOwner()">
-      <h2>{{ editingId() !== null ? 'Editar Modalidad' : 'Nueva Modalidad' }}</h2>
-
-      <form [formGroup]="modalityForm" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <label for="category">Categoría *</label>
-          <select id="category" formControlName="category">
-            <option *ngFor="let opt of categoryOptions" [value]="opt.value">
-              {{ opt.label }}
-            </option>
-          </select>
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+      <div class="flex flex-col gap-1.5">
+        <div class="inline-flex items-center gap-1.5 self-start px-3 py-0.5 rounded-full bg-[#232a3a] text-[#d0bcff]">
+          <span class="w-2 h-2 rounded-full bg-[#d0bcff] shadow-[0_0_8px_#d2bbff]"></span>
+          <span class="font-mono text-[11px] tracking-widest uppercase">Circuito Oficial 2026</span>
         </div>
-
-        <div class="form-group">
-          <label for="division">División *</label>
-          <select id="division" formControlName="division">
-            <option *ngFor="let opt of divisionOptions" [value]="opt.value">
-              {{ opt.label }}
-            </option>
-          </select>
+        <h1 class="font-['Sora'] text-[32px] sm:text-[40px] font-bold text-[#dce2f7] tracking-tight">
+          {{ isOwner() ? 'Configuración de Modalidades' : 'Modalidades Disponibles' }}
+        </h1>
+        <p class="text-[#ccc3d8] text-[15px]" *ngIf="eventId()">
+          {{ isOwner() ? 'Gestión de categorías y divisiones para el Evento #' + eventId() : 'Revisa las modalidades habilitadas para participar y asegura tu pase oficial a tarima.' }}
+        </p>
+      </div>
+      <div class="flex items-center gap-4 bg-[#141b2b]/80 backdrop-blur-2xl px-6 py-3 rounded-xl" *ngIf="currentEvent() as event">
+        <div class="flex flex-col">
+          <span class="font-mono text-[11px] text-[#ccc3d8] uppercase">Cierre inscripciones</span>
+          <span class="font-['Sora'] text-lg font-bold text-[#d2bbff]">{{ event.startDate | date:'dd MMM y' }}</span>
         </div>
-
-        <div class="form-group">
-          <label for="style">Estilo de Baile *</label>
-          <input 
-            type="text" 
-            id="style" 
-            formControlName="style" 
-            placeholder="Ej: Hip Hop, Salsa On1, Ballet Clásico..."
-          />
+        <div class="w-10 h-10 rounded-lg bg-[#232a3a] flex items-center justify-center text-[#d2bbff]">
+          <span class="material-symbols-outlined">how_to_reg</span>
         </div>
+      </div>
+    </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="minAge">Edad Mínima *</label>
-            <input type="number" id="minAge" formControlName="minAge" min="0" />
+    <div class="grid gap-6" [ngClass]="isOwner() ? 'lg:grid-cols-[340px_1fr]' : 'grid-cols-1'">
+
+      <!-- SOLO ORGANIZADOR: Formulario -->
+      <aside class="bg-[#141b2b]/95 backdrop-blur-2xl rounded-xl p-6 shadow-2xl h-fit" *ngIf="isOwner()">
+        <h2 class="font-['Sora'] text-lg font-semibold text-[#dce2f7] mb-4">
+          {{ editingId() !== null ? 'Editar Modalidad' : 'Nueva Modalidad' }}
+        </h2>
+
+        <form [formGroup]="modalityForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="category" class="text-sm font-semibold text-[#dce2f7]">Categoría *</label>
+            <select id="category" formControlName="category"
+                    class="w-full h-11 px-3 rounded-lg bg-[#232a3a] text-[#dce2f7] text-sm focus:bg-[#2e3545] focus:outline-none transition-all">
+              <option *ngFor="let opt of categoryOptions" [value]="opt.value" class="bg-[#232a3a]">{{ opt.label }}</option>
+            </select>
           </div>
 
-          <div class="form-group">
-            <label for="maxAge">Edad Máxima *</label>
-            <input type="number" id="maxAge" formControlName="maxAge" min="0" />
+          <div class="flex flex-col gap-1.5">
+            <label for="division" class="text-sm font-semibold text-[#dce2f7]">División *</label>
+            <select id="division" formControlName="division"
+                    class="w-full h-11 px-3 rounded-lg bg-[#232a3a] text-[#dce2f7] text-sm focus:bg-[#2e3545] focus:outline-none transition-all">
+              <option *ngFor="let opt of divisionOptions" [value]="opt.value" class="bg-[#232a3a]">{{ opt.label }}</option>
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label for="style" class="text-sm font-semibold text-[#dce2f7]">Estilo de Baile *</label>
+            <input type="text" id="style" formControlName="style" placeholder="Ej: Hip Hop, Salsa On1, Ballet Clásico..."
+                   class="w-full h-11 px-3 rounded-lg bg-[#232a3a] text-[#dce2f7] placeholder:text-[#958da1] text-sm focus:bg-[#2e3545] focus:outline-none transition-all" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1.5">
+              <label for="minAge" class="text-sm font-semibold text-[#dce2f7]">Edad Mínima *</label>
+              <input type="number" id="minAge" formControlName="minAge" min="0"
+                     class="w-full h-11 px-3 rounded-lg bg-[#232a3a] text-[#dce2f7] text-sm focus:bg-[#2e3545] focus:outline-none transition-all" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label for="maxAge" class="text-sm font-semibold text-[#dce2f7]">Edad Máxima *</label>
+              <input type="number" id="maxAge" formControlName="maxAge" min="0"
+                     class="w-full h-11 px-3 rounded-lg bg-[#232a3a] text-[#dce2f7] text-sm focus:bg-[#2e3545] focus:outline-none transition-all" />
+            </div>
+          </div>
+
+          <div class="text-[13px] leading-snug text-[#ffb4ab] bg-[#93000a]/20 border border-[#93000a]/40 rounded-lg p-3" *ngIf="overlappingModality()">
+            <strong>Solapamiento de Edad:</strong> el rango ingresado se traslapa con la modalidad de
+            {{ categoryLabels[overlappingModality()!.category] }} ({{ divisionLabels[overlappingModality()!.division] }})
+            de {{ overlappingModality()!.minAge }} a {{ overlappingModality()!.maxAge }} años (Estilo: {{ overlappingModality()!.style }}).
+          </div>
+
+          <div class="flex items-center gap-2 pt-1">
+            <button type="submit" [disabled]="modalityForm.invalid || isLoading() || overlappingModality() !== null"
+                    class="flex-1 h-11 rounded-lg bg-[#7c3aed] hover:bg-[#571bc1] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold transition-all shadow-[0_0_16px_rgba(124,58,237,0.35)]">
+              {{ editingId() !== null ? 'Actualizar Modalidad' : 'Agregar Modalidad' }}
+            </button>
+            <button type="button" *ngIf="editingId() !== null" (click)="resetForm()"
+                    class="h-11 px-4 rounded-lg bg-[#232a3a] hover:bg-[#2e3545] text-[#dce2f7] text-sm font-semibold transition-all">
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </aside>
+
+      <!-- Tabla de Modalidades -->
+      <main class="bg-[#141b2b]/90 backdrop-blur-2xl rounded-xl p-6 sm:p-8 shadow-2xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-4 border-b border-white/5">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-[#7c3aed]/30 flex items-center justify-center text-[#d2bbff]">
+              <span class="material-symbols-outlined">category</span>
+            </div>
+            <div>
+              <h2 class="font-['Sora'] text-lg font-semibold text-[#dce2f7]">Modalidades Registradas ({{ modalities().length }})</h2>
+              <span class="text-sm text-[#ccc3d8]">Adjudicación avalada bajo reglamento estándar IDO</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="font-mono text-[11px] text-[#958da1] uppercase mr-1">Filtro:</span>
+            <button type="button" (click)="setDivisionFilter('ALL')"
+                    [ngClass]="divisionFilter() === 'ALL' ? 'bg-[#232a3a] text-[#d2bbff]' : 'bg-[#191f2f] text-[#ccc3d8] hover:text-[#dce2f7]'"
+                    class="px-3 py-1 rounded-md text-sm font-medium transition-colors">Todos</button>
+            <button type="button" *ngFor="let opt of divisionOptions" (click)="setDivisionFilter(opt.value)"
+                    [ngClass]="divisionFilter() === opt.value ? 'bg-[#232a3a] text-[#d2bbff]' : 'bg-[#191f2f] text-[#ccc3d8] hover:text-[#dce2f7]'"
+                    class="px-3 py-1 rounded-md text-sm font-medium transition-colors">{{ opt.label }}</button>
           </div>
         </div>
 
-        <div class="alert-warning-duplicate" *ngIf="overlappingModality()" style="color: #c53030; background-color: #fff5f5; border: 1px solid #feb2b2; padding: 10px; border-radius: 6px; margin: 15px 0; font-size: 0.85rem; line-height: 1.4;">
-          ⚠️ <strong>Solapamiento de Edad:</strong> El rango ingresado se traslapa con la modalidad de {{ categoryLabels[overlappingModality()!.category] }} ({{ divisionLabels[overlappingModality()!.division] }}) de {{ overlappingModality()!.minAge }} a {{ overlappingModality()!.maxAge }} años (Estilo: {{ overlappingModality()!.style }}).
+        <div class="text-center py-10 text-[#ccc3d8]" *ngIf="isLoading()">Cargando modalidades&hellip;</div>
+
+        <div class="overflow-x-auto" *ngIf="!isLoading() && filteredModalities().length > 0">
+          <table class="w-full text-left border-separate border-spacing-y-2">
+            <thead>
+              <tr class="bg-[#191f2f]/60 text-[#ccc3d8] uppercase font-mono text-[11px]">
+                <th class="py-3 px-4 rounded-l-xl">Categoría</th>
+                <th class="py-3 px-3">División</th>
+                <th class="py-3 px-3">Estilo</th>
+                <th class="py-3 px-3">Rango de Edad</th>
+                <th class="py-3 px-4 text-right rounded-r-xl">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let modality of filteredModalities()" class="group hover:bg-[#232a3a]/40 transition-colors"
+                  [ngClass]="editingId() === modality.id ? 'bg-[#7c3aed]/10' : ''">
+                <td class="py-4 px-4">
+                  <span class="inline-flex items-center px-3 py-1 rounded-md font-mono text-[11px] tracking-wider font-bold" [ngClass]="categoryBadgeClass(modality.category)">
+                    {{ categoryLabels[modality.category] }}
+                  </span>
+                </td>
+                <td class="py-4 px-3">
+                  <span class="inline-flex items-center px-3 py-1 rounded-md font-mono text-[11px] font-bold tracking-wider" [ngClass]="divisionBadgeClass(modality.division)">
+                    {{ divisionLabels[modality.division] }}
+                  </span>
+                </td>
+                <td class="py-4 px-3 text-sm text-[#dce2f7] font-medium">{{ modality.style }}</td>
+                <td class="py-4 px-3">
+                  <div class="flex items-center gap-1.5 text-[#ccc3d8] text-sm">
+                    <span class="material-symbols-outlined text-[16px] text-[#958da1]">schedule</span>
+                    {{ modality.minAge }} - {{ modality.maxAge }} años
+                  </div>
+                </td>
+                <td class="py-4 px-4 text-right">
+                  <ng-container *ngIf="isOwner(); else participantActions">
+                    <button type="button" (click)="onEdit(modality)" title="Editar modalidad"
+                            class="w-9 h-9 rounded-lg bg-[#232a3a] hover:bg-[#2e3545] text-[#ccc3d8] hover:text-[#d2bbff] inline-flex items-center justify-center transition-colors">
+                      <span class="material-symbols-outlined text-base">edit</span>
+                    </button>
+                    <button type="button" (click)="onDelete(modality.id)" title="Eliminar modalidad"
+                            class="w-9 h-9 rounded-lg bg-[#232a3a] hover:bg-[#93000a] text-[#ccc3d8] hover:text-[#ffdad6] inline-flex items-center justify-center transition-colors ml-1.5">
+                      <span class="material-symbols-outlined text-base">delete</span>
+                    </button>
+                  </ng-container>
+                  <ng-template #participantActions>
+                    <a *ngIf="eventId()" [routerLink]="['/enrollment/new', eventId()]"
+                       class="link-onprimary inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#059669] hover:bg-[#10b981] text-sm font-semibold shadow-[0_0_16px_rgba(16,185,129,0.3)] transition-all">
+                      <span class="material-symbols-outlined text-[18px]">verified</span>
+                      Inscribirme
+                    </a>
+                  </ng-template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary" [disabled]="modalityForm.invalid || isLoading() || overlappingModality() !== null">
-            {{ editingId() !== null ? 'Actualizar Modalidad' : 'Agregar Modalidad' }}
-          </button>
-
-          <button type="button" class="btn btn-secondary" *ngIf="editingId() !== null" (click)="resetForm()">
-            Cancelar
-          </button>
+        <div class="flex flex-col items-center justify-center py-14 px-6 text-center gap-4"
+             *ngIf="!isLoading() && filteredModalities().length === 0">
+          <div class="relative w-28 h-28 flex items-center justify-center">
+            <div class="absolute inset-0 bg-[#7c3aed]/20 rounded-full blur-2xl"></div>
+            <div class="relative w-24 h-24 rounded-2xl bg-[#232a3a] flex items-center justify-center">
+              <span class="material-symbols-outlined text-[48px] text-[#d2bbff]/80">theater_comedy</span>
+            </div>
+          </div>
+          <h2 class="font-['Sora'] text-xl font-semibold text-[#dce2f7]">
+            {{ modalities().length === 0 ? 'No hay modalidades registradas para este evento aún' : 'No hay modalidades en este filtro' }}
+          </h2>
+          <p class="text-sm text-[#ccc3d8] max-w-md" *ngIf="modalities().length === 0">
+            {{ isOwner() ? 'Utiliza el formulario de la izquierda para agregar la primera.' : 'El comité organizador está afinando las llaves técnicas y categorías de competencia.' }}
+          </p>
         </div>
-      </form>
-    </aside>
 
-    <!-- Lista / Tabla de Modalidades -->
-    <main class="table-card">
-      <h2>Modalidades Registradas ({{ modalities().length }})</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8" *ngIf="!isLoading() && modalities().length > 0">
+          <div class="bg-[#191f2f]/70 p-5 rounded-xl flex items-start gap-3 shadow-md">
+            <div class="w-10 h-10 rounded-lg bg-[#232a3a] flex items-center justify-center text-[#d2bbff] shrink-0">
+              <span class="material-symbols-outlined">rule</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="font-['Sora'] text-sm font-semibold text-[#dce2f7]">Reglamento Técnico</span>
+              <p class="text-sm text-[#ccc3d8]">Duración límite de 2:30 min para Solos y 4:00 min para Grupos con pista musical a 320kbps.</p>
+            </div>
+          </div>
+          <div class="bg-[#191f2f]/70 p-5 rounded-xl flex items-start gap-3 shadow-md">
+            <div class="w-10 h-10 rounded-lg bg-[#232a3a] flex items-center justify-center text-[#d0bcff] shrink-0">
+              <span class="material-symbols-outlined">live_tv</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="font-['Sora'] text-sm font-semibold text-[#dce2f7]">Transmisión 4K</span>
+              <p class="text-sm text-[#ccc3d8]">Las presentaciones se emiten en vivo y quedan disponibles para reproducir después.</p>
+            </div>
+          </div>
+        </div>
 
-      <div class="loading-state" *ngIf="isLoading()">
-        <p>Cargando modalidades...</p>
-      </div>
-
-      <div class="table-responsive" *ngIf="!isLoading() && modalities().length > 0">
-        <table class="modalities-table">
-          <thead>
-            <tr>
-              <th>Categoría</th>
-              <th>División</th>
-              <th>Estilo</th>
-              <th>Rango de Edad</th>
-              <th class="text-end">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let modality of modalities()" [class.row-editing]="editingId() === modality.id">
-              <td>
-                <span class="badge badge-category">
-                  {{ categoryLabels[modality.category] }}
-                </span>
-              </td>
-              <td>
-                <span class="badge badge-division">
-                  {{ divisionLabels[modality.division] }}
-                </span>
-              </td>
-              <td class="style-name">{{ modality.style }}</td>
-              <td>{{ modality.minAge }} - {{ modality.maxAge }} años</td>
-              
-              <td class="text-end actions-cell">
-                <!-- SOLO ORGANIZADOR: Editar / Eliminar -->
-                <ng-container *ngIf="isOwner(); else participantActions">
-                  <button 
-                    type="button" 
-                    class="btn-icon btn-edit" 
-                    (click)="onEdit(modality)" 
-                    title="Editar modalidad"
-                  >
-                    <img src="icons8-edit-pencil.svg" alt="Editar" class="icon-action" />
-                  </button>
-                  <button 
-                    type="button" 
-                    class="btn-icon btn-delete" 
-                    (click)="onDelete(modality.id)" 
-                    title="Eliminar modalidad"
-                  >
-                    <img src="icons8-trash-can-64.png" alt="Eliminar" class="icon-action" />
-                  </button>
-                </ng-container>
-
-                <!-- USUARIO NORMAL / PARTICIPANTE -->
-                <ng-template #participantActions>
-                  <button type="button" class="btn btn-sm btn-success">
-                    Inscribirme
-                  </button>
-                </ng-template>
-              </td>
-
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="empty-state" *ngIf="!isLoading() && modalities().length === 0">
-        <div class="empty-icon">🎭</div>
-        <p>No hay modalidades registradas para este evento aún.</p>
-        <small *ngIf="isOwner()">Utiliza el formulario de la izquierda para agregar la primera.</small>
-      </div>
-
-    </main>
-
+        <div class="mt-6 pt-4 border-t border-white/5 flex items-center gap-2 text-sm text-[#ccc3d8]">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]"></span>
+          Plataforma de Inscripción en Tiempo Real sincronizada con el servidor central
+        </div>
+      </main>
+    </div>
   </div>
-
 </div>

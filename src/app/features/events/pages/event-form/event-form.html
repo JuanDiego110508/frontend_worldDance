@@ -1,64 +1,135 @@
-<div class="event-form-container">
-  <div class="header">
-    <h2>{{ isEditMode ? 'Editar Evento' : 'Crear Nuevo Evento' }}</h2>
-    <a routerLink="/events" class="btn-secondary">Volver al listado</a>
+<div class="w-full min-h-screen bg-[#0c1322] text-[#dce2f7] py-10 relative overflow-hidden">
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-[#7c3aed]/15 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+  <div class="absolute top-48 right-12 w-[420px] h-[420px] bg-[#571bc1]/10 rounded-full blur-[110px] pointer-events-none -z-10"></div>
+
+  <div class="w-full max-w-4xl mx-auto px-4 sm:px-8">
+
+    <!-- Banner decorativo: atmósfera de escenario (no depende de datos del evento) -->
+    <div class="relative w-full h-40 sm:h-52 rounded-xl overflow-hidden mb-6 shadow-2xl">
+      <img src="events/dance-05.jpg" alt="" class="w-full h-full object-cover object-top opacity-50" />
+      <div class="absolute inset-0 bg-gradient-to-t from-[#0c1322] via-[#141b2b]/80 to-transparent"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-[#0c1322] via-transparent to-[#141b2b]/60"></div>
+      <div class="absolute bottom-4 left-4 sm:left-6 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-[#7c3aed] flex items-center justify-center shadow-[0_0_20px_rgba(124,58,237,0.5)] shrink-0">
+          <span class="material-symbols-outlined text-white font-bold">sports_gymnastics</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-['Sora'] text-lg font-bold text-[#dce2f7] tracking-tight">WORLD<span class="text-[#d2bbff]">DANCE</span></span>
+            <span class="px-2 py-0.5 rounded-full bg-[#2e3545] text-[#d0bcff] text-[11px] font-mono uppercase tracking-wider">Estadio Oficial</span>
+          </div>
+          <p class="text-sm text-[#ccc3d8]">Atmósfera de Batalla y Danza Urbana de Élite</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between gap-4 mb-6">
+      <a routerLink="/events" class="link-accent inline-flex items-center gap-1.5 transition-colors group text-sm font-semibold">
+        <span class="material-symbols-outlined text-lg group-hover:-translate-x-1 transition-transform">arrow_back</span>
+        Volver al listado
+      </a>
+      <div class="hidden sm:flex items-center gap-1.5 bg-[#232a3a] px-4 py-1 rounded-full shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-[#d2bbff] animate-ping"></span>
+        <span class="font-mono text-[11px] text-[#ccc3d8] uppercase tracking-wider">Modo Gestor &middot; Temporada 2026</span>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-1 mb-6">
+      <div class="flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-[#d2bbff] text-xl">flag_circle</span>
+        <span class="font-mono text-[11px] text-[#d2bbff] tracking-widest uppercase">Módulo de Adjudicación y Apertura</span>
+      </div>
+      <h1 class="font-['Sora'] text-[32px] sm:text-[40px] font-bold text-[#dce2f7] tracking-tight">
+        {{ isEditMode ? 'Editar Evento' : 'Crear Nuevo Evento' }}
+      </h1>
+      <p class="text-[#ccc3d8] text-[15px] max-w-2xl">
+        Configura y da de alta una nueva competición en la arena global de WorldDance. Asigna cronogramas, sedes homologadas y el marco de deliberación técnica.
+      </p>
+    </div>
+
+    <div class="w-full bg-[#141b2b]/95 backdrop-blur-2xl rounded-xl p-6 sm:p-8 shadow-[0_12px_40px_rgba(0,0,0,0.55)] relative">
+      <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-[#7c3aed]/40 to-transparent rounded-t-xl pointer-events-none"></div>
+
+      <form [formGroup]="eventForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+
+        <div class="flex flex-col gap-1.5">
+          <label for="name" class="text-sm font-semibold text-[#dce2f7] flex items-center justify-between">
+            <span>Nombre del Evento <span class="text-[#ffb4ab]">*</span></span>
+            <span class="font-mono text-xs text-[#958da1] tracking-wide font-normal">Máx. 150 caracteres</span>
+          </label>
+          <div class="relative flex items-center">
+            <span class="material-symbols-outlined absolute left-3.5 text-[#ccc3d8] text-lg pointer-events-none">emoji_events</span>
+            <input id="name" type="text" formControlName="name" placeholder="Ej. Neon Pulse International Open"
+                   class="w-full h-12 pl-11 pr-4 rounded-lg bg-[#232a3a] text-[#dce2f7] placeholder:text-[#958da1] text-sm focus:bg-[#2e3545] focus:outline-none shadow-sm transition-all focus:shadow-[0_0_20px_rgba(124,58,237,0.35)]" />
+          </div>
+          <span class="text-xs text-[#ffb4ab]" *ngIf="isFieldInvalid('name')">El nombre del evento es obligatorio (mínimo 3 caracteres).</span>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label for="description" class="text-sm font-semibold text-[#dce2f7]">Descripción del Evento <span class="text-[#ffb4ab]">*</span></label>
+          <textarea id="description" formControlName="description" rows="4"
+                    placeholder="Detalles de la competencia, categorías (Solos, Dúos, Crews), jurados certificados, cronograma técnico y requisitos de participación..."
+                    class="w-full p-4 rounded-lg bg-[#232a3a] text-[#dce2f7] placeholder:text-[#958da1] text-sm focus:bg-[#2e3545] focus:outline-none shadow-sm transition-all resize-y min-h-[110px] focus:shadow-[0_0_20px_rgba(124,58,237,0.35)]"></textarea>
+          <span class="text-xs text-[#ffb4ab]" *ngIf="isFieldInvalid('description')">La descripción es obligatoria.</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="startDate" class="text-sm font-semibold text-[#dce2f7]">Fecha de Inicio <span class="text-[#ffb4ab]">*</span></label>
+            <div class="relative flex items-center">
+              <span class="material-symbols-outlined absolute left-3.5 text-[#ccc3d8] text-lg pointer-events-none">calendar_today</span>
+              <input id="startDate" type="date" formControlName="startDate"
+                     class="w-full h-12 pl-11 pr-4 rounded-lg bg-[#232a3a] text-[#dce2f7] text-sm focus:bg-[#2e3545] focus:outline-none shadow-sm transition-all focus:shadow-[0_0_20px_rgba(124,58,237,0.35)] [color-scheme:dark]" />
+            </div>
+            <span class="text-xs text-[#ffb4ab]" *ngIf="isFieldInvalid('startDate')">Fecha obligatoria.</span>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="endDate" class="text-sm font-semibold text-[#dce2f7]">Fecha de Cierre <span class="text-[#ffb4ab]">*</span></label>
+            <div class="relative flex items-center">
+              <span class="material-symbols-outlined absolute left-3.5 text-[#ccc3d8] text-lg pointer-events-none">event_available</span>
+              <input id="endDate" type="date" formControlName="endDate"
+                     class="w-full h-12 pl-11 pr-4 rounded-lg bg-[#232a3a] text-[#dce2f7] text-sm focus:bg-[#2e3545] focus:outline-none shadow-sm transition-all focus:shadow-[0_0_20px_rgba(124,58,237,0.35)] [color-scheme:dark]" />
+            </div>
+            <span class="text-xs text-[#ffb4ab]" *ngIf="isFieldInvalid('endDate')">Fecha obligatoria.</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="location" class="text-sm font-semibold text-[#dce2f7]">Ubicación / Sede <span class="text-[#ffb4ab]">*</span></label>
+            <div class="relative flex items-center">
+              <span class="material-symbols-outlined absolute left-3.5 text-[#ccc3d8] text-lg pointer-events-none">pin_drop</span>
+              <input id="location" type="text" formControlName="location" placeholder="Ej. Movistar Arena, Bogotá"
+                     class="w-full h-12 pl-11 pr-4 rounded-lg bg-[#232a3a] text-[#dce2f7] placeholder:text-[#958da1] text-sm focus:bg-[#2e3545] focus:outline-none shadow-sm transition-all focus:shadow-[0_0_20px_rgba(124,58,237,0.35)]" />
+            </div>
+            <span class="text-xs text-[#ffb4ab]" *ngIf="isFieldInvalid('location')">La ubicación es obligatoria.</span>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="status" class="text-sm font-semibold text-[#dce2f7]">Estado del Evento <span class="text-[#ffb4ab]">*</span></label>
+            <div class="relative flex items-center">
+              <span class="material-symbols-outlined absolute left-3.5 text-[#ccc3d8] text-lg pointer-events-none">tune</span>
+              <select id="status" formControlName="status"
+                      class="w-full h-12 pl-11 pr-10 rounded-lg bg-[#232a3a] text-[#dce2f7] text-sm focus:bg-[#2e3545] focus:outline-none shadow-sm transition-all appearance-none cursor-pointer focus:shadow-[0_0_20px_rgba(124,58,237,0.35)]">
+                <option *ngFor="let opt of statusOptions" [value]="opt.value" class="bg-[#232a3a] text-[#dce2f7]">{{ opt.label }}</option>
+              </select>
+              <span class="material-symbols-outlined absolute right-3.5 text-[#ccc3d8] text-lg pointer-events-none">arrow_drop_down</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2 mt-2">
+          <button type="button" routerLink="/events"
+                  class="px-6 h-12 inline-flex items-center justify-center rounded-lg bg-[#232a3a] hover:bg-[#2e3545] text-[#dce2f7] transition-all text-sm font-semibold shadow-sm">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="eventForm.invalid"
+                  class="px-8 h-12 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#7c3aed] hover:bg-[#571bc1] disabled:opacity-40 disabled:cursor-not-allowed text-white transition-all text-sm font-semibold shadow-[0_0_24px_rgba(124,58,237,0.45)] hover:shadow-[0_0_32px_rgba(124,58,237,0.7)] transform active:scale-95">
+            <span class="material-symbols-outlined text-lg">{{ isEditMode ? 'save' : 'add_circle' }}</span>
+            {{ isEditMode ? 'Guardar Cambios' : 'Crear Evento' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
   </div>
-
-  <form [formGroup]="eventForm" (ngSubmit)="onSubmit()" class="form-card">
-    
-    <div class="form-group">
-      <label for="name">Nombre del Evento *</label>
-      <input id="name" type="text" formControlName="name" placeholder="Ej. Neon Pulse International Open" />
-      <span class="error-msg" *ngIf="isFieldInvalid('name')">
-        El nombre del evento es obligatorio (mínimo 3 caracteres).
-      </span>
-    </div>
-
-    <div class="form-group">
-      <label for="description">Descripción *</label>
-      <textarea id="description" formControlName="description" rows="4" placeholder="Detalles de la competencia..."></textarea>
-      <span class="error-msg" *ngIf="isFieldInvalid('description')">
-        La descripción es obligatoria.
-      </span>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label for="startDate">Fecha de Inicio *</label>
-        <input id="startDate" type="date" formControlName="startDate" />
-        <span class="error-msg" *ngIf="isFieldInvalid('startDate')">Fecha obligatoria.</span>
-      </div>
-
-      <div class="form-group">
-        <label for="endDate">Fecha de Cierre *</label>
-        <input id="endDate" type="date" formControlName="endDate" />
-        <span class="error-msg" *ngIf="isFieldInvalid('endDate')">Fecha obligatoria.</span>
-      </div>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label for="location">Ubicación / Sede *</label>
-        <input id="location" type="text" formControlName="location" placeholder="Ej. Movistar Arena, Bogotá" />
-        <span class="error-msg" *ngIf="isFieldInvalid('location')">La ubicación es obligatoria.</span>
-      </div>
-
-      <div class="form-group">
-        <label for="status">Estado del Evento *</label>
-        <select id="status" formControlName="status">
-          <option *ngFor="let opt of statusOptions" [value]="opt.value">
-            {{ opt.label }}
-          </option>
-        </select>
-      </div>
-    </div>
-
-    <div class="form-actions">
-      <button type="button" routerLink="/events" class="btn-cancel">Cancelar</button>
-      <button type="submit" [disabled]="eventForm.invalid" class="btn-primary">
-        {{ isEditMode ? 'Guardar Cambios' : 'Crear Evento' }}
-      </button>
-    </div>
-
-  </form>
 </div>

@@ -2,13 +2,17 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, map, tap, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { EventRequestDto, EventResponseDto, HttpGlobalResponse } from '../models/event.model';
+import { EventRequestDto, EventResponseDto, EventStatusFilter, HttpGlobalResponse, PageResponseDto } from '../models/event.model';
+import { EventStatus } from '../enums/event-enums';
+import { AuthService } from '../../auth/services/auth.service';
+import { isSameUser, resolveEventOwnerId } from '../utils/event-normalize';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EventService {
   private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
   private readonly apiUrl = `${environment.apiUrl}/events`;
 
   private readonly eventsSignal = signal<EventResponseDto[]>([]);
@@ -23,6 +27,56 @@ export class EventService {
     return this.http.get<HttpGlobalResponse<EventResponseDto[]>>(`${this.apiUrl}/getEvents`).pipe(
       map(res => res.data ?? []),
       tap(events => this.eventsSignal.set(events)),
+      catchError(err => this.handleError(err))
+    );
+  }
+
+  /**
+   * Listado paginado (catálogo público + "Mis Eventos"). No usa el signal `events`
+   * (reservado para consumidores que necesitan el set completo, p. ej. my-streams) —
+   * el componente que pagina mantiene su propio estado local por página.
+   *
+   * Si el backend todavía no tiene el endpoint `/events/page` desplegado (404),
+   * cae de vuelta a `/events/getEvents` y pagina/filtra en el cliente, para que
+   * la lista de eventos no deje de funcionar mientras se actualiza el backend.
+   */
+  getEventsPage(page: number, size: number, filter: EventStatusFilter): Observable<PageResponseDto<EventResponseDto>> {
+    return this.http.get<HttpGlobalResponse<PageResponseDto<EventResponseDto>>>(`${this.apiUrl}/page`, {
+      params: { page: page.toString(), size: size.toString(), filter }
+    }).pipe(
+      map(res => res.data),
+      catchError(err => err instanceof HttpErrorResponse && err.status === 404
+        ? this.getEventsPageFallback(page, size, filter)
+        : this.handleError(err))
+    );
+  }
+
+  private getEventsPageFallback(page: number, size: number, filter: EventStatusFilter): Observable<PageResponseDto<EventResponseDto>> {
+    return this.getEvents().pipe(
+      map(all => {
+        const userId = this.authService.getCurrentUser()?.id != null ? Number(this.authService.getCurrentUser()!.id) : null;
+        const isMine = (e: EventResponseDto) => userId !== null && isSameUser(userId, resolveEventOwnerId(e));
+
+        const visible = all.filter(e => e.status === EventStatus.ACTIVE || isMine(e));
+        const filtered = filter === 'ACTIVE'
+          ? visible.filter(e => e.status === EventStatus.ACTIVE)
+          : filter === 'INACTIVE'
+            ? visible.filter(e => e.status !== EventStatus.ACTIVE)
+            : filter === 'MINE'
+              ? all.filter(e => isMine(e))
+              : visible;
+
+        const start = page * size;
+        const content = filtered.slice(start, start + size);
+        return {
+          content,
+          page,
+          size,
+          totalElements: filtered.length,
+          totalPages: Math.max(1, Math.ceil(filtered.length / size)),
+          last: start + size >= filtered.length
+        };
+      }),
       catchError(err => this.handleError(err))
     );
   }

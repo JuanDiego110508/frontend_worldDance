@@ -1,112 +1,248 @@
-<div class="events-page-container">
-  <!-- Header de la Página -->
-  <header class="events-header">
-    <div class="header-info">
-      <h1>Eventos de Danza</h1>
-      <p class="subtitle">Descubre y gestiona los próximos eventos deportivos y culturales</p>
-    </div>
+<div class="w-full min-h-screen bg-[#0c1322] text-[#dce2f7]">
+  <div class="relative w-full overflow-hidden">
+    <div class="absolute -top-40 left-1/4 -translate-x-1/2 w-[650px] h-[350px] bg-[#7c3aed]/20 rounded-full blur-[130px] pointer-events-none"></div>
+    <div class="absolute top-48 right-10 w-[450px] h-[300px] bg-[#571bc1]/15 rounded-full blur-[120px] pointer-events-none"></div>
 
-    <a routerLink="/events/create" class="btn-create">
-      <span>+</span> Crear Evento
-    </a>
-  </header>
+    <div class="relative max-w-[1280px] w-full mx-auto px-4 sm:px-8 py-10 flex flex-col gap-8">
 
-  <!-- Tabs de estado: solo tiene sentido para el organizador gestionando sus propios eventos -->
-  <div class="status-tabs" *ngIf="currentUserId() !== null" role="tablist">
-    <button
-      type="button"
-      role="tab"
-      [class.active]="statusFilter() === 'ALL'"
-      (click)="setStatusFilter('ALL')"
-    >
-      Todos
-    </button>
-    <button
-      type="button"
-      role="tab"
-      [class.active]="statusFilter() === 'ACTIVE'"
-      (click)="setStatusFilter('ACTIVE')"
-    >
-      Activos
-    </button>
-    <button
-      type="button"
-      role="tab"
-      [class.active]="statusFilter() === 'INACTIVE'"
-      (click)="setStatusFilter('INACTIVE')"
-    >
-      Borradores/Inactivos
-    </button>
-  </div>
-
-  <!-- Sección de Filtros -->
-  <section class="filters-section">
-    <div class="search-box">
-      <input
-        type="text"
-        [ngModel]="searchTerm()"
-        (ngModelChange)="searchTerm.set($event)"
-        placeholder="Buscar por título, ciudad o descripción..."
-      />
-    </div>
-  </section>
-
-  <!-- Contenedor sin resultados -->
-  <div *ngIf="filteredEvents().length === 0" class="empty-state-card">
-    <div class="empty-icon">🔍</div>
-    <h3>No se encontraron eventos</h3>
-    <p>Prueba buscando con otros términos o registra un nuevo evento.</p>
-  </div>
-
-  <!-- Grid de Tarjetas -->
-  <div class="events-grid" *ngIf="filteredEvents().length > 0">
-    <article *ngFor="let event of filteredEvents()" class="event-card">
-      <!-- Badge de Estado -->
-      <span 
-        class="card-status-badge" 
-        [ngClass]="event.status ? event.status.toLowerCase() : ''">
-        {{ event.status }}
-      </span>
-
-      <!-- Cuerpo de la Tarjeta -->
-      <div class="card-body">
-        <h2 class="event-title">{{ event.name }}</h2>
-        <p class="event-description">{{ event.description }}</p>
-
-        <div class="event-details">
-          <div class="detail-item">
-            <span class="detail-label">
-              <img src="icons8-user-location-64.png" alt="Ubicación" class="icon-inline" />
-              Ubicación:
-            </span>
-            <span>{{ event.location }}</span>
+      <!-- Header -->
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div class="flex flex-col gap-1 max-w-2xl">
+          <div class="flex items-center gap-1.5">
+            <span class="inline-flex w-2 h-2 rounded-full bg-[#d2bbff] animate-ping"></span>
+            <span class="font-['Sora'] text-[12px] font-bold uppercase text-[#d0bcff] tracking-widest">Circuito Oficial &middot; Temporada 2026</span>
           </div>
-          <div class="detail-item">
-            <span class="detail-label">
-              <img src="icons8-timeline-week-64.png" alt="Fechas" class="icon-inline" />
-              Fechas:
-            </span>
-            <span>{{ event.startDate | date:'dd/MM/yyyy' }} - {{ event.endDate | date:'dd/MM/yyyy' }}</span>
+          <h1 class="font-['Sora'] text-[32px] sm:text-[40px] font-bold text-[#dce2f7] tracking-tight leading-tight">Eventos de Danza</h1>
+          <p class="text-[#ccc3d8] text-[15px]">Descubre y gestiona los próximos eventos deportivos y culturales.</p>
+        </div>
+        <a routerLink="/events/create"
+           class="link-onprimary self-start lg:self-end inline-flex items-center gap-1.5 px-6 py-3 rounded-lg bg-[#7c3aed] hover:bg-[#571bc1] text-white font-semibold text-sm shadow-[0_0_24px_rgba(124,58,237,0.45)] hover:shadow-[0_0_32px_rgba(124,58,237,0.7)] transition-all transform hover:-translate-y-0.5">
+          <span class="material-symbols-outlined text-base font-bold">add</span>
+          Crear Evento
+        </a>
+      </div>
+
+      <!-- Carrusel destacado: recorre los eventos de la página actual -->
+      <div class="relative w-full rounded-xl overflow-hidden shadow-2xl min-h-[220px] bg-[#141b2b]" *ngIf="featuredEvents().length > 0">
+        <div *ngFor="let event of featuredEvents(); let i = index"
+             class="absolute inset-0 transition-opacity duration-700"
+             [ngClass]="carouselIndex() === i ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none z-0'">
+          <img [src]="cardImage(event)" alt="" class="absolute inset-0 w-full h-full object-cover" />
+          <div class="absolute inset-0 bg-gradient-to-r from-[#070e1d] via-[#070e1d]/75 to-transparent"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-[#070e1d]/95 via-transparent to-transparent"></div>
+
+          <div class="relative z-10 p-6 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6 min-h-[220px]">
+            <div class="flex flex-col gap-2 max-w-xl">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full bg-[#7c3aed] text-white text-[11px] font-bold uppercase tracking-wider">Destacado</span>
+                <span class="inline-flex items-center gap-1 text-[#d0bcff] text-[11px] font-bold uppercase" *ngIf="event.status === 'ACTIVE'">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#d2bbff]"></span> Inscripciones Abiertas
+                </span>
+              </div>
+              <h2 class="font-['Sora'] text-2xl font-semibold text-white">{{ event.name }}</h2>
+              <p class="text-[#ccc3d8] text-sm line-clamp-2 max-w-lg">{{ event.description }}</p>
+              <div class="flex flex-wrap items-center gap-4 pt-1 text-[#ccc3d8] text-sm">
+                <div class="flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-[#d0bcff] text-base">location_on</span>{{ event.location }}
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-[#d0bcff] text-base">calendar_today</span>{{ event.startDate | date:'dd/MM/yyyy' }} &mdash; {{ event.endDate | date:'dd/MM/yyyy' }}
+                </div>
+              </div>
+            </div>
+            <a [routerLink]="['/events', event.idEvent, 'modalities']"
+               class="link-soft shrink-0 px-6 py-3 rounded-lg bg-[#232a3a]/90 hover:bg-[#2e3545] backdrop-blur-md shadow-md flex items-center gap-2 font-semibold text-sm transition-all">
+              <span class="material-symbols-outlined text-[#d2bbff] text-base">sports_score</span>
+              Ver Modalidades
+            </a>
+          </div>
+        </div>
+
+        <!-- Indicadores -->
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2" *ngIf="featuredEvents().length > 1">
+          <button *ngFor="let event of featuredEvents(); let i = index" (click)="goToSlide(i)"
+                  [ngClass]="carouselIndex() === i ? 'w-6 bg-white' : 'w-2 bg-white/40 hover:bg-white/60'"
+                  class="h-2 rounded-full transition-all" [attr.aria-label]="'Ir al evento ' + (i + 1)"></button>
+        </div>
+        <!-- Flechas -->
+        <button *ngIf="featuredEvents().length > 1" (click)="prevSlide()" aria-label="Anterior"
+                class="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center backdrop-blur-sm transition-colors">
+          <span class="material-symbols-outlined text-lg">chevron_left</span>
+        </button>
+        <button *ngIf="featuredEvents().length > 1" (click)="nextSlide()" aria-label="Siguiente"
+                class="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center backdrop-blur-sm transition-colors">
+          <span class="material-symbols-outlined text-lg">chevron_right</span>
+        </button>
+      </div>
+
+      <!-- Métricas rápidas (datos reales, no de otros microservicios) -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4" *ngIf="currentUserId() !== null">
+        <div class="p-4 rounded-lg bg-[#141b2b] flex items-center gap-4">
+          <div class="w-10 h-10 rounded-lg bg-[#7c3aed]/20 text-[#d2bbff] flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined">emoji_events</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-['Sora'] text-xl font-semibold text-[#dce2f7] leading-none">{{ counts().all }}</span>
+            <span class="text-sm text-[#ccc3d8]">Eventos Totales</span>
+          </div>
+        </div>
+        <div class="p-4 rounded-lg bg-[#141b2b] flex items-center gap-4">
+          <div class="w-10 h-10 rounded-lg bg-emerald-950/40 text-emerald-300 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined">how_to_reg</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-['Sora'] text-xl font-semibold text-[#dce2f7] leading-none">{{ counts().active }}</span>
+            <span class="text-sm text-[#ccc3d8]">Activos</span>
+          </div>
+        </div>
+        <div class="p-4 rounded-lg bg-[#141b2b] flex items-center gap-4">
+          <div class="w-10 h-10 rounded-lg bg-[#2e3545] text-[#958da1] flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined">drafts</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-['Sora'] text-xl font-semibold text-[#dce2f7] leading-none">{{ counts().inactive }}</span>
+            <span class="text-sm text-[#ccc3d8]">Borradores / Inactivos</span>
+          </div>
+        </div>
+        <div class="p-4 rounded-lg bg-[#141b2b] flex items-center gap-4">
+          <div class="w-10 h-10 rounded-lg bg-[#571bc1]/30 text-[#d0bcff] flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined">category</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-['Sora'] text-xl font-semibold text-[#dce2f7] leading-none">{{ filteredEvents().length }}</span>
+            <span class="text-sm text-[#ccc3d8]">En esta página</span>
           </div>
         </div>
       </div>
 
-      <!-- Footer de la Tarjeta -->
-      <div class="card-footer">
-        <a [routerLink]="['/events', event.idEvent, 'modalities']" class="btn-primary-action">
-          {{ isOwner(event) ? 'Gestionar Modalidades' : 'Ver Modalidades' }}
-        </a>
+      <!-- Filtros (Mis Eventos) y búsqueda -->
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-2 rounded-xl bg-[#141b2b] shadow-lg">
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0" *ngIf="currentUserId() !== null">
+          <button type="button" (click)="setStatusFilter('ALL')"
+                  [ngClass]="statusFilter() === 'ALL' ? 'bg-[#7c3aed] text-white shadow-[0_0_16px_rgba(124,58,237,0.35)]' : 'bg-transparent text-[#ccc3d8] hover:text-[#dce2f7] hover:bg-[#232a3a]'"
+                  class="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 shrink-0 border-0">
+            Todos
+            <span class="px-1.5 py-0.5 rounded-full bg-black/20 text-[11px] font-mono">{{ counts().all }}</span>
+          </button>
+          <button type="button" (click)="setStatusFilter('MINE')"
+                  [ngClass]="statusFilter() === 'MINE' ? 'bg-[#7c3aed] text-white shadow-[0_0_16px_rgba(124,58,237,0.35)]' : 'bg-transparent text-[#ccc3d8] hover:text-[#dce2f7] hover:bg-[#232a3a]'"
+                  class="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 shrink-0 border-0">
+            Mis Eventos
+            <span class="px-1.5 py-0.5 rounded-full bg-black/20 text-[11px] font-mono">{{ counts().mine }}</span>
+          </button>
+          <button type="button" (click)="setStatusFilter('ACTIVE')"
+                  [ngClass]="statusFilter() === 'ACTIVE' ? 'bg-[#7c3aed] text-white shadow-[0_0_16px_rgba(124,58,237,0.35)]' : 'bg-transparent text-[#ccc3d8] hover:text-[#dce2f7] hover:bg-[#232a3a]'"
+                  class="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 shrink-0 border-0">
+            Activos
+            <span class="px-1.5 py-0.5 rounded-full bg-black/20 text-[11px] font-mono">{{ counts().active }}</span>
+          </button>
+          <button type="button" (click)="setStatusFilter('INACTIVE')"
+                  [ngClass]="statusFilter() === 'INACTIVE' ? 'bg-[#7c3aed] text-white shadow-[0_0_16px_rgba(124,58,237,0.35)]' : 'bg-transparent text-[#ccc3d8] hover:text-[#dce2f7] hover:bg-[#232a3a]'"
+                  class="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 shrink-0 border-0">
+            Borradores / Inactivos
+            <span class="px-1.5 py-0.5 rounded-full bg-black/20 text-[11px] font-mono">{{ counts().inactive }}</span>
+          </button>
+        </div>
+        <div class="relative w-full md:w-96 flex items-center ml-auto">
+          <span class="material-symbols-outlined absolute left-3.5 text-[#958da1] pointer-events-none text-base">search</span>
+          <input type="text"
+                 [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)"
+                 placeholder="Buscar en esta página..."
+                 class="w-full h-11 pl-10 pr-4 rounded-lg bg-[#232a3a]/70 hover:bg-[#232a3a] focus:bg-[#191f2f] text-[#dce2f7] placeholder:text-[#958da1] text-sm outline-none focus:shadow-[0_0_0_2px_rgba(124,58,237,0.5)] transition-all" />
+        </div>
+      </div>
 
-        <!-- Acciones de edición/eliminación sólo si es propietario y el evento tiene un id válido -->
-        <div class="admin-actions" *ngIf="isOwner(event) && event.idEvent">
-          <a [routerLink]="['/events/edit', event.idEvent]" class="btn-icon btn-icon-edit" title="Editar evento">
-            <img src="icons8-edit-pencil.svg" alt="Editar" class="icon-action" />
-          </a>
-          <button type="button" (click)="onDeleteEvent(event)" class="btn-icon btn-icon-delete" title="Eliminar evento">
-            <img src="icons8-trash-can-64.png" alt="Eliminar" class="icon-action" />
+      <!-- Estado de carga / error -->
+      <div class="text-center py-16 text-[#ccc3d8]" *ngIf="isLoading()">Cargando eventos&hellip;</div>
+      <div class="text-center py-16 text-[#ffb4ab]" *ngIf="!isLoading() && loadError()">{{ loadError() }}</div>
+
+      <!-- Vacío -->
+      <div class="flex flex-col items-center justify-center py-16 text-center gap-4 bg-[#141b2b] rounded-xl p-10"
+           *ngIf="!isLoading() && !loadError() && filteredEvents().length === 0">
+        <div class="w-16 h-16 rounded-full bg-[#232a3a] flex items-center justify-center text-[#958da1]">
+          <span class="material-symbols-outlined text-4xl">search_off</span>
+        </div>
+        <div class="flex flex-col gap-1 max-w-sm">
+          <h4 class="font-['Sora'] text-lg text-[#dce2f7]">No se encontraron eventos</h4>
+          <p class="text-sm text-[#ccc3d8]">Prueba ajustar la búsqueda o cambiar de pestaña.</p>
+        </div>
+      </div>
+
+      <!-- Grid de eventos -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" *ngIf="!isLoading() && !loadError() && filteredEvents().length > 0">
+        <article *ngFor="let event of filteredEvents()"
+                 class="group flex flex-col justify-between rounded-xl bg-[#141b2b] hover:bg-[#191f2f] transition-all duration-300 shadow-lg hover:shadow-[0_8px_30px_rgba(124,58,237,0.2)] hover:-translate-y-1 overflow-hidden">
+          <div class="relative w-full h-48 overflow-hidden">
+            <img [src]="cardImage(event)" alt="" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <div class="absolute inset-0 bg-gradient-to-t from-[#141b2b] via-[#141b2b]/30 to-transparent"></div>
+            <div class="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
+              <span [ngClass]="event.status === 'ACTIVE' ? 'bg-emerald-950/70 text-emerald-300' : 'bg-[#2e3545]/90 text-[#ccc3d8]'"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full backdrop-blur-md text-[11px] font-bold uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full" [ngClass]="event.status === 'ACTIVE' ? 'bg-emerald-400' : 'bg-[#958da1]'"></span>
+                {{ statusLabels[event.status] }}
+              </span>
+              <span class="font-mono text-[11px] text-[#d2bbff] bg-[#0c1322]/85 backdrop-blur-md px-2 py-0.5 rounded-full uppercase tracking-wider">
+                {{ eventCode(event) }}
+              </span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-3 p-5 flex-1 justify-between">
+            <div class="flex flex-col gap-2">
+              <h3 class="font-['Sora'] text-lg font-semibold text-[#dce2f7] group-hover:text-[#d2bbff] transition-colors line-clamp-1">{{ event.name }}</h3>
+              <p class="text-sm text-[#ccc3d8] line-clamp-2">{{ event.description }}</p>
+              <div class="flex flex-col gap-1 pt-1">
+                <div class="flex items-center gap-1.5 text-[#ccc3d8] text-sm">
+                  <span class="material-symbols-outlined text-[#d0bcff] text-base shrink-0">location_on</span>
+                  <span class="truncate">{{ event.location }}</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-[#ccc3d8] text-sm">
+                  <span class="material-symbols-outlined text-[#d0bcff] text-base shrink-0">calendar_today</span>
+                  {{ event.startDate | date:'dd/MM/yyyy' }} - {{ event.endDate | date:'dd/MM/yyyy' }}
+                </div>
+              </div>
+            </div>
+            <div class="pt-3 mt-2 flex items-center justify-between gap-2">
+              <a [routerLink]="['/events', event.idEvent, 'modalities']"
+                 class="link-onprimary flex-1 px-4 py-2.5 rounded-lg bg-[#7c3aed] hover:bg-[#571bc1] text-sm font-medium text-center transition-all shadow-[0_0_16px_rgba(124,58,237,0.3)] flex items-center justify-center gap-1.5">
+                <span class="material-symbols-outlined text-base">rule</span>
+                {{ isOwner(event) ? 'Gestionar Modalidades' : 'Ver Modalidades' }}
+              </a>
+              <ng-container *ngIf="isOwner(event) && event.idEvent">
+                <a [routerLink]="['/events/edit', event.idEvent]" title="Editar evento"
+                   class="link-muted w-10 h-10 rounded-lg bg-[#232a3a] hover:bg-[#2e3545] flex items-center justify-center transition-colors shrink-0">
+                  <span class="material-symbols-outlined text-base">edit</span>
+                </a>
+                <button type="button" (click)="onDeleteEvent(event)" title="Eliminar evento"
+                        class="w-10 h-10 rounded-lg bg-[#232a3a] hover:bg-[#93000a] text-[#ccc3d8] hover:text-[#ffdad6] flex items-center justify-center transition-colors shrink-0">
+                  <span class="material-symbols-outlined text-base">delete</span>
+                </button>
+              </ng-container>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Paginación -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 pb-4 text-sm text-[#ccc3d8]"
+           *ngIf="!isLoading() && !loadError() && totalElements() > 0">
+        <span>Mostrando {{ filteredEvents().length }} de {{ totalElements() }} eventos registrados</span>
+        <div class="flex items-center gap-1.5" *ngIf="totalPages() > 1">
+          <button type="button" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 0"
+                  class="w-9 h-9 rounded-lg bg-[#141b2b] text-[#958da1] disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:bg-[#232a3a] flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-base">chevron_left</span>
+          </button>
+          <button type="button" *ngFor="let p of pageNumbers()" (click)="goToPage(p)"
+                  [ngClass]="p === currentPage() ? 'bg-[#7c3aed] text-white shadow-[0_0_10px_rgba(124,58,237,0.4)]' : 'bg-[#141b2b] hover:bg-[#232a3a] text-[#ccc3d8]'"
+                  class="w-9 h-9 rounded-lg font-mono text-sm flex items-center justify-center transition-colors">
+            {{ p + 1 }}
+          </button>
+          <button type="button" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() >= totalPages() - 1"
+                  class="w-9 h-9 rounded-lg bg-[#141b2b] text-[#958da1] disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:bg-[#232a3a] flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-base">chevron_right</span>
           </button>
         </div>
       </div>
-    </article>
+
+    </div>
   </div>
 </div>
