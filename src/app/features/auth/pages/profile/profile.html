@@ -1,119 +1,171 @@
 <div class="profile-container">
-  <div class="profile-card">
-    <div class="profile-header">
-      <div class="profile-brand">
-        <img class="brand-icon" src="/FondoWorDancePNG.png" alt="World Dance">
-        <span class="brand-text">WorldDance</span>
-      </div>
-      <h1>Mi Perfil</h1>
-      <p class="profile-subtitle">Gestiona tu información personal</p>
-    </div>
-
-    @if (isLoading()) {
-      <div class="loading-state">
-        <span class="spinner"></span>
-        Cargando datos del usuario...
-      </div>
-    } @else {
-      <div class="profile-avatar-section">
-        <span class="avatar">
-          {{ user()?.firstName?.charAt(0) }}{{ user()?.lastName?.charAt(0) }}
-        </span>
-        <div class="avatar-info">
-          <div class="user-name">{{ user()?.firstName }} {{ user()?.lastName }}</div>
-        </div>
-      </div>
-
-      <div class="profile-form" [formGroup]="editForm">
-        <div class="form-group">
-          <label>Nombre</label>
-          @if (isEditMode()) {
-            <input type="text" formControlName="firstName" placeholder="Tu nombre">
-            @if (isFieldInvalid('firstName')) {
-              <span class="field-error">El nombre es obligatorio</span>
-            }
-          } @else {
-            <p class="field-value">{{ user()?.firstName || '-' }}</p>
-          }
-        </div>
-
-        <div class="form-group">
-          <label>Apellido</label>
-          @if (isEditMode()) {
-            <input type="text" formControlName="lastName" placeholder="Tu apellido">
-            @if (isFieldInvalid('lastName')) {
-              <span class="field-error">El apellido es obligatorio</span>
-            }
-          } @else {
-            <p class="field-value">{{ user()?.lastName || '-' }}</p>
-          }
-        </div>
-
-        <div class="form-group">
-          <label>Número de documento</label>
-          @if (isEditMode()) {
-            <input type="text" formControlName="documentNumber" placeholder="Tu documento">
-            @if (isFieldInvalid('documentNumber')) {
-              <span class="field-error">Debe contener solo números, entre 6 y 20 dígitos</span>
-            }
-          } @else {
-            <p class="field-value">{{ user()?.documentNumber || '-' }}</p>
-          }
-        </div>
-
-        <div class="form-group">
-          <label>Correo electrónico</label>
-          @if (isEditMode()) {
-            <input type="email" formControlName="email" placeholder="Tu correo">
-            @if (isFieldInvalid('email')) {
-              <span class="field-error">Ingresa un correo electrónico válido</span>
-            }
-          } @else {
-            <p class="field-value">{{ user()?.email || '-' }}</p>
-          }
-        </div>
-
-        <div class="form-group">
-          <label>Estado de la cuenta</label>
-          <p class="field-value">
-            <span class="status-badge" [class.active]="user()?.active">
-              {{ user()?.active ? 'Activa' : 'Inactiva' }}
-            </span>
-          </p>
-        </div>
-
-        @if (errorMessage()) {
-          <div class="error-message">{{ errorMessage() }}</div>
-        }
-        @if (successMessage()) {
-          <div class="success-message">{{ successMessage() }}</div>
-        }
-
-        <div class="form-actions">
-          @if (isEditMode()) {
-            <button class="btn btn-ghost" (click)="toggleEditMode()">Cancelar</button>
-            <button 
-              class="btn btn-primary" 
-              (click)="saveProfile()"
-              [disabled]="isSaving()"
-            >
-              @if (isSaving()) {
-                <span class="spinner"></span>
-                Guardando...
-              } @else {
-                Guardar cambios
-              }
-            </button>
-          } @else {
-            <button class="btn btn-primary" (click)="toggleEditMode()">
-              Editar perfil
-            </button>
-            <button class="btn btn-ghost" (click)="goToDashboard()">
-              Dashboard
-            </button>
-          }
-        </div>
-      </div>
-    }
+  <div class="stage-effects" aria-hidden="true">
+    <div class="beam beam-violet"></div>
+    <div class="beam beam-blue"></div>
   </div>
+
+  <main class="profile-main">
+    <div class="profile-card">
+      <div class="card-top-accent"></div>
+
+      <header class="profile-header">
+        <div class="brand-emblem">
+          <div class="brand-emblem-glow"></div>
+          <div class="brand-emblem-inner">
+            <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
+              <path d="m9 20 3-6 3 2 3-5"/>
+              <path d="m6 8 6 2 5-3"/>
+              <path d="M12 10v4"/>
+            </svg>
+          </div>
+        </div>
+        <h1>Mi Perfil</h1>
+        <p class="profile-subtitle">Gestiona tu información personal y credenciales de WorldDance</p>
+      </header>
+
+      @if (isLoading()) {
+        <div class="loading-state">
+          <span class="spinner"></span>
+          Cargando datos del usuario...
+        </div>
+      } @else {
+        <section class="spotlight-banner">
+          <div class="spotlight-identity">
+            <div class="avatar">
+              <span class="avatar-glow"></span>
+              <span class="avatar-initials">{{ user()?.firstName?.charAt(0) }}{{ user()?.lastName?.charAt(0) }}</span>
+            </div>
+            <h2 class="user-name">{{ user()?.firstName }} {{ user()?.lastName }}</h2>
+          </div>
+          <div class="status-badge" [class.active]="user()?.active">
+            <span class="status-dot">
+              <span class="status-ping"></span>
+              <span class="status-core"></span>
+            </span>
+            {{ user()?.active ? 'Activa' : 'Inactiva' }}
+          </div>
+        </section>
+
+        <div class="profile-form" [formGroup]="editForm">
+          <div class="data-row">
+            <div class="data-row-icon icon-purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+            </div>
+            <div class="data-row-body">
+              <label>Nombre</label>
+              @if (isEditMode()) {
+                <input type="text" formControlName="firstName" placeholder="Tu nombre">
+                @if (isFieldInvalid('firstName')) {
+                  <span class="field-error">El nombre es obligatorio</span>
+                }
+              } @else {
+                <p class="field-value">{{ user()?.firstName || '-' }}</p>
+              }
+            </div>
+          </div>
+
+          <div class="data-row">
+            <div class="data-row-icon icon-indigo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div class="data-row-body">
+              <label>Apellido</label>
+              @if (isEditMode()) {
+                <input type="text" formControlName="lastName" placeholder="Tu apellido">
+                @if (isFieldInvalid('lastName')) {
+                  <span class="field-error">El apellido es obligatorio</span>
+                }
+              } @else {
+                <p class="field-value">{{ user()?.lastName || '-' }}</p>
+              }
+            </div>
+          </div>
+
+          <div class="data-row">
+            <div class="data-row-icon icon-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
+              </svg>
+            </div>
+            <div class="data-row-body">
+              <label>Número de documento</label>
+              @if (isEditMode()) {
+                <input type="text" formControlName="documentNumber" placeholder="Tu documento">
+                @if (isFieldInvalid('documentNumber')) {
+                  <span class="field-error">Debe contener solo números, entre 6 y 20 dígitos</span>
+                }
+              } @else {
+                <p class="field-value field-value--mono">{{ user()?.documentNumber || '-' }}</p>
+              }
+            </div>
+          </div>
+
+          <div class="data-row">
+            <div class="data-row-icon icon-cyan">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <div class="data-row-body">
+              <label>Correo electrónico</label>
+              @if (isEditMode()) {
+                <input type="email" formControlName="email" placeholder="Tu correo">
+                @if (isFieldInvalid('email')) {
+                  <span class="field-error">Ingresa un correo electrónico válido</span>
+                }
+              } @else {
+                <p class="field-value">{{ user()?.email || '-' }}</p>
+              }
+            </div>
+          </div>
+
+          @if (errorMessage()) {
+            <div class="error-message">{{ errorMessage() }}</div>
+          }
+          @if (successMessage()) {
+            <div class="success-message">{{ successMessage() }}</div>
+          }
+
+          <div class="form-actions">
+            @if (isEditMode()) {
+              <button class="action-btn action-btn--ghost" (click)="toggleEditMode()">Cancelar</button>
+              <button
+                class="action-btn action-btn--primary"
+                (click)="saveProfile()"
+                [disabled]="isSaving()"
+              >
+                @if (isSaving()) {
+                  <span class="spinner"></span>
+                  Guardando...
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 13l4 4L19 7"/>
+                  </svg>
+                  Guardar cambios
+                }
+              </button>
+            } @else {
+              <button class="action-btn action-btn--ghost" (click)="goToDashboard()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                </svg>
+                Dashboard
+              </button>
+              <button class="action-btn action-btn--primary" (click)="toggleEditMode()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+                Editar perfil
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </main>
 </div>

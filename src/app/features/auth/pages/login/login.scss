@@ -7,7 +7,7 @@
   --auth-gradient-primary: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
   --auth-card-border: rgba(139, 92, 246, 0.3);
 
-  min-height: 100vh;
+  min-height: calc(100vh - var(--wd-navbar-height));
   display: flex;
   align-items: center;
   justify-content: center;

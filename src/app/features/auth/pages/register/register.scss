@@ -5,7 +5,7 @@
   --auth-violet: #8B5CF6;
   --auth-gradient-primary: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
 
-  min-height: 100vh;
+  min-height: calc(100vh - var(--wd-navbar-height));
   display: flex;
   align-items: center;
   justify-content: center;
