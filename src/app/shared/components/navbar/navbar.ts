@@ -45,9 +45,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   readonly hasLiveStreams = computed(() => this.liveStreams().length > 0);
 
   navItems: NavItem[] = [
-    { label: 'Dashboard', route: '/', icon: 'dashboard' },
+    { label: 'Inicio', route: '/', icon: 'dashboard' },
     { label: 'Eventos', route: '/events', icon: 'celebration' },
-    { label: 'Scoring', route: '/scoring', icon: 'sports_score' },
+    { label: 'Evaluar', route: '/scoring', icon: 'sports_score' },
     { label: 'Rankings', route: '/rankings', icon: 'leaderboard' },
   ];
 

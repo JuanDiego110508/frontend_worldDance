@@ -33,9 +33,9 @@ export class ScoringHistoryComponent implements OnInit {
   private readonly router = inject(Router);
 
   searchTerm = signal<string>('');
-  selectedEvent = signal<string>('all');
+  selectedEvent = signal<string>('');
   selectedDate = signal<string>('');
-  sidebarActive = signal<string>('history');
+  sidebarActive = signal<string>('evaluation');
   isLoading = signal<boolean>(true);
 
   userName = computed(() => {
@@ -107,7 +107,15 @@ export class ScoringHistoryComponent implements OnInit {
       );
     }
 
-    if (event && event !== 'all') {
+    if (this.sidebarActive() === 'evaluation') {
+      // Only show pending evaluations
+      entries = entries.filter(e => !e.totalScore || e.totalScore === 0);
+    } else {
+      // History mode: show completed evaluations
+      entries = entries.filter(e => e.totalScore && e.totalScore > 0);
+    }
+
+    if (event && event !== '' && event !== 'all') {
       entries = entries.filter(e => e.eventName === event);
     }
 
@@ -121,7 +129,7 @@ export class ScoringHistoryComponent implements OnInit {
   /** Lista única de nombres de evento para el dropdown de filtro. */
   uniqueEventNames = computed(() => {
     const evts = this.events();
-    return evts.map(e => e.name);
+    return Array.from(new Set(evts.map(e => e.name)));
   });
 
   ngOnInit(): void {
@@ -138,9 +146,11 @@ export class ScoringHistoryComponent implements OnInit {
     // Paso 1: Cargar todos los eventos
     this.eventService.getEvents().subscribe({
       next: (events) => {
+        console.log('1. Events fetched:', events.length, events);
         events.forEach(e => this.eventsMap.set(e.idEvent, e));
 
         if (events.length === 0) {
+          console.warn('No events found, aborting.');
           this.isLoading.set(false);
           return;
         }
@@ -164,6 +174,7 @@ export class ScoringHistoryComponent implements OnInit {
 
             // Paso 3: Cargar enrollments por cada categoría única
             const uniqueCategories = new Set(allMods.map(m => m.category));
+            console.log('2. Modalities fetched. Unique categories:', Array.from(uniqueCategories));
             const categoryRequests = Array.from(uniqueCategories).map(cat =>
               this.enrollmentService.getEnrollmentsByCategory(cat).pipe(
                 catchError(() => of([] as EnrollmentResponseDto[]))
@@ -171,6 +182,7 @@ export class ScoringHistoryComponent implements OnInit {
             );
 
             if (categoryRequests.length === 0) {
+              console.warn('No category requests to make, aborting.');
               this.isLoading.set(false);
               return;
             }
@@ -179,6 +191,7 @@ export class ScoringHistoryComponent implements OnInit {
               next: (allEnrollments) => {
                 const entries: ScoringHistoryEntry[] = [];
                 const allEnrolls = allEnrollments.flat();
+                console.log('3. Enrollments fetched from all categories:', allEnrolls.length, allEnrolls);
 
                 allEnrolls.forEach(enrollment => {
                   const event = this.eventsMap.get(enrollment.eventId);
@@ -186,8 +199,8 @@ export class ScoringHistoryComponent implements OnInit {
 
                   if (!event || !modality) return;
 
-                  // Solo mostrar participantes aprobados
-                  if (enrollment.status !== 'APPROVED') return;
+                  // Solo mostrar participantes aprobados (TEMPORALMENTE COMENTADO PARA PRUEBAS)
+                  // if (enrollment.status !== 'APPROVED') return;
 
                   const categoryLabel = MODALITY_CATEGORY_LABELS[modality.category] || modality.category;
                   const categoryClass = this.getCategoryClass(modality.category);
@@ -265,7 +278,9 @@ export class ScoringHistoryComponent implements OnInit {
   }
 
   navigateToEvaluate(entry: ScoringHistoryEntry): void {
-    this.router.navigate(['/scoring/evaluate', entry.eventId, entry.modalityId, entry.enrollmentId]);
+    this.router.navigate(['/scoring/evaluate', entry.eventId, entry.modalityId, entry.enrollmentId], {
+      state: { eventName: entry.eventName, participantName: entry.participantName }
+    });
   }
 
   navigateToResults(entry: ScoringHistoryEntry): void {

@@ -28,8 +28,10 @@ export class EvaluationFormComponent implements OnInit {
   private readonly authService = inject(AuthService);
 
   eventId = signal<string>('');
+  eventName = signal<string>('Unknown Event');
   modalityId = signal<string>('');
   enrollmentId = signal<string>('');
+  participantName = signal<string>('Unknown Participant');
   evaluationId = signal<string | null>(null);
 
   isEditMode = signal<boolean>(false);
@@ -48,11 +50,9 @@ export class EvaluationFormComponent implements OnInit {
   observations = signal<string>('');
 
   criteria = signal<CriterionFormRow[]>([
-    { name: 'Técnica', percentage: 30, score: 0 },
-    { name: 'Musicalidad', percentage: 25, score: 0 },
-    { name: 'Expresión Artística', percentage: 20, score: 0 },
-    { name: 'Coreografía', percentage: 15, score: 0 },
-    { name: 'Presencia Escénica', percentage: 10, score: 0 }
+    { name: 'Technique', percentage: 40, score: 0 },
+    { name: 'Artistry', percentage: 30, score: 0 },
+    { name: 'Execution', percentage: 30, score: 0 }
   ]);
 
   totalPercentage = computed(() => {
@@ -76,6 +76,19 @@ export class EvaluationFormComponent implements OnInit {
     this.eventId.set(params.get('eventId') ?? '');
     this.modalityId.set(params.get('modalityId') ?? '');
     this.enrollmentId.set(params.get('enrollmentId') ?? '');
+
+    const state = history.state;
+    if (state?.eventName) {
+      this.eventName.set(state.eventName);
+    } else {
+      this.eventName.set(`Event #${this.eventId()}`);
+    }
+    
+    if (state?.participantName) {
+      this.participantName.set(state.participantName);
+    } else {
+      this.participantName.set(`Participant #${this.enrollmentId()}`);
+    }
 
     const evalId = params.get('evaluationId');
     if (evalId) {

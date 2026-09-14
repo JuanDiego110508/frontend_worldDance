@@ -16,19 +16,7 @@
         <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
         </svg>
-        Evaluation
-      </button>
-
-      <button
-        type="button"
-        class="sidebar-link"
-        [class.active]="sidebarActive() === 'events'"
-        (click)="setSidebarActive('events')"
-      >
-        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-        </svg>
-        Assigned Events
+        Evaluación
       </button>
 
       <button
@@ -41,7 +29,7 @@
           <circle cx="12" cy="12" r="10"/>
           <polyline points="12 6 12 12 16 14"/>
         </svg>
-        Scoring History
+        Historial de evaluaciones
       </button>
     </nav>
   </aside>
@@ -85,20 +73,22 @@
 
     <!-- Filters -->
     <section class="filters-bar">
-      <div class="filter-search">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/>
-          <path d="M21 21l-4.35-4.35"/>
-        </svg>
-        <input
-          type="text"
-          placeholder="Search by participant or group name..."
-          [ngModel]="searchTerm()"
-          (ngModelChange)="searchTerm.set($event)"
-        />
-      </div>
+      @if (sidebarActive() === 'history') {
+        <div class="filter-search">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <input
+            type="text"
+            placeholder="Search by participant or group name..."
+            [ngModel]="searchTerm()"
+            (ngModelChange)="searchTerm.set($event)"
+          />
+        </div>
+      }
 
-      <div class="filter-select">
+      <div class="filter-select" [class.eval-mode]="sidebarActive() === 'evaluation'">
         <select
           [ngModel]="selectedEvent()"
           (ngModelChange)="selectedEvent.set($event)"
@@ -113,129 +103,178 @@
         </svg>
       </div>
 
-      <div class="filter-date">
-        <input
-          type="date"
-          [ngModel]="selectedDate()"
-          (ngModelChange)="selectedDate.set($event)"
-          placeholder="mm/dd/yyyy"
-        />
-      </div>
+      @if (sidebarActive() === 'history') {
+        <div class="filter-date">
+          <input
+            type="date"
+            [ngModel]="selectedDate()"
+            (ngModelChange)="selectedDate.set($event)"
+            placeholder="mm/dd/yyyy"
+          />
+        </div>
+      }
     </section>
 
-    <!-- Stats Cards -->
-    <section class="stats-grid">
-      <div class="stat-card">
-        <span class="stat-label">AVERAGE SCORE</span>
-        <div class="stat-value-row">
-          <span class="stat-value-large">{{ averageScore() }}</span>
-          <span class="stat-value-suffix">/10</span>
+    <!-- Evaluation View: Card Grid -->
+    @if (sidebarActive() === 'evaluation') {
+      @if (isLoading()) {
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+          <p>Cargando participantes...</p>
         </div>
-        <div class="stat-progress">
-          <div class="stat-progress-bar" [style.width.%]="averageScore() * 10"></div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <span class="stat-label">TOTAL PARTICIPANTS</span>
-        <div class="stat-value-row">
-          <span class="stat-value-large">{{ totalParticipants() }}</span>
-        </div>
-        <span class="stat-trend trend-up">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="trend-icon">
-            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-          </svg>
-          Registered in database
-        </span>
-      </div>
-
-      <div class="stat-card">
-        <span class="stat-label">EVENTS AVAILABLE</span>
-        <div class="stat-value-row">
-          <span class="stat-value-large">{{ eventsJudged() }}</span>
-        </div>
-        <span class="stat-detail">Next event: {{ nextEvent() }}</span>
-      </div>
-    </section>
-
-    <!-- Loading -->
-    @if (isLoading()) {
-      <div class="loading-container">
-        <div class="loading-spinner"></div>
-        <p>Loading participants from database...</p>
-      </div>
+      } @else {
+        <section class="eval-cards-grid">
+          @if (filteredHistory().length === 0) {
+            <div class="empty-state-eval">
+              <span class="empty-icon">🎯</span>
+              <p>
+                @if (selectedEvent() === 'all' || selectedEvent() === '') {
+                  Por favor, seleccione un evento arriba para ver a los participantes.
+                } @else {
+                  No hay participantes pendientes en este evento.
+                }
+              </p>
+            </div>
+          } @else {
+            @for (entry of filteredHistory(); track entry.id) {
+              <div class="eval-card">
+                <div class="eval-card-header">
+                  <span class="eval-card-type">{{ entry.participantType }}</span>
+                  <span class="badge {{ entry.categoryClass }}">{{ entry.category }}</span>
+                </div>
+                <div class="eval-card-body">
+                  <h3 class="eval-participant-name">{{ entry.participantName }}</h3>
+                  <p class="eval-event-name">{{ entry.eventName }}</p>
+                </div>
+                <div class="eval-card-actions">
+                  <button class="btn-eval-now" (click)="navigateToEvaluate(entry)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                    </svg>
+                    Calificar Ahora
+                  </button>
+                </div>
+              </div>
+            }
+          }
+        </section>
+      }
     }
 
-    <!-- Table -->
-    @if (!isLoading()) {
-      <section class="scoring-table-container">
-        <table class="scoring-table">
-          <thead>
-            <tr>
-              <th class="th-participant">PARTICIPANT / GROUP</th>
-              <th>EVENT NAME</th>
-              <th>CATEGORY</th>
-              <th>DATE</th>
-              <th class="th-score">TOTAL SCORE</th>
-              <th class="th-actions"></th>
-            </tr>
-          </thead>
-          <tbody>
-            @if (filteredHistory().length === 0) {
-              <tr>
-                <td colspan="6" class="empty-row">
-                  <div class="empty-state">
-                    <span class="empty-icon">🔍</span>
-                    <p>No approved participants found. Make sure events have enrolled participants with APPROVED status.</p>
-                  </div>
-                </td>
-              </tr>
-            }
-            @for (entry of filteredHistory(); track entry.id) {
-              <tr class="table-row">
-                <td class="td-participant">
-                  <div class="participant-info">
-                    <span class="participant-avatar" [attr.data-type]="entry.categoryClass">
-                      {{ entry.participantName.substring(0, 2).toUpperCase() }}
-                    </span>
-                    <div class="participant-details">
-                      <span class="participant-name">{{ entry.participantName }}</span>
-                      <span class="participant-type">{{ entry.participantType }}</span>
-                    </div>
-                  </div>
-                </td>
-                <td class="td-event">{{ entry.eventName }}</td>
-                <td class="td-category">
-                  <span class="category-badge" [attr.data-category]="entry.categoryClass">
-                    {{ entry.category }}
-                  </span>
-                </td>
-                <td class="td-date">{{ entry.date }}</td>
-                <td class="td-score">
-                  @if (entry.totalScore > 0) {
-                    <span class="score-value" [class]="getScoreClass(entry.totalScore)">
-                      {{ entry.totalScore }}
-                    </span>
-                  } @else {
-                    <button class="btn-evaluate" (click)="navigateToEvaluate(entry)">
-                      Evaluate
-                    </button>
-                  }
-                </td>
-                <td class="td-actions">
-                  <button class="btn-more" (click)="navigateToResults(entry); $event.stopPropagation()">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="12" cy="5" r="1.5"/>
-                      <circle cx="12" cy="12" r="1.5"/>
-                      <circle cx="12" cy="19" r="1.5"/>
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+    <!-- History View: Stats and Table -->
+    @if (sidebarActive() === 'history') {
+      <!-- Stats Cards -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">AVERAGE SCORE</span>
+          <div class="stat-value-row">
+            <span class="stat-value-large">{{ averageScore() }}</span>
+            <span class="stat-value-suffix">/10</span>
+          </div>
+          <div class="stat-progress">
+            <div class="stat-progress-bar" [style.width.%]="averageScore() * 10"></div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">TOTAL PARTICIPANTS</span>
+          <div class="stat-value-row">
+            <span class="stat-value-large">{{ totalParticipants() }}</span>
+          </div>
+          <span class="stat-trend trend-up">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="trend-icon">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+            </svg>
+            Registered in database
+          </span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">EVENTS AVAILABLE</span>
+          <div class="stat-value-row">
+            <span class="stat-value-large">{{ eventsJudged() }}</span>
+          </div>
+          <span class="stat-detail">Next event: {{ nextEvent() }}</span>
+        </div>
       </section>
+
+      <!-- Loading -->
+      @if (isLoading()) {
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+          <p>Loading participants from database...</p>
+        </div>
+      }
+
+      <!-- Table -->
+      @if (!isLoading()) {
+        <section class="scoring-table-container">
+          <table class="scoring-table">
+            <thead>
+              <tr>
+                <th class="th-participant">PARTICIPANT / GROUP</th>
+                <th>EVENT NAME</th>
+                <th>CATEGORY</th>
+                <th>DATE</th>
+                <th class="th-score">TOTAL SCORE</th>
+                <th class="th-actions"></th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (filteredHistory().length === 0) {
+                <tr>
+                  <td colspan="6" class="empty-row">
+                    <div class="empty-state">
+                      <span class="empty-icon">🔍</span>
+                      <p>No approved participants found. Make sure events have enrolled participants with APPROVED status.</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+              @for (entry of filteredHistory(); track entry.id) {
+                <tr class="table-row">
+                  <td class="td-participant">
+                    <div class="participant-info">
+                      <span class="participant-avatar" [attr.data-type]="entry.categoryClass">
+                        {{ entry.participantName.substring(0, 2).toUpperCase() }}
+                      </span>
+                      <div class="participant-details">
+                        <span class="participant-name">{{ entry.participantName }}</span>
+                        <span class="participant-type">{{ entry.participantType }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="td-event">{{ entry.eventName }}</td>
+                  <td class="td-category">
+                    <span class="category-badge" [attr.data-category]="entry.categoryClass">
+                      {{ entry.category }}
+                    </span>
+                  </td>
+                  <td class="td-date">{{ entry.date }}</td>
+                  <td class="td-score">
+                    @if (entry.totalScore > 0) {
+                      <span class="score-value" [class]="getScoreClass(entry.totalScore)">
+                        {{ entry.totalScore }}
+                      </span>
+                    } @else {
+                      <span class="status-pending">Pending</span>
+                    }
+                  </td>
+                  <td class="td-actions">
+                    <button class="btn-more" (click)="navigateToResults(entry); $event.stopPropagation()">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="5" r="1.5"/>
+                        <circle cx="12" cy="12" r="1.5"/>
+                        <circle cx="12" cy="19" r="1.5"/>
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </section>
+      }
     }
   </main>
 </div>
