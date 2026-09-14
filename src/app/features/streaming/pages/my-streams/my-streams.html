@@ -20,15 +20,18 @@
     <ul class="my-streams-list">
       @for (event of filteredEvents(); track event.idEvent) {
         <li class="my-streams-item">
-          <div>
+          <div class="my-streams-item-meta">
             <h2>{{ event.name }}</h2>
             @if (hasValidStartDate(event)) {
-              <p class="subtitle">{{ event.startDate | date: 'medium' }}</p>
+              <time>{{ event.startDate | date: 'medium' }}</time>
             } @else {
-              <p class="subtitle">Fecha por definir</p>
+              <time>Fecha por definir</time>
             }
             @if (needsSetup(event.idEvent)) {
-              <span class="setup-badge">Requiere configuración inicial</span>
+              <span class="setup-badge">
+                <span class="setup-badge-dot"></span>
+                Requiere configuración inicial
+              </span>
             }
           </div>
           <a [routerLink]="['/stream/admin', event.idEvent]" class="btn btn-primary btn-sm">

@@ -1,15 +1,15 @@
 .stream-viewer-container {
-  max-width: var(--wd-container-max);
+  max-width: 1780px;
   margin: 0 auto;
-  padding: var(--wd-spacing-6);
+  padding: var(--wd-spacing-6) var(--wd-spacing-6) var(--wd-spacing-8);
   display: flex;
   flex-direction: column;
-  gap: var(--wd-spacing-4);
+  gap: var(--wd-spacing-5);
 }
 
 .event-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--wd-spacing-4);
   flex-wrap: wrap;
@@ -17,11 +17,13 @@
 
 .event-header h1 {
   margin: 0 0 var(--wd-spacing-1);
-  color: var(--wd-text-heading);
+  color: var(--wd-white);
+  font-size: var(--wd-font-size-4xl);
+  letter-spacing: -0.01em;
 }
 
 .event-description {
-  color: var(--wd-text-muted);
+  color: var(--wd-gray-400);
   margin: 0;
 }
 
@@ -36,7 +38,7 @@
   align-items: center;
   gap: var(--wd-spacing-2);
   padding: var(--wd-spacing-4);
-  border-radius: var(--wd-radius-md);
+  border-radius: var(--wd-radius-lg);
 }
 
 .error-message {
