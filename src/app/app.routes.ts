@@ -31,6 +31,11 @@ export const routes: Routes = [
     loadChildren: () => import('./features/streaming/streaming.routes').then(m => m.STREAMING_ROUTES)
   },
   {
+    path: 'music',
+    canActivate: [AuthGuard],
+    loadChildren: () => import('./features/music/music.routes').then(m => m.MUSIC_ROUTES)
+  },
+  {
     path: 'dashboard',
     canActivate: [AuthGuard],
     loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.DashboardComponent)

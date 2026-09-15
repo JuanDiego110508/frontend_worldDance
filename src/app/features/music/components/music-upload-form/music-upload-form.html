@@ -1,0 +1,30 @@
+<div class="music-upload-form">
+  <label class="file-input-label">
+    <input
+      type="file"
+      accept="audio/*,.mp3,.mpeg,.mp4,.m4a,.wav,.aac,.ogg"
+      (change)="onFileSelected($event)"
+      [disabled]="isUploading()"
+    />
+    <span>{{ selectedFile()?.name ?? 'Selecciona un archivo de audio...' }}</span>
+  </label>
+
+  @if (isUploading()) {
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="uploadProgress()"></div>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <p class="form-error">{{ errorMessage() }}</p>
+  }
+
+  <button
+    type="button"
+    class="btn btn-primary btn-sm"
+    [disabled]="!selectedFile() || isUploading()"
+    (click)="submit()"
+  >
+    {{ submitLabel() }}
+  </button>
+</div>

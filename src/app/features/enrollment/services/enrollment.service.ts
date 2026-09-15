@@ -55,8 +55,8 @@ export class EnrollmentService {
     );
   }
 
-  getEnrollmentById(id: number): Observable<EnrollmentResponseDto> {
-    return this.http.get<EnrollmentResponseDto>(`${this.apiUrl}/${id}`).pipe(
+  getEnrollmentsByEvent(eventId: number): Observable<EnrollmentResponseDto[]> {
+    return this.http.get<EnrollmentResponseDto[]>(`${this.apiUrl}/event/${eventId}`).pipe(
       catchError(err => this.handleError(err))
     );
   }

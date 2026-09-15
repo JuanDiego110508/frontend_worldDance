@@ -1,0 +1,40 @@
+@use '../../../../../styles.scss' as *;
+
+.music-player {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wd-spacing-3);
+  padding: var(--wd-spacing-4);
+  border: 1px solid var(--wd-border-color);
+  border-radius: var(--wd-radius-md);
+  background: var(--wd-bg-card);
+
+  .track-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wd-spacing-1);
+
+    .track-filename {
+      font-weight: 600;
+      color: var(--wd-text-heading);
+    }
+
+    .track-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--wd-spacing-3);
+      font-size: var(--wd-font-size-xs);
+      color: var(--wd-text-muted);
+    }
+  }
+
+  .audio-control {
+    width: 100%;
+  }
+
+  .player-error {
+    color: var(--wd-red);
+    font-size: var(--wd-font-size-sm);
+    margin: 0;
+  }
+}
