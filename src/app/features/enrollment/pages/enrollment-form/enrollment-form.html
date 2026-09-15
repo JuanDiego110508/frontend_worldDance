@@ -1,70 +1,110 @@
-<div class="enrollment-form-container">
-  <div class="enrollment-card">
-    <div class="enrollment-header">
-      <div class="enrollment-brand">
-        <img class="brand-icon" src="/FondoWorDancePNG.png" alt="World Dance">
-        <span class="brand-text">WorldDance</span>
+<div class="min-h-[calc(100vh-64px)] w-full bg-[#0c1322] flex items-center justify-center p-4 sm:p-8">
+  <!-- Tarjeta Principal -->
+  <div class="relative w-full max-w-[600px] bg-[#141b2b]/90 backdrop-blur-2xl rounded-3xl p-8 sm:p-12 shadow-2xl border border-white/5 overflow-hidden">
+    
+    <!-- Efecto Luminoso Esquina Superior Derecha -->
+    <div class="absolute -top-24 -right-24 w-64 h-64 bg-[#7c3aed]/20 rounded-full blur-[80px] pointer-events-none"></div>
+
+    <!-- Header -->
+    <div class="text-center mb-10 relative z-10">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#232a3a] shadow-inner mb-6 relative">
+        <span class="absolute inset-0 border border-white/5 rounded-2xl"></span>
+        <span class="material-symbols-outlined text-3xl text-[#d2bbff]">how_to_reg</span>
       </div>
-      <h1>Inscripción a Evento</h1>
-      <p class="enrollment-subtitle">
-        Selecciona la modalidad en la que deseas participar
-      </p>
+      <h1 class="font-['Sora'] text-3xl font-bold text-[#dce2f7] tracking-tight mb-2">Formulario de Inscripción</h1>
+      <p class="text-[#ccc3d8] text-sm">Asegura tu cupo en el Evento #{{ eventId() }}</p>
     </div>
 
-    @if (isLoading()) {
-      <div class="loading-state">
-        <span class="spinner"></span>
-        Cargando modalidades del evento...
+    <!-- Mensajes de Alerta -->
+    @if (errorMessage()) {
+      <div class="mb-6 p-4 rounded-xl bg-red-900/20 border border-red-500/30 flex items-start gap-3 relative z-10 animate-in fade-in slide-in-from-top-2">
+        <span class="material-symbols-outlined text-red-400 mt-0.5">error</span>
+        <p class="text-sm text-red-200">{{ errorMessage() }}</p>
       </div>
-    } @else {
-      <form (ngSubmit)="onSubmit()" class="enrollment-form">
-        <div class="form-group">
-          <label for="modalityId">Modalidad *</label>
-          @if (modalities().length === 0) {
-            <p class="empty-hint">Este evento aún no tiene modalidades registradas.</p>
-          } @else {
-            <select
-              id="modalityId"
-              name="modalityId"
-              [(ngModel)]="selectedModalityId"
-              required
-            >
-              <option [ngValue]="null">Selecciona una modalidad</option>
-              @for (modality of modalities(); track modality.id) {
-                <option [ngValue]="modality.id">
-                  {{ categoryLabels[modality.category] }} · {{ divisionLabels[modality.division] }} · {{ modality.style }} ({{ modality.minAge }}-{{ modality.maxAge }} años)
-                </option>
-              }
-            </select>
-          }
-        </div>
-
-        @if (errorMessage()) {
-          <div class="error-message">{{ errorMessage() }}</div>
-        }
-        @if (successMessage()) {
-          <div class="success-message">{{ successMessage() }}</div>
-        }
-
-        <button
-          type="submit"
-          class="btn btn-primary btn-block btn-lg"
-          [disabled]="isSaving() || modalities().length === 0"
-        >
-          @if (isSaving()) {
-            <span class="spinner"></span>
-            Procesando...
-          } @else {
-            Inscribirse
-          }
-        </button>
-      </form>
     }
 
-    <div class="enrollment-footer">
-      <p>
-        <a routerLink="/events">← Volver a eventos</a>
-      </p>
+    @if (successMessage()) {
+      <div class="mb-6 p-4 rounded-xl bg-emerald-900/20 border border-emerald-500/30 flex items-start gap-3 relative z-10 animate-in fade-in slide-in-from-top-2">
+        <span class="material-symbols-outlined text-emerald-400 mt-0.5">check_circle</span>
+        <p class="text-sm text-emerald-200">{{ successMessage() }}</p>
+      </div>
+    }
+
+    <!-- Formulario (Usando divs para simular el form ya que no usamos ngForm) -->
+    <div class="flex flex-col gap-6 relative z-10">
+      
+      <!-- Selector de Modalidad (Dropdown Personalizado) -->
+      <div class="flex flex-col gap-2 relative">
+        <label class="text-sm font-semibold text-[#ccc3d8] ml-1">Selecciona tu Modalidad <span class="text-[#7c3aed]">*</span></label>
+        
+        <div class="relative w-full">
+          <!-- Botón de Dropdown -->
+          <button
+            type="button"
+            (click)="toggleDropdown()"
+            class="w-full h-14 pl-5 pr-12 rounded-xl bg-[#232a3a] border border-transparent hover:bg-[#2e3545] focus:bg-[#191f2f] focus:border-[#7c3aed]/50 focus:shadow-[0_0_0_4px_rgba(124,58,237,0.15)] text-[#dce2f7] text-left transition-all outline-none flex items-center justify-between"
+          >
+            <span class="truncate font-medium" [class.text-[#958da1]]="!selectedModalityId">
+              {{ getSelectedModalityLabel() }}
+            </span>
+            <span class="material-symbols-outlined absolute right-4 text-[#958da1] transition-transform duration-200" [class.rotate-180]="isDropdownOpen()">expand_more</span>
+          </button>
+          
+          <!-- Opciones (Flotante) -->
+          @if (isDropdownOpen()) {
+            <div class="absolute z-50 top-[calc(100%+8px)] left-0 w-full rounded-xl overflow-hidden animate-in fade-in slide-in-from-top-2" style="background-color: #191f2f; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+              <ul class="max-h-60 overflow-y-auto custom-scrollbar py-1" style="margin: 0; padding: 4px 0; list-style: none;">
+                @if (modalities().length === 0) {
+                  <li style="padding: 12px 16px; font-size: 14px; color: #958da1; text-align: center;">No hay modalidades disponibles.</li>
+                } @else {
+                  @for (modality of modalities(); track modality.id) {
+                    <li style="border-bottom: 1px solid rgba(255,255,255,0.05); margin: 0;">
+                        <button type="button" style="width: 100%; text-align: left; padding: 12px 16px; font-size: 14px; color: #dce2f7; background: transparent; border: none; cursor: pointer;"
+                                class="hover:bg-[#7c3aed] hover:text-white transition-colors" 
+                                (click)="selectModality(modality.id)">
+                          {{ categoryLabels[modality.category] }} &middot; {{ divisionLabels[modality.division] }} &middot; {{ modality.style }} ({{ modality.minAge }}-{{ modality.maxAge }} años)
+                        </button>
+                    </li>
+                  }
+                }
+              </ul>
+            </div>
+            
+            <!-- Backdrop invisible para cerrar al hacer clic afuera -->
+            <div class="fixed inset-0 z-40" (click)="isDropdownOpen.set(false)"></div>
+          }
+        </div>
+      </div>
+
+      <!-- Nota Informativa -->
+      <div class="p-4 rounded-xl bg-[#232a3a]/50 border border-white/5 flex gap-3 mt-2">
+        <span class="material-symbols-outlined text-[#958da1] text-xl shrink-0">info</span>
+        <p class="text-[13px] text-[#958da1] leading-relaxed">
+          Una vez enviada la inscripción, tu estado será <strong class="text-[#d2bbff]">Pendiente</strong>. Un administrador revisará tu solicitud y, al ser <strong class="text-emerald-400">Aprobada</strong>, podrás subir tu pista musical desde el portal.
+        </p>
+      </div>
+
+      <!-- Botón de Envío -->
+      <button 
+        type="button"
+        (click)="onSubmit()"
+        [disabled]="isLoading()"
+        class="relative w-full h-14 mt-4 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] disabled:bg-[#3f2073] disabled:text-[#958da1] disabled:cursor-not-allowed text-white font-bold tracking-wide transition-all shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:shadow-[0_0_25px_rgba(124,58,237,0.5)] flex items-center justify-center gap-2 overflow-hidden group"
+      >
+        <!-- Efecto Shine -->
+        <div class="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent z-0"></div>
+        
+        <span class="relative z-10 flex items-center gap-2">
+          @if (isLoading()) {
+            <div class="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
+            Procesando...
+          } @else {
+            <span>Inscribirme Ahora</span>
+            <span class="material-symbols-outlined text-[20px] transition-transform group-hover:translate-x-1">arrow_forward</span>
+          }
+        </span>
+      </button>
+
     </div>
   </div>
 </div>

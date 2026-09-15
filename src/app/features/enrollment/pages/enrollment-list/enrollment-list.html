@@ -1,123 +1,221 @@
-<div class="enrollment-list-container">
-  <div class="container">
-    <!-- Encabezado -->
-    <div class="page-header">
-      <h1>Gestión de Inscripciones</h1>
-      <p class="subtitle">
-        El backend permite consultar inscripciones por categoría de danza.
-      </p>
-    </div>
+<div class="w-full min-h-screen bg-[#0c1322] text-[#dce2f7]">
+  <div class="relative w-full overflow-hidden">
+    <!-- Efectos luminosos de fondo -->
+    <div class="absolute -top-32 left-1/4 -translate-x-1/2 w-[600px] h-[300px] bg-[#7c3aed]/15 rounded-full blur-[140px] pointer-events-none"></div>
+    <div class="absolute bottom-20 right-10 w-[400px] h-[400px] bg-[#059669]/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-    <!-- Filtros -->
-    <div class="filters-section">
-      <div class="search-box">
-        <select
-          [ngModel]="category()"
-          (ngModelChange)="onCategoryChange($event)"
-          aria-label="Filtrar por categoría"
-        >
-          <option [ngValue]="null">Selecciona una categoría</option>
-          @for (option of categoryOptions; track option) {
-            <option [ngValue]="option">{{ categoryLabels[option] }}</option>
-          }
-        </select>
+    <div class="relative max-w-[1280px] w-full mx-auto px-4 sm:px-8 py-10 flex flex-col gap-8">
+      
+      <!-- Header -->
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div class="flex flex-col gap-1 max-w-2xl">
+          <div class="flex items-center gap-1.5 mb-1">
+            <span class="inline-flex w-2 h-2 rounded-full bg-[#d2bbff] shadow-[0_0_8px_#d2bbff] animate-pulse"></span>
+            <span class="font-mono text-[11px] font-bold uppercase text-[#d0bcff] tracking-widest">Panel de Administración</span>
+          </div>
+          <h1 class="font-['Sora'] text-[32px] sm:text-[40px] font-bold text-[#dce2f7] tracking-tight leading-tight">Gestión de Inscripciones</h1>
+          <p class="text-[#ccc3d8] text-[15px]">Filtra por categoría, aprueba competidores y rechaza solicitudes que no cumplan el reglamento.</p>
+        </div>
       </div>
 
-      <div class="status-filters">
-        <button
-          class="status-btn"
-          [class.active]="statusFilter() === 'all'"
-          (click)="statusFilter.set('all')"
-        >
-          Todos
-        </button>
-        @for (option of statusOptions; track option.value) {
+      <!-- Barra de Filtros -->
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-3 rounded-2xl bg-[#141b2b]/90 backdrop-blur-xl shadow-lg border border-white/5">
+        
+        <!-- Dropdown de Categoría -->
+        <div class="relative w-full md:w-72">
+          <!-- Botón de Dropdown -->
           <button
-            class="status-btn"
-            [class.active]="statusFilter() === option.value"
-            [class]="option.class"
-            (click)="statusFilter.set(option.value)"
+            type="button"
+            (click)="toggleDropdown()"
+            class="w-full h-11 pl-4 pr-10 rounded-xl bg-[#232a3a] border border-transparent hover:bg-[#2e3545] focus:bg-[#191f2f] focus:border-[#7c3aed]/50 focus:shadow-[0_0_0_4px_rgba(124,58,237,0.15)] text-[#dce2f7] text-sm text-left transition-all outline-none flex items-center justify-between"
           >
-            {{ option.label }}
+            <span class="truncate">
+              {{ selectedCategory() ? categoryLabels[selectedCategory()!] : 'Selecciona una categoría...' }}
+            </span>
+            <span class="material-symbols-outlined absolute right-3 text-[#958da1] transition-transform duration-200" [class.rotate-180]="isDropdownOpen()">expand_more</span>
           </button>
-        }
-      </div>
-    </div>
-
-    <!-- Estado de carga -->
-    @if (isLoading()) {
-      <div class="loading-state">
-        <span class="spinner"></span>
-        Cargando inscripciones...
-      </div>
-    }
-
-    <!-- Mensaje de error -->
-    @if (errorMessage()) {
-      <div class="error-state">
-        <p>{{ errorMessage() }}</p>
-        <button class="btn btn-outline" (click)="loadEnrollments()">Reintentar</button>
-      </div>
-    }
-
-    <!-- Tabla de inscripciones -->
-    @if (!isLoading() && !errorMessage()) {
-      @if (!category()) {
-        <div class="empty-state">
-          <p>Selecciona una categoría para ver sus inscripciones.</p>
+          
+          <!-- Opciones (Flotante) -->
+          @if (isDropdownOpen()) {
+            <div class="absolute z-50 top-[calc(100%+8px)] left-0 w-full rounded-xl overflow-hidden animate-in fade-in slide-in-from-top-2" style="background-color: #191f2f; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+              <ul class="max-h-60 overflow-y-auto custom-scrollbar py-1" style="background-color: #191f2f; margin: 0; padding: 4px 0; list-style: none;">
+                <li style="border-bottom: 1px solid rgba(255,255,255,0.05); margin: 0;">
+                  <button type="button" style="width: 100%; text-align: left; padding: 10px 16px; font-size: 14px; color: #958da1; background: transparent; border: none; cursor: pointer;"
+                          class="hover:bg-[#232a3a] hover:text-[#dce2f7] transition-colors" 
+                          (click)="onCategoryChange('')">
+                    Selecciona una categoría...
+                  </button>
+                </li>
+                @for (option of categoryOptions; track option) {
+                  <li style="border-bottom: 1px solid rgba(255,255,255,0.05); margin: 0;">
+                    <button type="button" style="width: 100%; text-align: left; padding: 10px 16px; font-size: 14px; color: #dce2f7; background: transparent; border: none; cursor: pointer;"
+                            class="hover:bg-[#7c3aed] hover:text-white transition-colors" 
+                            (click)="onCategoryChange(option)">
+                      {{ categoryLabels[option] }}
+                    </button>
+                  </li>
+                }
+              </ul>
+            </div>
+            
+            <!-- Backdrop invisible para cerrar al hacer clic afuera -->
+            <div class="fixed inset-0 z-40" (click)="isDropdownOpen.set(false)"></div>
+          }
         </div>
-      } @else if (filteredEnrollments().length > 0) {
-        <div class="table-wrapper">
-          <table class="enrollment-table">
-            <thead>
-              <tr>
-                <th>Usuario</th>
-                <th>Evento</th>
-                <th>Modalidad</th>
-                <th>Estado</th>
-                <th>Fecha</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (enrollment of filteredEnrollments(); track enrollment.enrollmentId) {
-                <tr>
-                  <td>#{{ enrollment.userId }}</td>
-                  <td>#{{ enrollment.eventId }}</td>
-                  <td>#{{ enrollment.modalityId }}</td>
-                  <td>
-                    <span class="status-badge" [class]="getStatusClass(enrollment.status)">
-                      {{ getStatusLabel(enrollment.status) }}
-                    </span>
-                  </td>
-                  <td>{{ enrollment.createdAt | date:'dd/MM/yyyy' }}</td>
-                  <td>
-                    <div class="action-buttons">
-                      @if (enrollment.status === 'PENDING') {
-                        <button class="btn btn-success btn-sm" (click)="approve(enrollment)">
-                          Aprobar
-                        </button>
-                        <button class="btn btn-danger btn-sm" (click)="reject(enrollment)">
-                          Rechazar
-                        </button>
-                      }
-                      @if (enrollment.status === 'APPROVED') {
-                        <a [routerLink]="['/music', enrollment.eventId, enrollment.enrollmentId]" class="btn btn-outline btn-sm">
-                          Ver pista
-                        </a>
-                      }
-                    </div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+
+        <!-- Filtros de Estado -->
+        <div class="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0">
+          <button
+            class="px-4 py-2 rounded-lg text-sm font-semibold transition-all border border-transparent shrink-0"
+            [ngClass]="statusFilter() === 'all' ? 'bg-[#2e3545] text-white shadow-sm' : 'bg-transparent text-[#958da1] hover:text-[#dce2f7] hover:bg-[#232a3a]/50'"
+            (click)="statusFilter.set('all')"
+          >
+            Todos
+          </button>
+          @for (option of statusOptions; track option.value) {
+            <button
+              class="px-4 py-2 rounded-lg text-sm font-semibold transition-all border border-transparent flex items-center gap-1.5 shrink-0"
+              [ngClass]="statusFilter() === option.value ? 'bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(124,58,237,0.3)]' : 'bg-transparent text-[#958da1] hover:text-[#dce2f7] hover:bg-[#232a3a]/50'"
+              (click)="statusFilter.set(option.value)"
+            >
+              {{ option.label }}
+            </button>
+          }
         </div>
-      } @else {
-        <div class="empty-state">
-          <p>No hay inscripciones que coincidan con el filtro seleccionado.</p>
+      </div>
+
+      <!-- Estados Globales -->
+      @if (isLoading()) {
+        <div class="flex flex-col items-center justify-center py-24 gap-4">
+          <div class="w-12 h-12 rounded-full border-4 border-[#7c3aed]/30 border-t-[#7c3aed] animate-spin"></div>
+          <span class="text-[#ccc3d8] font-medium">Sincronizando registros...</span>
         </div>
       }
-    }
+
+      @if (errorMessage()) {
+        <div class="flex flex-col items-center justify-center py-16 gap-4 bg-[#141b2b] rounded-2xl border border-[#93000a]/30">
+          <span class="material-symbols-outlined text-4xl text-[#ffb4ab]">error</span>
+          <p class="text-[#ffb4ab]">{{ errorMessage() }}</p>
+          <button class="px-6 py-2.5 rounded-lg bg-[#232a3a] hover:bg-[#2e3545] text-white font-semibold transition-colors" (click)="loadEnrollments()">Reintentar</button>
+        </div>
+      }
+
+      <!-- Tabla principal -->
+      @if (!isLoading() && !errorMessage()) {
+        @if (!selectedCategory()) {
+          <div class="flex flex-col items-center justify-center py-24 text-center gap-4 bg-[#141b2b] rounded-2xl border border-white/5">
+            <div class="w-20 h-20 rounded-full bg-[#232a3a] flex items-center justify-center text-[#958da1]">
+              <span class="material-symbols-outlined text-[40px]">filter_alt</span>
+            </div>
+            <h4 class="font-['Sora'] text-xl font-semibold text-[#dce2f7]">Selecciona una categoría</h4>
+            <p class="text-sm text-[#ccc3d8] max-w-sm">Debes elegir una categoría en el filtro superior para cargar las inscripciones correspondientes.</p>
+          </div>
+        } @else if (filteredEnrollments().length > 0) {
+          
+          <div class="bg-[#141b2b]/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/5 overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-[#191f2f]/80 text-[#ccc3d8] uppercase font-mono text-[11px] border-b border-white/5">
+                    <th class="py-4 px-6 font-semibold">Participante</th>
+                    <th class="py-4 px-6 font-semibold">Evento / Mod.</th>
+                    <th class="py-4 px-6 font-semibold">Estado</th>
+                    <th class="py-4 px-6 font-semibold">Registro</th>
+                    <th class="py-4 px-6 font-semibold text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                  @for (enrollment of filteredEnrollments(); track enrollment.enrollmentId) {
+                    <tr class="hover:bg-[#191f2f]/50 transition-colors group">
+                      <td class="py-4 px-6">
+                        <div class="flex items-center gap-3">
+                          <div class="w-10 h-10 rounded-full bg-[#232a3a] flex items-center justify-center text-[#dce2f7] shadow-inner font-mono text-[11px]">
+                            U#{{ enrollment.userId }}
+                          </div>
+                          <span class="text-sm font-semibold text-[#dce2f7] group-hover:text-[#d2bbff] transition-colors">Usuario {{ enrollment.userId }}</span>
+                        </div>
+                      </td>
+                      <td class="py-4 px-6">
+                        <div class="flex flex-col gap-1">
+                          <span class="text-sm text-[#dce2f7] font-medium">Evento #{{ enrollment.eventId }}</span>
+                          <span class="text-xs text-[#958da1] font-mono">Mod: #{{ enrollment.modalityId }}</span>
+                        </div>
+                      </td>
+                      <td class="py-4 px-6">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border"
+                              [ngClass]="{
+                                'bg-amber-900/20 text-amber-300 border-amber-500/30': enrollment.status === 'PENDING',
+                                'bg-emerald-900/20 text-emerald-300 border-emerald-500/30': enrollment.status === 'APPROVED',
+                                'bg-red-900/20 text-red-300 border-red-500/30': enrollment.status === 'REJECTED'
+                              }">
+                          <span class="w-1.5 h-1.5 rounded-full"
+                                [ngClass]="{
+                                  'bg-amber-400': enrollment.status === 'PENDING',
+                                  'bg-emerald-400': enrollment.status === 'APPROVED',
+                                  'bg-red-400': enrollment.status === 'REJECTED'
+                                }"></span>
+                          {{ getStatusLabel(enrollment.status) }}
+                        </span>
+                      </td>
+                      <td class="py-4 px-6">
+                        <div class="flex items-center gap-1.5 text-sm text-[#ccc3d8]">
+                          <span class="material-symbols-outlined text-[16px] text-[#958da1]">calendar_today</span>
+                          {{ enrollment.createdAt | date:'dd/MM/yyyy' }}
+                        </div>
+                      </td>
+                      <td class="py-4 px-6 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                          @if (enrollment.status === 'PENDING') {
+                            <button class="w-9 h-9 rounded-lg bg-emerald-900/30 hover:bg-emerald-600 hover:shadow-[0_0_15px_rgba(16,185,129,0.4)] text-emerald-400 hover:text-white flex items-center justify-center transition-all"
+                                    title="Aprobar inscripción" (click)="approve(enrollment)">
+                              <span class="material-symbols-outlined text-[18px]">check</span>
+                            </button>
+                            <button class="w-9 h-9 rounded-lg bg-red-900/30 hover:bg-red-600 hover:shadow-[0_0_15px_rgba(220,38,38,0.4)] text-red-400 hover:text-white flex items-center justify-center transition-all"
+                                    title="Rechazar inscripción" (click)="reject(enrollment)">
+                              <span class="material-symbols-outlined text-[18px]">close</span>
+                            </button>
+                          }
+                          @if (enrollment.status === 'APPROVED') {
+                            <a [routerLink]="['/music', enrollment.eventId, enrollment.enrollmentId]" 
+                               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#232a3a] hover:bg-[#2e3545] text-sm text-[#d2bbff] font-medium transition-colors"
+                               title="Ver Pista Musical">
+                              <span class="material-symbols-outlined text-[18px]">graphic_eq</span>
+                              Ver pista
+                            </a>
+                          }
+                          @if (enrollment.status === 'REJECTED') {
+                            <button class="w-9 h-9 rounded-lg bg-[#232a3a] text-[#958da1] cursor-not-allowed flex items-center justify-center"
+                                    title="Inscripción rechazada" disabled>
+                              <span class="material-symbols-outlined text-[18px]">block</span>
+                            </button>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <!-- Paginación / Footer Tabla -->
+            <div class="px-6 py-4 border-t border-white/5 flex items-center justify-between text-sm text-[#ccc3d8] bg-[#191f2f]/30">
+              <span>Mostrando {{ filteredEnrollments().length }} resultados</span>
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-[#7c3aed]"></span> En tiempo real
+              </div>
+            </div>
+          </div>
+
+        } @else {
+          <div class="flex flex-col items-center justify-center py-24 text-center gap-4 bg-[#141b2b] rounded-2xl border border-white/5">
+            <div class="w-20 h-20 rounded-full bg-[#232a3a] flex items-center justify-center text-[#958da1]">
+              <span class="material-symbols-outlined text-[40px]">inbox</span>
+            </div>
+            <h4 class="font-['Sora'] text-xl font-semibold text-[#dce2f7]">No hay inscripciones</h4>
+            <p class="text-sm text-[#ccc3d8] max-w-sm">No existen inscripciones que coincidan con la categoría y el filtro de estado actual.</p>
+          </div>
+        }
+      }
+
+    </div>
   </div>
 </div>

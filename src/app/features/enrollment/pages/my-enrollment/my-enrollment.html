@@ -1,95 +1,164 @@
-<div class="my-enrollments-container">
-  <div class="container">
-    <div class="page-header">
-      <h1>Mis Inscripciones</h1>
-      <p class="subtitle">Consulta el estado de tus inscripciones en eventos</p>
-      <a routerLink="/events" class="btn btn-primary">
-        Inscribirse a otro evento
-      </a>
-    </div>
+<div class="w-full min-h-screen bg-[#0c1322] text-[#dce2f7]">
+  <div class="relative w-full overflow-hidden">
+    <!-- Efectos luminosos de fondo -->
+    <div class="absolute -top-32 right-1/4 translate-x-1/2 w-[600px] h-[300px] bg-[#7c3aed]/15 rounded-full blur-[140px] pointer-events-none"></div>
 
-    <div class="filters-section">
-      <div class="status-filters">
-        <button
-          class="status-btn"
-          [class.active]="statusFilter() === 'all'"
-          (click)="setFilter('all')"
-        >
-          Todos
-        </button>
-        @for (option of statusOptions; track option.value) {
+    <div class="relative max-w-[1280px] w-full mx-auto px-4 sm:px-8 py-10 flex flex-col gap-8">
+      
+      <!-- Header y Estadísticas Rápidas -->
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-1.5 mb-1">
+            <span class="inline-flex w-2 h-2 rounded-full bg-[#d2bbff] shadow-[0_0_8px_#d2bbff] animate-pulse"></span>
+            <span class="font-mono text-[11px] font-bold uppercase text-[#d0bcff] tracking-widest">Portal del Competidor</span>
+          </div>
+          <h1 class="font-['Sora'] text-[32px] sm:text-[40px] font-bold text-[#dce2f7] tracking-tight leading-tight">Mis Inscripciones</h1>
+          <p class="text-[#ccc3d8] text-[15px]">Gestiona tus participaciones y pistas musicales en los próximos eventos.</p>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros -->
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-3 rounded-2xl bg-[#141b2b]/90 backdrop-blur-xl shadow-lg border border-white/5">
+        <div class="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0 w-full">
           <button
-            class="status-btn"
-            [class.active]="statusFilter() === option.value"
-            [class]="option.class"
-            (click)="setFilter(option.value)"
+            class="px-4 py-2 rounded-lg text-sm font-semibold transition-all border border-transparent shrink-0"
+            [ngClass]="statusFilter() === 'all' ? 'bg-[#2e3545] text-white shadow-sm' : 'bg-transparent text-[#958da1] hover:text-[#dce2f7] hover:bg-[#232a3a]/50'"
+            (click)="statusFilter.set('all')"
           >
-            {{ option.label }}
+            Todas mis inscripciones
           </button>
-        }
-      </div>
-    </div>
-
-    @if (isLoading()) {
-      <div class="loading-state">
-        <span class="spinner"></span>
-        Cargando tus inscripciones...
-      </div>
-    }
-
-    @if (errorMessage()) {
-      <div class="error-state">
-        <p>{{ errorMessage() }}</p>
-        <button class="btn btn-outline" (click)="loadMyEnrollments()">Reintentar</button>
-      </div>
-    }
-
-    @if (!isLoading() && !errorMessage()) {
-      @if (filteredEnrollments().length > 0) {
-        <div class="enrollments-grid">
-          @for (enrollment of filteredEnrollments(); track enrollment.enrollmentId) {
-            <div class="enrollment-card">
-              <div class="enrollment-header">
-                <h3>{{ eventLabel(enrollment.eventId) }}</h3>
-                <span class="status-badge" [class]="getStatusClass(enrollment.status)">
-                  {{ getStatusLabel(enrollment.status) }}
-                </span>
-              </div>
-
-              <div class="enrollment-body">
-                <div class="enrollment-info">
-                  <span class="info-label">Modalidad</span>
-                  <span class="info-value">#{{ enrollment.modalityId }}</span>
-                </div>
-                <div class="enrollment-info">
-                  <span class="info-label">Fecha de inscripción</span>
-                  <span class="info-value">{{ enrollment.createdAt | date:'dd/MM/yyyy' }}</span>
-                </div>
-              </div>
-
-              <div class="enrollment-actions">
-                @if (enrollment.status === 'PENDING') {
-                  <span class="pending-message">⏳ Pendiente de aprobación</span>
-                }
-                @if (enrollment.status === 'APPROVED') {
-                  <span class="approved-message">✅ Inscripción confirmada</span>
-                  <a [routerLink]="['/music', enrollment.eventId, enrollment.enrollmentId]" class="btn btn-outline btn-sm">
-                    Gestionar pista musical
-                  </a>
-                }
-                @if (enrollment.status === 'REJECTED') {
-                  <span class="rejected-message">❌ Inscripción rechazada</span>
-                }
-              </div>
-            </div>
+          @for (option of statusOptions; track option.value) {
+            <button
+              class="px-4 py-2 rounded-lg text-sm font-semibold transition-all border border-transparent flex items-center gap-1.5 shrink-0"
+              [ngClass]="statusFilter() === option.value ? 'bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(124,58,237,0.3)]' : 'bg-transparent text-[#958da1] hover:text-[#dce2f7] hover:bg-[#232a3a]/50'"
+              (click)="statusFilter.set(option.value)"
+            >
+              <span class="w-2 h-2 rounded-full"
+                    [ngClass]="{
+                      'bg-amber-400': option.value === 'PENDING',
+                      'bg-emerald-400': option.value === 'APPROVED',
+                      'bg-red-400': option.value === 'REJECTED'
+                    }"></span>
+              {{ option.label }}
+            </button>
           }
         </div>
-      } @else {
-        <div class="empty-state">
-          <p>No tienes inscripciones activas.</p>
-          <a routerLink="/events" class="btn btn-primary">Explorar eventos</a>
+        
+        <a routerLink="/events" class="shrink-0 h-10 px-4 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] !text-white text-sm font-bold tracking-wide transition-all shadow-[0_0_15px_rgba(124,58,237,0.3)] hover:shadow-[0_0_20px_rgba(124,58,237,0.5)] flex items-center gap-2 group">
+          <span class="material-symbols-outlined text-[18px]">add</span>
+          Nueva Inscripción
+        </a>
+      </div>
+
+      <!-- Estados Globales -->
+      @if (isLoading()) {
+        <div class="flex flex-col items-center justify-center py-24 gap-4">
+          <div class="w-12 h-12 rounded-full border-4 border-[#7c3aed]/30 border-t-[#7c3aed] animate-spin"></div>
+          <span class="text-[#ccc3d8] font-medium">Buscando tu historial...</span>
         </div>
       }
-    }
+
+      @if (errorMessage()) {
+        <div class="flex flex-col items-center justify-center py-16 gap-4 bg-[#141b2b] rounded-2xl border border-[#93000a]/30">
+          <span class="material-symbols-outlined text-4xl text-[#ffb4ab]">error</span>
+          <p class="text-[#ffb4ab]">{{ errorMessage() }}</p>
+          <button class="px-6 py-2.5 rounded-lg bg-[#232a3a] hover:bg-[#2e3545] text-white font-semibold transition-colors" (click)="loadMyEnrollments()">Reintentar</button>
+        </div>
+      }
+
+      <!-- Grid de Tarjetas -->
+      @if (!isLoading() && !errorMessage()) {
+        @if (filteredEnrollments().length > 0) {
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @for (enrollment of filteredEnrollments(); track enrollment.enrollmentId) {
+              
+              <div class="relative bg-[#141b2b]/95 backdrop-blur-xl rounded-2xl border border-white/5 shadow-xl overflow-hidden flex flex-col group hover:-translate-y-1 transition-all duration-300">
+                
+                <!-- Borde Superior Decorativo -->
+                <div class="h-1.5 w-full absolute top-0 left-0"
+                     [ngClass]="{
+                       'bg-gradient-to-r from-amber-500 to-amber-300': enrollment.status === 'PENDING',
+                       'bg-gradient-to-r from-emerald-500 to-emerald-300': enrollment.status === 'APPROVED',
+                       'bg-gradient-to-r from-red-500 to-red-300': enrollment.status === 'REJECTED'
+                     }"></div>
+                     
+                <!-- Status Badge Absolute -->
+                <div class="absolute top-5 right-5">
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border"
+                        [ngClass]="{
+                          'bg-amber-900/20 text-amber-300 border-amber-500/30': enrollment.status === 'PENDING',
+                          'bg-emerald-900/20 text-emerald-300 border-emerald-500/30': enrollment.status === 'APPROVED',
+                          'bg-red-900/20 text-red-300 border-red-500/30': enrollment.status === 'REJECTED'
+                        }">
+                    {{ getStatusLabel(enrollment.status) }}
+                  </span>
+                </div>
+
+                <div class="p-6 flex-1 flex flex-col mt-4">
+                  <!-- Título del Evento -->
+                  <h3 class="font-['Sora'] text-xl font-bold text-[#dce2f7] leading-tight mb-4 pr-16 group-hover:text-[#d2bbff] transition-colors">Evento #{{ enrollment.eventId }}</h3>
+                  
+                  <!-- Detalles -->
+                  <div class="flex flex-col gap-3 mt-auto bg-[#191f2f]/50 p-4 rounded-xl border border-white/5">
+                    
+                    <div class="flex flex-col gap-1">
+                      <span class="text-[11px] font-semibold text-[#958da1] uppercase">Categoría</span>
+                      <span class="text-sm font-medium text-[#dce2f7]">{{ categoryLabels[enrollment.modalityCategory] || enrollment.modalityCategory }}</span>
+                    </div>
+
+                    <div class="flex flex-col gap-1">
+                      <span class="text-[11px] font-semibold text-[#958da1] uppercase">Modalidad</span>
+                      <div class="flex items-center gap-1.5 text-sm text-[#dce2f7]">
+                        <span class="material-symbols-outlined text-[16px] text-[#7c3aed]">category</span>
+                        #{{ enrollment.modalityId }}
+                      </div>
+                    </div>
+                    
+                    <div class="flex flex-col gap-1 pt-2 border-t border-white/5 mt-1">
+                      <span class="text-[11px] font-semibold text-[#958da1] uppercase">Fecha de Registro</span>
+                      <div class="flex items-center gap-1.5 text-sm text-[#ccc3d8]">
+                        <span class="material-symbols-outlined text-[16px]">calendar_today</span>
+                        {{ enrollment.createdAt | date:'dd/MMM/yyyy' }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Acciones Footer -->
+                <div class="px-6 py-4 border-t border-white/5 bg-[#191f2f]/30 flex items-center justify-between">
+                  @if (enrollment.status === 'APPROVED') {
+                    <span class="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]">music_note</span>
+                      Pista habilitada
+                    </span>
+                    <a [routerLink]="['/music', enrollment.eventId, enrollment.enrollmentId]" class="h-9 px-4 rounded-lg bg-emerald-900/20 hover:bg-emerald-600 border border-emerald-500/30 hover:border-emerald-600 text-emerald-400 hover:text-white text-sm font-bold flex items-center gap-2 transition-all hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                      Gestionar pista
+                    </a>
+                  } @else if (enrollment.status === 'PENDING') {
+                    <span class="text-[11px] text-amber-400/80 font-medium w-full text-center">Esperando aprobación del jurado...</span>
+                  } @else {
+                    <span class="text-[11px] text-red-400/80 font-medium w-full text-center">Esta inscripción no superó el filtro inicial.</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+        } @else {
+          <div class="flex flex-col items-center justify-center py-32 text-center gap-4 bg-[#141b2b] rounded-2xl border border-white/5 shadow-xl">
+            <div class="w-24 h-24 rounded-full bg-[#232a3a] flex items-center justify-center text-[#958da1] shadow-inner">
+              <span class="material-symbols-outlined text-[48px]">auto_awesome</span>
+            </div>
+            <h4 class="font-['Sora'] text-2xl font-semibold text-[#dce2f7]">Sin resultados</h4>
+            <p class="text-[15px] text-[#ccc3d8] max-w-md mx-auto">No tienes inscripciones en este estado. Anímate a participar en nuestro próximo evento.</p>
+            <a routerLink="/events" class="mt-4 px-6 py-3 rounded-xl bg-white text-[#0c1322] font-bold hover:bg-[#dce2f7] transition-colors shadow-lg">
+              Explorar Eventos
+            </a>
+          </div>
+        }
+      }
+
+    </div>
   </div>
 </div>

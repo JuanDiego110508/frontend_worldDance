@@ -1,102 +1,115 @@
 import { Component, signal, computed, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { EnrollmentService } from '../../services/enrollment.service';
 import { EnrollmentResponseDto, ENROLLMENT_STATUS, EnrollmentStatus } from '../../models/enrollment.interface';
-import { ModalityCategory, MODALITY_CATEGORY_LABELS } from '../../../events/enums/event-enums';
+import { MODALITY_CATEGORY_LABELS } from '../../../events/enums/event-enums';
 
 @Component({
   selector: 'app-enrollment-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, RouterLink],
   templateUrl: './enrollment-list.html',
-  styleUrls: ['./enrollment-list.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EnrollmentListComponent implements OnInit {
   private readonly enrollmentService = inject(EnrollmentService);
   private readonly route = inject(ActivatedRoute);
 
-  readonly categoryOptions = Object.values(ModalityCategory);
-  readonly categoryLabels = MODALITY_CATEGORY_LABELS;
-  readonly statusOptions = ENROLLMENT_STATUS;
-
   enrollments = signal<EnrollmentResponseDto[]>([]);
-  isLoading = signal(false);
-  errorMessage = signal('');
-
-  category = signal<ModalityCategory | null>(null);
+  isLoading = signal<boolean>(true);
+  errorMessage = signal<string>('');
+  
+  eventId = signal<number | null>(null);
   statusFilter = signal<string>('all');
+  selectedCategory = signal<string>('');
+  
+  isDropdownOpen = signal<boolean>(false);
+
+  readonly statusOptions = ENROLLMENT_STATUS;
+  readonly categoryLabels: Record<string, string> = MODALITY_CATEGORY_LABELS;
+  readonly categoryOptions = Object.keys(MODALITY_CATEGORY_LABELS) as (keyof typeof MODALITY_CATEGORY_LABELS)[];
 
   filteredEnrollments = computed(() => {
     const status = this.statusFilter();
-    const list = this.enrollments();
-    return status === 'all' ? list : list.filter(e => e.status === status);
+    const category = this.selectedCategory();
+    let list = this.enrollments();
+    if (status !== 'all') {
+      list = list.filter(e => e.status === status);
+    }
+    if (category) {
+      list = list.filter(e => e.modalityCategory === category);
+    }
+    return list;
   });
 
   ngOnInit(): void {
-    const categoryParam = this.route.snapshot.params['category'] as ModalityCategory | undefined;
-    if (categoryParam) {
-      this.category.set(categoryParam);
-      this.loadEnrollments();
+    const id = this.route.snapshot.params['eventId'];
+    if (id) {
+      this.eventId.set(Number(id));
     }
-  }
-
-  onCategoryChange(category: ModalityCategory | ''): void {
-    this.category.set(category || null);
-    if (category) {
-      this.loadEnrollments();
-    } else {
-      this.enrollments.set([]);
-    }
+    this.loadEnrollments();
   }
 
   loadEnrollments(): void {
-    const category = this.category();
-    if (!category) return;
-
     this.isLoading.set(true);
-    this.errorMessage.set('');
-
-    this.enrollmentService.getEnrollmentsByCategory(category).subscribe({
+    const eventId = this.eventId() || undefined;
+    
+    this.enrollmentService.getEnrollments(eventId).subscribe({
       next: (data) => {
         this.enrollments.set(data);
         this.isLoading.set(false);
       },
       error: (error) => {
-        this.errorMessage.set(error?.message ?? 'Error al cargar las inscripciones');
+        this.errorMessage.set('Error al cargar las inscripciones');
         this.isLoading.set(false);
+        console.error('Error loading enrollments:', error);
       }
     });
   }
 
-  approve(enrollment: EnrollmentResponseDto): void {
-    this.enrollmentService.approveOrReject({ enrollmentId: enrollment.enrollmentId, status: 'APPROVED' }).subscribe({
-      next: (updated) => this.replaceInList(updated),
-      error: (error) => alert(error?.message ?? 'Error al aprobar la inscripción')
+  updateStatus(enrollmentId: number, newStatus: EnrollmentStatus): void {
+    this.enrollmentService.updateEnrollmentStatus(enrollmentId, newStatus).subscribe({
+      next: (updated) => {
+        const list = this.enrollments();
+        const index = list.findIndex(e => e.enrollmentId === updated.enrollmentId);
+        if (index !== -1) {
+          const newList = [...list];
+          newList[index] = updated;
+          this.enrollments.set(newList);
+        }
+      },
+      error: (error) => {
+        console.error('Error updating enrollment status:', error);
+        alert('Error al actualizar el estado de la inscripción');
+      }
     });
   }
 
-  reject(enrollment: EnrollmentResponseDto): void {
-    const reason = prompt('Motivo del rechazo (obligatorio):');
-    if (!reason) return;
-
-    this.enrollmentService.approveOrReject({ enrollmentId: enrollment.enrollmentId, status: 'REJECTED', reason }).subscribe({
-      next: (updated) => this.replaceInList(updated),
-      error: (error) => alert(error?.message ?? 'Error al rechazar la inscripción')
-    });
+  setFilter(status: string): void {
+    this.statusFilter.set(status);
   }
 
-  private replaceInList(updated: EnrollmentResponseDto): void {
-    this.enrollments.update(list => list.map(e => (e.enrollmentId === updated.enrollmentId ? updated : e)));
+  onCategoryChange(category: string): void {
+    this.selectedCategory.set(category);
+    this.isDropdownOpen.set(false);
   }
 
-  getStatusClass(status: EnrollmentStatus): string {
-    return this.statusOptions.find(s => s.value === status)?.class ?? '';
+  toggleDropdown(): void {
+    this.isDropdownOpen.update(v => !v);
   }
 
   getStatusLabel(status: EnrollmentStatus): string {
     return this.statusOptions.find(s => s.value === status)?.label ?? status;
+  }
+
+  approve(enrollment: EnrollmentResponseDto): void {
+    this.updateStatus(enrollment.enrollmentId, 'APPROVED');
+  }
+
+  reject(enrollment: EnrollmentResponseDto): void {
+    if (confirm('¿Estás seguro de rechazar esta inscripción?')) {
+      this.updateStatus(enrollment.enrollmentId, 'REJECTED');
+    }
   }
 }
