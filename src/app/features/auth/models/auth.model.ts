@@ -44,3 +44,18 @@ export interface UpdateUserRequest {
   email: string;
   active: boolean;
 }
+
+export interface PasswordRecoveryRequest {
+  email: string;
+}
+
+export interface VerifyCodeRequest {
+  email: string;
+  code: string;
+}
+
+export interface PasswordResetRequest {
+  email: string;
+  code: string;
+  newPassword: string;
+}

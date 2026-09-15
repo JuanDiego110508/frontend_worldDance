@@ -9,7 +9,10 @@ import {
   JwtDto,
   RegisterRequest,
   RegisterResponse,
-  UpdateUserRequest
+  UpdateUserRequest,
+  PasswordRecoveryRequest,
+  VerifyCodeRequest,
+  PasswordResetRequest
 } from '../models/auth.model';
 
 @Injectable({
@@ -60,13 +63,21 @@ export class AuthService {
     );
   }
 
-  /**
-   * ms-auth-identityservice no expone ningún endpoint de recuperación de contraseña.
-   * Se mantiene como flujo simulado hasta que el backend lo implemente.
-   */
-  requestPasswordReset(email: string): Observable<{ message: string }> {
-    return of({ message: 'Si el correo existe en nuestro sistema, se enviará un enlace de recuperación.' }).pipe(
-      delay(600)
+  requestPasswordReset(email: string): Observable<HttpGlobalResponse<void>> {
+    return this.http.post<HttpGlobalResponse<void>>(`${this.apiUrl}/auth/recover-password`, { email }).pipe(
+      catchError(err => this.handleError(err))
+    );
+  }
+
+  verifyRecoveryCode(email: string, code: string): Observable<HttpGlobalResponse<void>> {
+    return this.http.post<HttpGlobalResponse<void>>(`${this.apiUrl}/auth/verify-recovery-code`, { email, code }).pipe(
+      catchError(err => this.handleError(err))
+    );
+  }
+
+  resetPassword(data: PasswordResetRequest): Observable<HttpGlobalResponse<void>> {
+    return this.http.post<HttpGlobalResponse<void>>(`${this.apiUrl}/auth/reset-password`, data).pipe(
+      catchError(err => this.handleError(err))
     );
   }
 
