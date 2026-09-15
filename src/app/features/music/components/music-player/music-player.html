@@ -1,0 +1,32 @@
+<div class="music-player">
+  @if (track(); as currentTrack) {
+    <div class="track-info">
+      <span class="track-filename">🎵 {{ currentTrack.filename }}</span>
+      <div class="track-meta">
+        <span>{{ currentTrack.format?.toUpperCase() }}</span>
+        <span>{{ formatDuration(currentTrack.durationSeconds) }}</span>
+        <span>{{ formatSize(currentTrack.sizeKb) }}</span>
+        @if (currentTrack.uploadedAt) {
+          <span>{{ currentTrack.uploadedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        }
+      </div>
+    </div>
+  }
+
+  @if (!audioUrl()) {
+    <button
+      type="button"
+      class="btn btn-outline btn-sm"
+      [disabled]="isLoadingAudio()"
+      (click)="loadAudio()"
+    >
+      {{ isLoadingAudio() ? 'Cargando...' : '▶ Reproducir' }}
+    </button>
+  } @else {
+    <audio controls [src]="audioUrl()" class="audio-control"></audio>
+  }
+
+  @if (errorMessage()) {
+    <p class="player-error">{{ errorMessage() }}</p>
+  }
+</div>

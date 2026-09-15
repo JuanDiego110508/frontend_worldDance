@@ -1,0 +1,52 @@
+<div class="music-manager-container">
+  <div class="container">
+    <div class="page-header">
+      <h1>Pista musical</h1>
+      <p class="subtitle">Inscripción #{{ enrollmentId() }}</p>
+      <a routerLink="/enrollment/my" class="btn btn-outline">Volver a mis inscripciones</a>
+    </div>
+
+    @if (isLoading()) {
+      <div class="loading-state">
+        <span class="spinner"></span>
+        Cargando...
+      </div>
+    }
+
+    @if (!isLoading() && errorMessage()) {
+      <div class="error-state">
+        <p>{{ errorMessage() }}</p>
+      </div>
+    }
+
+    @if (!isLoading() && !errorMessage()) {
+      @if (!canView()) {
+        <div class="empty-state">
+          <p>No tienes permiso para ver la pista musical de esta inscripción.</p>
+        </div>
+      } @else {
+        <div class="music-content">
+          @if (track(); as currentTrack) {
+            <app-music-player [enrollmentId]="enrollmentId()!" [track]="currentTrack" />
+          } @else {
+            <p class="no-track-message">Aún no se ha subido una pista musical para esta inscripción.</p>
+          }
+
+          @if (isOwner()) {
+            @if (canUpload) {
+              <app-music-upload-form
+                [enrollmentId]="enrollmentId()!"
+                [hasExistingTrack]="track() !== null"
+                (uploaded)="onUploaded($event)"
+              />
+            } @else {
+              <p class="not-approved-message">
+                Tu inscripción debe estar aprobada para poder subir tu pista musical.
+              </p>
+            }
+          }
+        </div>
+      }
+    }
+  </div>
+</div>

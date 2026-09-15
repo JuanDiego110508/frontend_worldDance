@@ -1,6 +1,6 @@
 import { Component, signal, computed, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { EnrollmentService } from '../../services/enrollment.service';
 import { EnrollmentResponseDto, ENROLLMENT_STATUS, EnrollmentStatus } from '../../models/enrollment.interface';
@@ -9,7 +9,7 @@ import { ModalityCategory, MODALITY_CATEGORY_LABELS } from '../../../events/enum
 @Component({
   selector: 'app-enrollment-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './enrollment-list.html',
   styleUrls: ['./enrollment-list.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

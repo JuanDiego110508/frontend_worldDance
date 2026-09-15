@@ -101,6 +101,11 @@
                           Rechazar
                         </button>
                       }
+                      @if (enrollment.status === 'APPROVED') {
+                        <a [routerLink]="['/music', enrollment.eventId, enrollment.enrollmentId]" class="btn btn-outline btn-sm">
+                          Ver pista
+                        </a>
+                      }
                     </div>
                   </td>
                 </tr>

@@ -73,6 +73,9 @@
                 }
                 @if (enrollment.status === 'APPROVED') {
                   <span class="approved-message">✅ Inscripción confirmada</span>
+                  <a [routerLink]="['/music', enrollment.eventId, enrollment.enrollmentId]" class="btn btn-outline btn-sm">
+                    Gestionar pista musical
+                  </a>
                 }
                 @if (enrollment.status === 'REJECTED') {
                   <span class="rejected-message">❌ Inscripción rechazada</span>
