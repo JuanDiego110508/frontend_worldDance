@@ -28,3 +28,24 @@
  */
 @source './app/**/*.html';
 @source './app/**/*.ts';
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+  --font-display: "Sora", sans-serif;
+  
+  --color-stage-950: #040711;
+  --color-stage-900: #070e1d;
+  --color-stage-850: #0b1426;
+  --color-stage-800: #111b33;
+  --color-stage-700: #192648;
+  
+  --color-dancePurple-500: #8b5cf6;
+  --color-dancePurple-600: #7c3aed;
+  --color-dancePurple-700: #6d28d9;
+  --color-dancePurple-light: #a78bfa;
+  
+  --color-danceCyan-400: #22d3ee;
+  --color-danceCyan-500: #06b6d4;
+  
+  --color-dancePink-500: #ec4899;
+}
