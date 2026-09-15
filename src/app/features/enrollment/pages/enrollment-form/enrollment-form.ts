@@ -1,28 +1,26 @@
 import { Component, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { EnrollmentService } from '../../services/enrollment.service';
-import { EventRole } from '../../models/enrollment.interface';
+import { ActivatedRoute, RouterLink, Router } from '@angular/router';
+import { EnrollmentService, CreateEnrollmentRequest } from '../../services/enrollment.service';
+import { AuthService } from '../../../auth/services/auth.service';
 import { ModalityService } from '../../../events/services/modality';
 import { ModalityResponseDto } from '../../../events/models/modality.model';
 import { MODALITY_CATEGORY_LABELS, MODALITY_DIVISION_LABELS } from '../../../events/enums/event-enums';
-import { AuthService } from '../../../auth/services/auth.service';
+import { EventRole } from '../../models/enrollment.interface';
 
 @Component({
   selector: 'app-enrollment-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './enrollment-form.html',
-  styleUrls: ['./enrollment-form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EnrollmentFormComponent implements OnInit {
   private readonly enrollmentService = inject(EnrollmentService);
-  private readonly modalityService = inject(ModalityService);
   private readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly modalityService = inject(ModalityService);
 
   readonly categoryLabels = MODALITY_CATEGORY_LABELS;
   readonly divisionLabels = MODALITY_DIVISION_LABELS;
@@ -30,69 +28,91 @@ export class EnrollmentFormComponent implements OnInit {
   eventId = signal<number | null>(null);
   modalities = signal<ModalityResponseDto[]>([]);
   selectedModalityId: number | null = null;
-
-  isLoading = signal(false);
-  isSaving = signal(false);
-  errorMessage = signal('');
-  successMessage = signal('');
+  selectedRole: EventRole = EventRole.PARTICIPANT;
+  
+  isDropdownOpen = signal<boolean>(false);
+  isLoading = signal<boolean>(false);
+  errorMessage = signal<string>('');
+  successMessage = signal<string>('');
 
   ngOnInit(): void {
-    const idParam = this.route.snapshot.params['eventId'];
-    if (!idParam) {
-      this.errorMessage.set('No se especificó un evento para inscribirse.');
-      return;
+    const id = this.route.snapshot.params['eventId'];
+    if (id) {
+      this.eventId.set(Number(id));
+      this.loadModalities(Number(id));
+    } else {
+      this.errorMessage.set('No se especificó un evento válido.');
     }
-    const eventId = Number(idParam);
-    this.eventId.set(eventId);
-    this.loadModalities(eventId);
   }
 
-  private loadModalities(eventId: number): void {
-    this.isLoading.set(true);
+  loadModalities(eventId: number): void {
     this.modalityService.getModalitiesByEventId(eventId).subscribe({
-      next: (data) => {
-        this.modalities.set(data);
-        this.isLoading.set(false);
-      },
+      next: (data) => this.modalities.set(data),
       error: (err) => {
-        this.errorMessage.set(err?.message ?? 'No fue posible cargar las modalidades del evento');
-        this.isLoading.set(false);
+        console.error('Error loading modalities', err);
+        this.errorMessage.set('No se pudieron cargar las modalidades del evento.');
       }
     });
   }
 
-  onSubmit(): void {
-    const eventId = this.eventId();
-    const user = this.authService.getCurrentUser();
+  toggleDropdown(): void {
+    this.isDropdownOpen.update(v => !v);
+  }
 
-    if (!eventId || !this.selectedModalityId) {
-      this.errorMessage.set('Selecciona una modalidad para inscribirte.');
+  selectModality(modalityId: number): void {
+    this.selectedModalityId = modalityId;
+    this.isDropdownOpen.set(false);
+  }
+
+  getSelectedModalityLabel(): string {
+    if (!this.selectedModalityId) return 'Selecciona tu categoría y división';
+    const mod = this.modalities().find(m => m.id === this.selectedModalityId);
+    if (!mod) return 'Selecciona tu categoría y división';
+    return `${this.categoryLabels[mod.category]} · ${this.divisionLabels[mod.division]} · ${mod.style} (${mod.minAge}-${mod.maxAge} años)`;
+  }
+
+  onSubmit(): void {
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    if (!this.selectedModalityId) {
+      this.errorMessage.set('Debes seleccionar una modalidad.');
       return;
     }
 
+    const user = this.authService.getCurrentUser();
     if (!user) {
       this.errorMessage.set('Debes iniciar sesión para inscribirte.');
       return;
     }
 
-    this.isSaving.set(true);
-    this.errorMessage.set('');
-    this.successMessage.set('');
+    const eventId = this.eventId();
+    if (!eventId) {
+      this.errorMessage.set('No hay un evento válido.');
+      return;
+    }
 
-    this.enrollmentService.createEnrollment({
+    this.isLoading.set(true);
+
+    const data: CreateEnrollmentRequest = {
       userId: user.id,
-      eventId,
+      eventId: eventId,
       modalityId: this.selectedModalityId,
-      roleInEvent: EventRole.PARTICIPANT
-    }).subscribe({
+      roleInEvent: this.selectedRole
+    };
+
+    this.enrollmentService.createEnrollment(data).subscribe({
       next: () => {
-        this.isSaving.set(false);
-        this.successMessage.set('¡Inscripción realizada exitosamente!');
-        setTimeout(() => this.router.navigate(['/enrollment/my']), 1500);
+        this.isLoading.set(false);
+        this.successMessage.set('¡Inscripción enviada con éxito! Revisa tu portal de competidor para subir la pista musical si aplica.');
+        setTimeout(() => {
+          this.router.navigate(['/enrollment/my']);
+        }, 2000);
       },
       error: (error) => {
-        this.isSaving.set(false);
-        this.errorMessage.set(error?.message ?? 'Error al crear la inscripción');
+        this.isLoading.set(false);
+        this.errorMessage.set('Hubo un error al procesar tu inscripción. Intenta de nuevo.');
+        console.error('Enrollment error:', error);
       }
     });
   }
