@@ -1,48 +1,22 @@
-@use '../../../../../styles.scss' as *;
+:host {
+  display: block;
+}
 
-.music-upload-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--wd-spacing-3);
-  padding: var(--wd-spacing-4);
-  border: 1px dashed var(--wd-border-color);
-  border-radius: var(--wd-radius-md);
-  background: var(--wd-bg-card);
+.glass-card {
+  background: linear-gradient(135deg, rgba(20, 29, 48, 0.72) 0%, rgba(14, 22, 38, 0.88) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
 
-  .file-input-label {
-    display: flex;
-    align-items: center;
-    gap: var(--wd-spacing-2);
-    font-size: var(--wd-font-size-sm);
-    color: var(--wd-text-body);
-    cursor: pointer;
+/* Barra de progreso indeterminada: Fetch API no expone progreso real de subida, así que se
+   muestra un indicador honesto de "en proceso" en vez de un porcentaje inventado. */
+@keyframes indeterminateSlide {
+  0% { left: -33%; }
+  100% { left: 100%; }
+}
 
-    input[type='file'] {
-      max-width: 100%;
-    }
-  }
-
-  .progress-bar {
-    width: 100%;
-    height: 8px;
-    border-radius: var(--wd-radius-full);
-    background: var(--wd-border-color);
-    overflow: hidden;
-
-    .progress-fill {
-      height: 100%;
-      background: var(--wd-purple);
-      transition: width 0.2s ease;
-    }
-  }
-
-  .form-error {
-    color: var(--wd-red);
-    font-size: var(--wd-font-size-sm);
-    margin: 0;
-  }
-
-  .btn {
-    align-self: flex-start;
-  }
+.indeterminate-bar {
+  animation: indeterminateSlide 1.1s ease-in-out infinite;
 }
