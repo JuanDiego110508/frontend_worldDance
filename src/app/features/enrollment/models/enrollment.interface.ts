@@ -6,6 +6,14 @@ export enum EventRole {
   INSTRUCTOR = 'INSTRUCTOR'
 }
 
+export interface ParticipantSummaryDto {
+  id: number;
+  name: string;
+  lastName: string;
+  email: string;
+  documentNumber: string;
+}
+
 export interface EnrollmentResponseDto {
   enrollmentId: number;
   userId: number;
@@ -16,6 +24,7 @@ export interface EnrollmentResponseDto {
   status: EnrollmentStatus;
   createdAt: string;
   updatedAt: string;
+  participant?: ParticipantSummaryDto;
 }
 
 export interface Enrollment {
