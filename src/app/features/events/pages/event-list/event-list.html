@@ -208,6 +208,10 @@
                 {{ isOwner(event) ? 'Gestionar Modalidades' : 'Ver Modalidades' }}
               </a>
               <ng-container *ngIf="isOwner(event) && event.idEvent">
+                <a [routerLink]="['/enrollment/event', event.idEvent]" title="Gestionar inscripciones"
+                   class="link-muted w-10 h-10 rounded-lg bg-[#232a3a] hover:bg-[#2e3545] flex items-center justify-center transition-colors shrink-0">
+                  <span class="material-symbols-outlined text-base">how_to_reg</span>
+                </a>
                 <a [routerLink]="['/events/edit', event.idEvent]" title="Editar evento"
                    class="link-muted w-10 h-10 rounded-lg bg-[#232a3a] hover:bg-[#2e3545] flex items-center justify-center transition-colors shrink-0">
                   <span class="material-symbols-outlined text-base">edit</span>
