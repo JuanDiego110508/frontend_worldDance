@@ -1,0 +1,225 @@
+<div class="schedule-manager-container container">
+  <div class="content-wrapper">
+
+    <div class="header-section">
+      <a routerLink="/events" class="btn btn-ghost" style="padding-left: 0;">
+        <span class="material-symbols-outlined">arrow_back</span> Eventos
+      </a>
+      <h1 class="header-title">Gestión de Cronograma</h1>
+      <p class="text-gray">Evento #{{ eventId() }}</p>
+    </div>
+
+    <div *ngIf="isLoading()" class="loading-container">
+      <div class="spinner-large"></div>
+    </div>
+
+    <div *ngIf="successMessage()" class="alert-message success">
+      <span class="material-symbols-outlined">check_circle</span>
+      <p style="margin: 0;">{{ successMessage() }}</p>
+    </div>
+
+    <div *ngIf="errorMessage()" class="alert-message error">
+      <span class="material-symbols-outlined">error</span>
+      <p style="margin: 0;">{{ errorMessage() }}</p>
+    </div>
+
+    <!-- Configuración del Cronograma (Siempre visible para generar o editar) -->
+    <div *ngIf="!isLoading()" class="manager-card fade-in">
+
+      <div class="manager-card-header">
+        <h2>
+          <span class="material-symbols-outlined text-purple">magic_button</span>
+          Parámetros de Generación
+        </h2>
+        <p>Configura los parámetros iniciales. El sistema organizará automáticamente a los participantes aprobados
+          basándose en las modalidades y el orden que definas. Si ya existe un cronograma, generarlo de nuevo lo sobreescribirá.</p>
+      </div>
+
+      <div class="manager-card-body">
+
+        <div class="form-grid">
+          <!-- Tiempos -->
+          <div class="section-group">
+            <h3 class="section-title">
+              <span class="material-symbols-outlined">timer</span> Tiempos
+            </h3>
+            <div class="form-control">
+              <label>Duración por Presentación (minutos) <span style="color: var(--wd-red)">*</span></label>
+              <input type="number" [(ngModel)]="durationMinutes" min="1" max="120" required>
+            </div>
+            <div class="form-control">
+              <label>Tiempo de Transición (minutos) <span style="color: var(--wd-red)">*</span></label>
+              <input type="number" [(ngModel)]="transitionMinutes" min="0" max="60" required>
+            </div>
+          </div>
+
+          <!-- Metadatos -->
+          <div class="section-group">
+            <h3 class="section-title">
+              <span class="material-symbols-outlined">settings</span> Ajustes Extra
+            </h3>
+            <div class="form-control">
+              <label>Estrategia de Organización</label>
+              <select [(ngModel)]="sortingStrategy">
+                <option value="NEWEST_FIRST">Los más recientes primero</option>
+                <option value="OLDEST_FIRST">Los más antiguos primero</option>
+                <option value="ALPHABETICAL">Alfabético</option>
+              </select>
+            </div>
+            <div class="form-control">
+              <label>Escenarios (separados por coma)</label>
+              <input type="text" [(ngModel)]="stageNames" placeholder="Ej: Escenario Principal, Sala 2">
+            </div>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <h3 class="section-title">
+            <span class="material-symbols-outlined">notes</span> Notas o Reglas (Opcional)
+          </h3>
+          <div class="form-control">
+            <textarea [(ngModel)]="notes" placeholder="Información visible en el cronograma..."></textarea>
+          </div>
+        </div>
+
+        <!-- Orden de Modalidades -->
+        <div class="section-group">
+          <div class="modality-list-header">
+            <h3>
+              <span class="material-symbols-outlined text-purple">format_list_numbered</span>
+              Orden de Modalidades
+            </h3>
+            <span class="badge-count">{{ modalities().length }} modalidades</span>
+          </div>
+          <p class="modality-list-desc">Define el orden en el que se ejecutarán las modalidades en el cronograma. Puedes
+            usar las flechas para subir o bajar el nivel de prioridad de cada bloque.</p>
+
+          <div class="modality-list">
+
+            <div *ngIf="modalities().length === 0" class="modality-empty">
+              No hay modalidades registradas para este evento.
+            </div>
+
+            <div *ngFor="let modality of modalities(); let i = index" class="modality-item">
+              <div class="modality-item-content">
+                <div class="modality-index">
+                  {{ i + 1 }}
+                </div>
+                <div class="modality-info">
+                  <strong>{{ modality.division }} &middot; {{ modality.category }}</strong>
+                  <span>{{ modality.style }} | {{ modality.minAge }} - {{ modality.maxAge }} años</span>
+                </div>
+              </div>
+
+              <div class="modality-actions">
+                <button type="button" (click)="moveModalityUp(i)" [disabled]="i === 0" title="Subir prioridad">
+                  <span class="material-symbols-outlined">arrow_upward</span>
+                </button>
+                <button type="button" (click)="moveModalityDown(i)" [disabled]="i === modalities().length - 1"
+                  title="Bajar prioridad">
+                  <span class="material-symbols-outlined">arrow_downward</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" (click)="generateSchedule()" [disabled]="isGenerating() || modalities().length === 0"
+            class="btn btn-primary btn-lg">
+            <ng-container *ngIf="isGenerating(); else notGenerating">
+              <span class="spinner"></span> Generando...
+            </ng-container>
+            <ng-template #notGenerating>
+              <span class="material-symbols-outlined">auto_awesome</span> {{ schedule() ? 'Actualizar / Regenerar Cronograma' : 'Generar Cronograma Oficial' }}
+            </ng-template>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cuando SÍ hay cronograma -->
+    <div *ngIf="!isLoading() && schedule() as currentSchedule" class="manager-card fade-in">
+
+      <div class="status-header">
+        <div class="status-info">
+          <div class="status-title-row">
+            <h2>Estado del Cronograma</h2>
+            <span class="status-badge" [ngClass]="{
+                    'draft': currentStatus === STATUS_DRAFT,
+                    'active': currentStatus === STATUS_ACTIVE,
+                    'finished': currentStatus === STATUS_FINISHED
+                  }">
+              {{ currentStatus }}
+            </span>
+          </div>
+          <p class="status-meta">Generado el {{ currentSchedule.generatedAt | date:'medium' }} &middot; {{
+            currentSchedule.totalSlots }} turnos.</p>
+        </div>
+
+        <div class="status-actions">
+          <a [routerLink]="['/schedule/view', eventId()]" class="btn btn-outline">
+            <span class="material-symbols-outlined">visibility</span> Previsualizar
+          </a>
+        </div>
+      </div>
+
+      <div class="manager-card-body">
+        <h3 class="section-title">Acciones de Administración</h3>
+
+        <div class="admin-actions">
+
+          <button type="button" (click)="updateStatus(STATUS_DRAFT)" [disabled]="currentStatus === STATUS_DRAFT"
+            class="admin-card-btn draft" [ngClass]="{'active-state': currentStatus === STATUS_DRAFT}">
+            <div class="title">
+              <span class="material-symbols-outlined">edit_note</span> Borrador
+            </div>
+            <p class="desc">Nadie puede ver el cronograma, útil para ajustes.</p>
+          </button>
+
+          <button type="button" (click)="updateStatus(STATUS_ACTIVE)" [disabled]="currentStatus === STATUS_ACTIVE"
+            class="admin-card-btn publish" [ngClass]="{'active-state': currentStatus === STATUS_ACTIVE}">
+            <div class="title">
+              <span class="material-symbols-outlined">public</span> Publicar
+            </div>
+            <p class="desc">Los participantes y jueces podrán visualizar los turnos.</p>
+          </button>
+
+          <button type="button" (click)="updateStatus(STATUS_FINISHED)" [disabled]="currentStatus === STATUS_FINISHED"
+            class="admin-card-btn finish" [ngClass]="{'active-state': currentStatus === STATUS_FINISHED}">
+            <div class="title">
+              <span class="material-symbols-outlined">task_alt</span> Finalizar
+            </div>
+            <p class="desc">Marca el cronograma como cerrado y concluido.</p>
+          </button>
+
+        </div>
+
+        <div style="margin-top: 3rem; border-top: 1px solid var(--wd-border-color); padding-top: 2rem;">
+          <h3 class="section-title" style="margin-bottom: 2rem;">
+            <span class="material-symbols-outlined text-purple">format_list_bulleted</span>
+            Vista Detallada del Cronograma
+          </h3>
+          <app-schedule-timeline [schedule]="currentSchedule" [isAdmin]="true"></app-schedule-timeline>
+        </div>
+
+        <!-- Zona de Peligro movida al final -->
+        <div class="danger-zone" style="margin-top: 4rem; padding: 2rem; border: 1px dashed var(--wd-red); border-radius: var(--wd-radius-lg); background: rgba(239, 68, 68, 0.05);">
+          <h3 style="color: var(--wd-red); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <span class="material-symbols-outlined">warning</span> Zona de Peligro
+          </h3>
+          <p style="color: var(--wd-text-muted); margin-bottom: 1.5rem;">
+            Si necesitas rehacer todo desde cero, puedes eliminar el cronograma actual. <strong>Esta acción es irreversible.</strong>
+          </p>
+          <button type="button" (click)="deleteSchedule()" class="btn btn-danger" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            <span class="material-symbols-outlined">delete</span> Eliminar Cronograma Oficial
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>

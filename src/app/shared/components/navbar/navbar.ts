@@ -34,6 +34,7 @@ export class NavbarComponent implements OnInit {
 
   navItems: NavItem[] = [
     { label: 'Evaluar', route: '/scoring', icon: 'sports_score' },
+    { label: 'Cronogramas', route: '/schedule', icon: 'calendar_clock' },
     { label: 'Rankings', route: '/rankings', icon: 'leaderboard' },
     { label: 'Reportes', route: '/reports', icon: 'bar_chart' },
     { label: 'Mis Inscripciones', route: '/enrollment/my', icon: 'how_to_reg' },
