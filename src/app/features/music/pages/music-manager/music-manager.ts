@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
@@ -7,6 +7,7 @@ import { MusicTrackService } from '../../services/music-track.service';
 import { MusicTrackResponseDto } from '../../models/music-track.model';
 import { MusicPlayerComponent } from '../../components/music-player/music-player';
 import { MusicUploadFormComponent } from '../../components/music-upload-form/music-upload-form';
+import { MusicHistoryComponent } from '../../components/music-history/music-history';
 import { EnrollmentService } from '../../../enrollment/services/enrollment.service';
 import { EnrollmentResponseDto, EventRole } from '../../../enrollment/models/enrollment.interface';
 import { EventService } from '../../../events/services/event';
@@ -16,7 +17,7 @@ import { AuthService } from '../../../auth/services/auth.service';
 @Component({
   selector: 'app-music-manager',
   standalone: true,
-  imports: [CommonModule, RouterLink, MusicPlayerComponent, MusicUploadFormComponent],
+  imports: [CommonModule, RouterLink, MusicPlayerComponent, MusicUploadFormComponent, MusicHistoryComponent],
   templateUrl: './music-manager.html',
   styleUrls: ['./music-manager.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -133,4 +134,13 @@ export class MusicManagerComponent implements OnInit {
   get canUpload(): boolean {
     return this.isOwner() && this.enrollment()?.status === 'APPROVED';
   }
+
+  /** El origen lógico difiere según el rol: el participante vuelve a sus inscripciones, quien gestiona vuelve al listado del evento. */
+  readonly backLink = computed<string[]>(() => {
+    if (this.isOwner()) return ['/enrollment/my'];
+    const eventId = this.enrollment()?.eventId;
+    return eventId != null ? ['/enrollment/event', String(eventId)] : ['/enrollment/my'];
+  });
+
+  readonly backLabel = computed(() => this.isOwner() ? 'Volver a mis inscripciones' : 'Volver a inscripciones del evento');
 }

@@ -3,6 +3,12 @@ export interface HttpGlobalResponse<T> {
   message: string;
 }
 
+/** Refleja MusicTrackResponseDto.HistoryEntryDto de ms-music-media (sin el gridFsId interno). */
+export interface MusicTrackHistoryEntry {
+  previousFilename: string;
+  replacedAt: string;
+}
+
 /** Refleja MusicTrackResponseDto de ms-music-media. */
 export interface MusicTrackResponseDto {
   id: string;
@@ -13,6 +19,8 @@ export interface MusicTrackResponseDto {
   durationSeconds: number;
   isActive: boolean;
   uploadedAt: string;
+  /** Versiones previas de la pista (la más antigua primero). Vacío o undefined si nunca se reemplazó. */
+  history?: MusicTrackHistoryEntry[];
 }
 
 /** Refleja la validación de MusicTrackServiceImpl.validateAudioFile (backend). */
