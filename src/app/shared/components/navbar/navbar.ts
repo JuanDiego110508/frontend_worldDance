@@ -118,7 +118,7 @@ export class NavbarComponent implements OnInit {
   }
 
   goToProfile() {
-    this.router.navigate(['/profile']);
+    this.router.navigate(['/auth/profile']);
   }
 
   logout() {
