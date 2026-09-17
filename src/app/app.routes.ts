@@ -51,6 +51,10 @@ export const routes: Routes = [
     loadChildren: () => import('./features/reports/reports.routes').then(m => m.REPORTS_ROUTES)
   },
   {
+    path: 'rankings',
+    loadComponent: () => import('./pages/rankings/rankings').then(m => m.RankingsComponent)
+  },
+  {
     path: '**',
     loadComponent: () => import('./pages/not-found/not-found').then(m => m.NotFoundComponent)
   }
