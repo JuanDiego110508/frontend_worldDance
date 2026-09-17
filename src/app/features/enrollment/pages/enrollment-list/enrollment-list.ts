@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { EnrollmentService } from '../../services/enrollment.service';
 import { EnrollmentResponseDto, ENROLLMENT_STATUS, EnrollmentStatus } from '../../models/enrollment.interface';
+import { MODALITY_CATEGORY_LABELS, MODALITY_DIVISION_LABELS } from '../../../events/enums/event-enums';
+import { ModalityService } from '../../../events/services/modality';
+import { ModalityResponseDto } from '../../../events/models/modality.model';
 import { EventService } from '../../../events/services/event';
 import { EventResponseDto } from '../../../events/models/event.model';
 import { AuthService } from '../../../auth/services/auth.service';
@@ -20,6 +23,7 @@ export class EnrollmentListComponent implements OnInit {
   private readonly eventService = inject(EventService);
   private readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
+  private readonly modalityService = inject(ModalityService);
   private readonly router = inject(Router);
 
   enrollments = signal<EnrollmentResponseDto[]>([]);
@@ -32,8 +36,13 @@ export class EnrollmentListComponent implements OnInit {
   statusFilter = signal<string>('all');
 
   isDropdownOpen = signal<boolean>(false);
+  
+  modalitiesMap = signal<Record<number, ModalityResponseDto>>({});
 
   readonly statusOptions = ENROLLMENT_STATUS;
+  readonly categoryLabels: Record<string, string> = MODALITY_CATEGORY_LABELS;
+  readonly divisionLabels: Record<string, string> = MODALITY_DIVISION_LABELS;
+  readonly categoryOptions = Object.keys(MODALITY_CATEGORY_LABELS) as (keyof typeof MODALITY_CATEGORY_LABELS)[];
 
   selectedEvent = computed<EventResponseDto | null>(() => {
     const id = this.selectedEventId();
@@ -50,6 +59,7 @@ export class EnrollmentListComponent implements OnInit {
     const routeEventId = Number(this.route.snapshot.params['eventId']);
     if (routeEventId) {
       this.selectedEventId.set(routeEventId);
+      this.loadModalities(routeEventId);
     }
     this.loadMyEvents();
   }
@@ -67,6 +77,7 @@ export class EnrollmentListComponent implements OnInit {
 
         if (this.selectedEventId() != null) {
           this.loadEnrollments();
+          this.loadModalities(this.selectedEventId()!);
         } else if (mine.length === 1) {
           this.onEventChange(mine[0].idEvent);
         } else {
@@ -87,6 +98,28 @@ export class EnrollmentListComponent implements OnInit {
     this.selectedEventId.set(eventId);
     this.router.navigate(['/enrollment/event', eventId]);
     this.loadEnrollments();
+    this.loadModalities(eventId);
+  }
+
+  loadModalities(eventId: number): void {
+    this.modalityService.getModalitiesByEventId(eventId).subscribe({
+      next: (data) => {
+        const map: Record<number, ModalityResponseDto> = {};
+        data.forEach(m => {
+          map[m.id] = m;
+        });
+        this.modalitiesMap.set(map);
+      },
+      error: (err) => console.error('Error loading modalities', err)
+    });
+  }
+
+  getModalityName(modalityId: number): string {
+    const mod = this.modalitiesMap()[modalityId];
+    if (mod) {
+      return `${this.categoryLabels[mod.category] || mod.category} · ${this.divisionLabels[mod.division] || mod.division} (${mod.style})`;
+    }
+    return `Mod #${modalityId}`;
   }
 
   loadEnrollments(): void {
@@ -105,7 +138,8 @@ export class EnrollmentListComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (error) => {
-        this.errorMessage.set('Error al cargar las inscripciones');
+        const backendMsg = error.error?.message || 'Error al cargar las inscripciones';
+        this.errorMessage.set(backendMsg);
         this.isLoading.set(false);
         console.error('Error loading enrollments:', error);
       }

@@ -34,7 +34,7 @@
     <div class="flex flex-col gap-6 relative z-10">
       
       <!-- Selector de Modalidad (Dropdown Personalizado) -->
-      <div class="flex flex-col gap-2 relative">
+      <div class="flex flex-col gap-2 relative z-20">
         <label class="text-sm font-semibold text-[#ccc3d8] ml-1">Selecciona tu Modalidad <span class="text-[#7c3aed]">*</span></label>
         
         <div class="relative w-full">
@@ -72,6 +72,45 @@
             
             <!-- Backdrop invisible para cerrar al hacer clic afuera -->
             <div class="fixed inset-0 z-40" (click)="isDropdownOpen.set(false)"></div>
+          }
+        </div>
+      </div>
+
+      <!-- Selector de Rol (Dropdown Personalizado) -->
+      <div class="flex flex-col gap-2 relative z-10">
+        <label class="text-sm font-semibold text-[#ccc3d8] ml-1">Selecciona tu Rol en el Evento <span class="text-[#7c3aed]">*</span></label>
+        
+        <div class="relative w-full">
+          <!-- Botón de Dropdown -->
+          <button
+            type="button"
+            (click)="toggleRoleDropdown()"
+            class="w-full h-14 pl-5 pr-12 rounded-xl bg-[#232a3a] border border-transparent hover:bg-[#2e3545] focus:bg-[#191f2f] focus:border-[#7c3aed]/50 focus:shadow-[0_0_0_4px_rgba(124,58,237,0.15)] text-[#dce2f7] text-left transition-all outline-none flex items-center justify-between"
+          >
+            <span class="truncate font-medium" [class.text-[#958da1]]="!selectedRole">
+              {{ getSelectedRoleLabel() }}
+            </span>
+            <span class="material-symbols-outlined absolute right-4 text-[#958da1] transition-transform duration-200" [class.rotate-180]="isRoleDropdownOpen()">expand_more</span>
+          </button>
+          
+          <!-- Opciones (Flotante) -->
+          @if (isRoleDropdownOpen()) {
+            <div class="absolute z-50 top-[calc(100%+8px)] left-0 w-full rounded-xl overflow-hidden animate-in fade-in slide-in-from-top-2" style="background-color: #191f2f; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+              <ul class="max-h-60 overflow-y-auto custom-scrollbar py-1" style="margin: 0; padding: 4px 0; list-style: none;">
+                @for (role of roles; track role) {
+                  <li style="border-bottom: 1px solid rgba(255,255,255,0.05); margin: 0;">
+                      <button type="button" style="width: 100%; text-align: left; padding: 12px 16px; font-size: 14px; color: #dce2f7; background: transparent; border: none; cursor: pointer;"
+                              class="hover:bg-[#7c3aed] hover:text-white transition-colors" 
+                              (click)="selectRole(role)">
+                        {{ roleLabels[role] }}
+                      </button>
+                  </li>
+                }
+              </ul>
+            </div>
+            
+            <!-- Backdrop invisible para cerrar al hacer clic afuera -->
+            <div class="fixed inset-0 z-40" (click)="isRoleDropdownOpen.set(false)"></div>
           }
         </div>
       </div>

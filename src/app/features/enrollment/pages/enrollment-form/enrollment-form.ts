@@ -28,9 +28,26 @@ export class EnrollmentFormComponent implements OnInit {
   eventId = signal<number | null>(null);
   modalities = signal<ModalityResponseDto[]>([]);
   selectedModalityId: number | null = null;
-  selectedRole: EventRole = EventRole.PARTICIPANT;
+  selectedRole: EventRole | null = null;
+  
+  readonly roles: EventRole[] = [
+    EventRole.ADMIN,
+    EventRole.JURY,
+    EventRole.STAFF,
+    EventRole.PARTICIPANT,
+    EventRole.INSTRUCTOR
+  ];
+
+  readonly roleLabels: Record<EventRole, string> = {
+    [EventRole.ADMIN]: 'Administrador',
+    [EventRole.JURY]: 'Jurado',
+    [EventRole.STAFF]: 'Staff',
+    [EventRole.PARTICIPANT]: 'Participante',
+    [EventRole.INSTRUCTOR]: 'Instructor / Coreógrafo'
+  };
   
   isDropdownOpen = signal<boolean>(false);
+  isRoleDropdownOpen = signal<boolean>(false);
   isLoading = signal<boolean>(false);
   errorMessage = signal<string>('');
   successMessage = signal<string>('');
@@ -57,11 +74,22 @@ export class EnrollmentFormComponent implements OnInit {
 
   toggleDropdown(): void {
     this.isDropdownOpen.update(v => !v);
+    if (this.isDropdownOpen()) this.isRoleDropdownOpen.set(false);
+  }
+
+  toggleRoleDropdown(): void {
+    this.isRoleDropdownOpen.update(v => !v);
+    if (this.isRoleDropdownOpen()) this.isDropdownOpen.set(false);
   }
 
   selectModality(modalityId: number): void {
     this.selectedModalityId = modalityId;
     this.isDropdownOpen.set(false);
+  }
+
+  selectRole(role: EventRole): void {
+    this.selectedRole = role;
+    this.isRoleDropdownOpen.set(false);
   }
 
   getSelectedModalityLabel(): string {
@@ -71,12 +99,22 @@ export class EnrollmentFormComponent implements OnInit {
     return `${this.categoryLabels[mod.category]} · ${this.divisionLabels[mod.division]} · ${mod.style} (${mod.minAge}-${mod.maxAge} años)`;
   }
 
+  getSelectedRoleLabel(): string {
+    if (!this.selectedRole) return 'Selecciona tu rol';
+    return this.roleLabels[this.selectedRole];
+  }
+
   onSubmit(): void {
     this.errorMessage.set('');
     this.successMessage.set('');
 
     if (!this.selectedModalityId) {
       this.errorMessage.set('Debes seleccionar una modalidad.');
+      return;
+    }
+
+    if (!this.selectedRole) {
+      this.errorMessage.set('Debes seleccionar un rol para el evento.');
       return;
     }
 
@@ -111,7 +149,8 @@ export class EnrollmentFormComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading.set(false);
-        this.errorMessage.set('Hubo un error al procesar tu inscripción. Intenta de nuevo.');
+        const backendMsg = error.error?.message || 'Hubo un error al procesar tu inscripción. Intenta de nuevo.';
+        this.errorMessage.set(backendMsg);
         console.error('Enrollment error:', error);
       }
     });
