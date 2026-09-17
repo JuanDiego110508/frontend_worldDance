@@ -7,7 +7,15 @@
 // y recargar. Para volver al valor por defecto: localStorage.removeItem('apiUrl').
 const apiUrlOverride = typeof localStorage !== 'undefined' ? localStorage.getItem('apiUrl') : null;
 
+// El agente IA (service-agentia-backend) no pasa por el tunel de Cloudflare:
+// por defecto apunta al puerto que docker-compose expone en la máquina de
+// quien ejecuta `ng serve` (ver docker-compose.yml, mapeo "5002:5000").
+// Mismo mecanismo de override que apiUrl:
+//   localStorage.setItem('agentApiUrl', 'http://localhost:5002')
+const agentApiUrlOverride = typeof localStorage !== 'undefined' ? localStorage.getItem('agentApiUrl') : null;
+
 export const environment = {
   production: false,
-  apiUrl: apiUrlOverride || 'https://api.worlddance.win/api/v1'
+  apiUrl: apiUrlOverride || 'https://api.worlddance.win/api/v1',
+  agentApiUrl: agentApiUrlOverride || 'http://localhost:5002'
 };

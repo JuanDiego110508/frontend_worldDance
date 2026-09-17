@@ -61,6 +61,43 @@
   margin-top: var(--wd-spacing-4);
 }
 
+.agent-card {
+  border-color: rgba(124, 58, 237, 0.25);
+}
+
+.agent-card-body {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--wd-spacing-4);
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--wd-spacing-6);
+  }
+}
+
+.agent-card-info {
+  .section-title {
+    margin-bottom: var(--wd-spacing-1);
+  }
+}
+
+.agent-card-desc {
+  color: var(--wd-text-muted);
+  font-size: var(--wd-font-size-sm);
+  margin: 0;
+}
+
+.agent-activate-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--wd-spacing-2);
+  white-space: nowrap;
+}
+
 .manager-card-header {
   padding: var(--wd-spacing-6) var(--wd-spacing-8);
   border-bottom: 1px solid var(--wd-border-color);

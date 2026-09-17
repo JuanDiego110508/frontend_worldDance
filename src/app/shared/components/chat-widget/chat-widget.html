@@ -1,0 +1,67 @@
+<button
+  type="button"
+  class="wd-chat-launcher"
+  [class.wd-chat-launcher--open]="isOpen()"
+  (click)="toggle()"
+  [attr.aria-label]="isOpen() ? 'Cerrar chat' : 'Abrir chat con el asistente'"
+>
+  @if (!isOpen()) {
+    <span class="material-symbols-outlined">forum</span>
+  } @else {
+    <span class="material-symbols-outlined">close</span>
+  }
+</button>
+
+<div class="wd-chat-widget" [class.wd-chat-widget--open]="isOpen()">
+  <div class="wd-chat-header">
+    <div class="wd-chat-header-info">
+      <span class="wd-status-dot" [class.wd-status-dot--online]="isOnline()" [title]="isOnline() ? 'En línea' : 'Desconectado'"></span>
+      <h3>Asistente World Dance</h3>
+    </div>
+    <div class="wd-header-actions">
+      <button type="button" class="wd-icon-btn" title="Limpiar historial" (click)="clearHistory()">
+        <span class="material-symbols-outlined">delete_sweep</span>
+      </button>
+      <button type="button" class="wd-icon-btn" title="Cerrar chat" (click)="close()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="wd-chat-messages" #messagesEl>
+    @for (msg of messages(); track msg.id) {
+      <div class="wd-msg" [class]="'wd-msg--' + msg.role">
+        @if (msg.role === 'thinking') {
+          <span class="wd-loader"></span>
+        }
+        <span>{{ msg.content }}</span>
+      </div>
+    }
+  </div>
+
+  @if (suggestions().length > 0) {
+    <div class="wd-chat-suggestions">
+      @for (s of suggestions(); track s.command) {
+        <button type="button" class="wd-suggestion" (click)="applySuggestion(s)">
+          <span class="wd-suggestion-cmd">{{ s.command }}</span>
+          <span class="wd-suggestion-desc">{{ s.description }}</span>
+        </button>
+      }
+    </div>
+  }
+
+  <form class="wd-chat-input-area" (ngSubmit)="send()">
+    <input
+      #inputEl
+      type="text"
+      name="chatMessage"
+      placeholder="Pregúntame algo o escribe / para ver sugerencias..."
+      autocomplete="off"
+      [ngModel]="draft()"
+      (ngModelChange)="draft.set($event)"
+    >
+    <button type="submit" [disabled]="isSending()" aria-label="Enviar mensaje">
+      <span class="material-symbols-outlined">send</span>
+    </button>
+  </form>
+</div>
