@@ -8,6 +8,7 @@ import { ScheduleGenerationResponseDto, ScheduleStatus } from '../../models/sche
 import { ModalityResponseDto } from '../../../events/models/modality.model';
 import { finalize } from 'rxjs';
 import { ScheduleTimelineComponent } from '../../components/schedule-timeline/schedule-timeline';
+import { EnrollmentService } from '../../../enrollment/services/enrollment.service';
 
 @Component({
   selector: 'app-schedule-manager',
@@ -20,6 +21,7 @@ export class ScheduleManagerComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly schedulingService = inject(SchedulingService);
   private readonly modalityService = inject(ModalityService);
+  private readonly enrollmentService = inject(EnrollmentService);
 
   eventId = signal<number | null>(null);
   schedule = signal<ScheduleGenerationResponseDto | null>(null);
@@ -40,6 +42,8 @@ export class ScheduleManagerComponent implements OnInit {
 
   isLoading = signal<boolean>(false);
   isGenerating = signal<boolean>(false);
+  isActivatingAgent = signal<boolean>(false);
+  agentActivated = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
 
@@ -164,6 +168,33 @@ export class ScheduleManagerComponent implements OnInit {
         this.errorMessage.set('Error al generar el cronograma: ' + (err.error?.message || err.message));
       }
     });
+  }
+
+  /**
+   * Otorga al agente IA (cuenta WD_AGENT_EMAIL) el rol ADMIN sobre este evento
+   * (POST /enrollments/event/{eventId}/agent-admin). Solo el dueño del evento
+   * puede hacerlo; una vez activado, el agente puede generar/editar el
+   * cronograma del evento cuando se lo pidan por el chat.
+   */
+  activateAgent() {
+    const id = this.eventId();
+    if (!id) return;
+
+    this.isActivatingAgent.set(true);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+
+    this.enrollmentService.activateAgentForEvent(id)
+      .pipe(finalize(() => this.isActivatingAgent.set(false)))
+      .subscribe({
+        next: () => {
+          this.agentActivated.set(true);
+          this.successMessage.set('Agente IA activado: ya puede generar o editar el cronograma de este evento desde el chat.');
+        },
+        error: (err) => {
+          this.errorMessage.set('No se pudo activar el agente: ' + (err.error?.message || err.message));
+        }
+      });
   }
 
   updateStatus(status: ScheduleStatus) {

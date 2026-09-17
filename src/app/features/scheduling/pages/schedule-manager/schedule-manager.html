@@ -13,6 +13,32 @@
       <div class="spinner-large"></div>
     </div>
 
+    <!-- Agente IA: le da acceso ADMIN sobre este evento para que pueda generar/editar el cronograma por chat -->
+    <div *ngIf="!isLoading()" class="manager-card fade-in agent-card">
+      <div class="manager-card-body agent-card-body">
+        <div class="agent-card-info">
+          <h3 class="section-title">
+            <span class="material-symbols-outlined text-purple">smart_toy</span>
+            Asistente IA
+          </h3>
+          <p class="agent-card-desc">
+            Activa el agente para este evento y luego pídele por el chat que genere o ajuste el cronograma
+            (ej. "Genera el cronograma de este evento"). Solo tú, como organizador, puedes activarlo.
+          </p>
+        </div>
+        <button type="button" (click)="activateAgent()" [disabled]="isActivatingAgent() || agentActivated()"
+          class="btn btn-outline agent-activate-btn">
+          <ng-container *ngIf="isActivatingAgent(); else notActivating">
+            <span class="spinner"></span> Activando...
+          </ng-container>
+          <ng-template #notActivating>
+            <span class="material-symbols-outlined">{{ agentActivated() ? 'check_circle' : 'bolt' }}</span>
+            {{ agentActivated() ? 'Agente activado' : 'Activar agente' }}
+          </ng-template>
+        </button>
+      </div>
+    </div>
+
     <div *ngIf="successMessage()" class="alert-message success">
       <span class="material-symbols-outlined">check_circle</span>
       <p style="margin: 0;">{{ successMessage() }}</p>

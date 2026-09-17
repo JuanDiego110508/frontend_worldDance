@@ -72,4 +72,14 @@ export class EnrollmentService {
   getUserEventRole(eventId: number, userId: number): Observable<UserEventRoleResponseDto> {
     return this.http.get<UserEventRoleResponseDto>(`${this.baseUrl}/events/${eventId}/users/${userId}/role`);
   }
+
+  /**
+   * POST /enrollments/event/{eventId}/agent-admin
+   * Resuelve la cuenta del Agente IA (WD_AGENT_EMAIL) y le asigna el rol ADMIN
+   * en este evento. Solo puede invocarlo el dueño del evento (lo valida el backend).
+   * Tras esto, el agente puede generar/editar el cronograma del evento vía chat.
+   */
+  activateAgentForEvent(eventId: number): Observable<UserEventRoleResponseDto> {
+    return this.http.post<UserEventRoleResponseDto>(`${this.baseUrl}/event/${eventId}/agent-admin`, {});
+  }
 }
