@@ -48,32 +48,28 @@ export class ReportsDashboardComponent implements OnInit {
 
   private loadEvents(): void {
     this.isLoadingEvents.set(true);
-    // Asumiendo que getEvents() devuelve Observable<EventSummary[]>
-    // Podria requerir paginacion dependiendo de la definicion de EventService
-    this.eventService.getEvents().pipe(
+    // 'MINE': el backend (ms-event-category) ya filtra por dueño via X-User-Id,
+    // asi que aqui solo se listan los eventos propios (antes se traian TODOS
+    // los eventos sin filtrar, exponiendo descargas de eventos ajenos).
+    this.eventService.getEventsPage(0, 100, 'MINE').pipe(
       catchError(err => {
         console.error('Error loading events', err);
-        return of([]);
+        return of(null);
       }),
       finalize(() => this.isLoadingEvents.set(false))
-    ).subscribe(data => {
-      // Dependiendo de la estructura de getEvents(), podria venir paginado.
-      // Ajustaremos si data no es directamente un array.
-      if (Array.isArray(data)) {
-        this.events.set(data);
-      } else {
-        const anyData = data as any;
-        if (anyData && typeof anyData === 'object' && 'content' in anyData) {
-          this.events.set(anyData.content);
-        }
-      }
+    ).subscribe(page => {
+      this.events.set(page?.content ?? []);
     });
+  }
+
+  eventId(event: EventResponseDto): number {
+    return event.idEvent ?? event.id ?? event.IdEvent ?? 0;
   }
 
   downloadPdf(eventId: number, eventName: string): void {
     if (this.isDownloading()) return;
     this.isDownloading.set(true);
-    
+
     this.reportsService.exportEventReportPdf(eventId).pipe(
       finalize(() => this.isDownloading.set(false))
     ).subscribe({
@@ -96,7 +92,7 @@ export class ReportsDashboardComponent implements OnInit {
   downloadExcel(eventId: number, eventName: string): void {
     if (this.isDownloading()) return;
     this.isDownloading.set(true);
-    
+
     this.reportsService.exportEventReportExcel(eventId).pipe(
       finalize(() => this.isDownloading.set(false))
     ).subscribe({
