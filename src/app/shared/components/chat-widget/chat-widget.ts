@@ -1,9 +1,17 @@
 import { Component, ChangeDetectionStrategy, signal, computed, inject, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { Observable, finalize } from 'rxjs';
 import { AgentChatService, AgentChatMessage } from '../../../core/services/agent-chat.service';
+import { ReportsService } from '../../../features/reports/services/reports.service';
+import { DownloadLink, ParsedMessage, parseMessageContent } from './chat-message-formatter';
 
-type DisplayMessage = (AgentChatMessage | { role: 'thinking'; content: string }) & { id: number };
+type DisplayMessage = (AgentChatMessage | { role: 'thinking'; content: string }) & {
+  id: number;
+  timestamp: number;
+  parsed: ParsedMessage | null;
+};
 
 interface ChatSuggestion {
   command: string;
@@ -34,6 +42,8 @@ const CHAT_SUGGESTIONS: ChatSuggestion[] = [
 })
 export class ChatWidgetComponent implements AfterViewChecked {
   private readonly agentChat = inject(AgentChatService);
+  private readonly reportsService = inject(ReportsService);
+  private readonly http = inject(HttpClient);
 
   @ViewChild('messagesEl') private messagesEl?: ElementRef<HTMLDivElement>;
   @ViewChild('inputEl') private inputEl?: ElementRef<HTMLInputElement>;
@@ -53,6 +63,10 @@ export class ChatWidgetComponent implements AfterViewChecked {
     const query = text.slice(1).toLowerCase();
     return CHAT_SUGGESTIONS.filter(s => s.command.slice(1).toLowerCase().startsWith(query));
   });
+
+  readonly statusText = computed(() =>
+    this.isOnline() ? 'En línea • Competiciones & Pistas' : 'Reconectando…'
+  );
 
   private historyLoaded = false;
   private statusTimer?: ReturnType<typeof setInterval>;
@@ -133,7 +147,69 @@ export class ChatWidgetComponent implements AfterViewChecked {
   }
 
   private withId(message: AgentChatMessage | { role: 'thinking'; content: string }): DisplayMessage {
-    return { ...message, id: this.nextMessageId++ };
+    return {
+      ...message,
+      id: this.nextMessageId++,
+      timestamp: Date.now(),
+      parsed: message.role === 'assistant' ? parseMessageContent(message.content) : null
+    };
+  }
+
+  formatTime(timestamp: number): string {
+    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  private readonly downloadingUrls = signal<Set<string>>(new Set());
+
+  isDownloading(link: DownloadLink): boolean {
+    return this.downloadingUrls().has(link.url);
+  }
+
+  /** Descarga un reporte que el asistente generó (ver wd_exportar_reporte_pdf/
+   * excel): reusa ReportsService -- el mismo GET con responseType 'blob' que
+   * ya usa la página de Reportes -- para que viaje con el Bearer token de
+   * quien está chateando (el interceptor lo agrega solo), no con las
+   * credenciales de la cuenta de servicio del agente. */
+  download(link: DownloadLink): void {
+    if (this.isDownloading(link)) return;
+    this.downloadingUrls.update(set => new Set(set).add(link.url));
+
+    const source: Observable<Blob> = link.eventId != null
+      ? link.format === 'pdf'
+        ? this.reportsService.exportEventReportPdf(link.eventId)
+        : this.reportsService.exportEventReportExcel(link.eventId)
+      : this.http.get(link.url, { responseType: 'blob' });
+
+    const mimeType = link.format === 'pdf'
+      ? 'application/pdf'
+      : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    const filename = `Reporte_Evento_${link.eventId ?? 'WorldDance'}.${link.format === 'pdf' ? 'pdf' : 'xlsx'}`;
+
+    source.pipe(
+      finalize(() => this.downloadingUrls.update(set => {
+        const next = new Set(set);
+        next.delete(link.url);
+        return next;
+      }))
+    ).subscribe({
+      next: (blob) => {
+        const typedBlob = new Blob([blob], { type: mimeType });
+        const objectUrl = window.URL.createObjectURL(typedBlob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = filename;
+        a.click();
+        window.URL.revokeObjectURL(objectUrl);
+      },
+      error: (err) => {
+        console.error('Error al descargar el reporte del asistente', err);
+        this.messages.update(msgs => [
+          ...msgs,
+          this.withId({ role: 'assistant', content: `No se pudo descargar el archivo. Puedes intentar abrir el enlace directamente: ${link.url}` })
+        ]);
+        this.scrollToBottom();
+      }
+    });
   }
 
   private replaceThinking(final: DisplayMessage): void {
