@@ -149,7 +149,7 @@ export class EnrollmentFormComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading.set(false);
-        const backendMsg = error.error?.message || 'Hubo un error al procesar tu inscripción. Intenta de nuevo.';
+        const backendMsg = error.error?.message || error.message || 'Hubo un error al procesar tu inscripción. Intenta de nuevo.';
         this.errorMessage.set(backendMsg);
         console.error('Enrollment error:', error);
       }
