@@ -1,13 +1,20 @@
-import { Component, inject, OnInit, signal, HostListener, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, signal, HostListener, computed, DestroyRef, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, interval, of, startWith, switchMap } from 'rxjs';
 import { AuthService } from '../../../features/auth/services/auth.service';
+import { StreamService } from '../../../features/streaming/services/stream.service';
+import { LiveStreamSummary } from '../../../features/streaming/models/stream.model';
 
 interface NavItem {
   label: string;
   route: string;
   icon?: string;
 }
+
+/** Cada cuánto se revisa si hay eventos en vivo, para refrescar el indicador de la navbar. */
+const LIVE_POLL_INTERVAL_MS = 30000;
 
 @Component({
   selector: 'app-navbar',
@@ -19,6 +26,9 @@ interface NavItem {
 export class NavbarComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly streamService = inject(StreamService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly destroyRef = inject(DestroyRef);
 
   isScrolled = signal<boolean>(false);
   darkMode = signal<boolean>(true);
@@ -41,7 +51,8 @@ export class NavbarComponent implements OnInit {
     { label: 'Gestión Inscripciones', route: '/enrollment', icon: 'admin_panel_settings' }
   ];
 
-  liveStreams = signal<any[]>([]);
+  /** Eventos con statusStream=LIVE en este momento (ver StreamService.getLiveStreams()). */
+  liveStreams = signal<LiveStreamSummary[]>([]);
   hasLiveStreams = computed(() => this.liveStreams().length > 0);
 
   @HostListener('window:scroll', [])
@@ -55,6 +66,19 @@ export class NavbarComponent implements OnInit {
       this.isProfileMenuOpen.set(false);
       this.isLiveMenuOpen.set(false);
     });
+
+    if (isPlatformBrowser(this.platformId)) {
+      this.pollLiveStreams();
+    }
+  }
+
+  /** Refresca liveStreams cada LIVE_POLL_INTERVAL_MS; solo debe correr en el navegador (SSR no tiene sentido para esto). */
+  private pollLiveStreams(): void {
+    interval(LIVE_POLL_INTERVAL_MS).pipe(
+      startWith(0),
+      switchMap(() => this.streamService.getLiveStreams().pipe(catchError(() => of([] as LiveStreamSummary[])))),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(streams => this.liveStreams.set(streams));
   }
 
   toggleMenu() {
