@@ -17,15 +17,22 @@ import { environment } from '../../../../environments/environment';
 })
 export class EnrollmentService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/enrollment`;
+  private readonly apiUrl = `${environment.apiUrl}/enrollments`;
 
   getEnrollments(eventId?: number): Observable<EnrollmentResponseDto[]> {
-    const url = eventId ? `${this.apiUrl}?eventId=${eventId}` : this.apiUrl;
-    return this.http.get<EnrollmentResponseDto[]>(url);
+    if (eventId) {
+      return this.http.get<EnrollmentResponseDto[]>(`${this.apiUrl}/event/${eventId}`);
+    }
+    // Si no hay eventId, el backend no expone un endpoint para listar TODAS las inscripciones.
+    // Retornamos un arreglo vacío.
+    return new Observable(subscriber => {
+      subscriber.next([]);
+      subscriber.complete();
+    });
   }
 
   getMyEnrollments(): Observable<EnrollmentResponseDto[]> {
-    return this.http.get<EnrollmentResponseDto[]>(`${this.apiUrl}/my-enrollments`);
+    return this.http.get<EnrollmentResponseDto[]>(`${this.apiUrl}/my`);
   }
 
   getEnrollmentById(id: number): Observable<EnrollmentResponseDto> {
@@ -33,22 +40,27 @@ export class EnrollmentService {
   }
 
   createEnrollment(data: CreateEnrollmentRequest): Observable<EnrollmentResponseDto> {
-    return this.http.post<EnrollmentResponseDto>(this.apiUrl, data);
+    return this.http.post<EnrollmentResponseDto>(`${this.apiUrl}/enrollment`, data);
   }
 
   getEnrollmentsByEvent(eventId: number): Observable<EnrollmentResponseDto[]> {
-    return this.http.get<EnrollmentResponseDto[]>(`${this.apiUrl}?eventId=${eventId}`);
+    return this.http.get<EnrollmentResponseDto[]>(`${this.apiUrl}/event/${eventId}`);
   }
 
   getEnrollmentsByCategory(category: string): Observable<EnrollmentResponseDto[]> {
-    return this.http.get<EnrollmentResponseDto[]>(`${this.apiUrl}?category=${category}`);
+    return this.http.get<EnrollmentResponseDto[]>(`${this.apiUrl}/category/${category}`);
   }
 
   getUserEventRole(eventId: number, userId: number): Observable<{ roleInEvent: EventRole }> {
-    return this.http.get<{ roleInEvent: EventRole }>(`${this.apiUrl}/role?eventId=${eventId}&userId=${userId}`);
+    return this.http.get<{ roleInEvent: EventRole }>(`${this.apiUrl}/events/${eventId}/users/${userId}/role`);
   }
 
   updateEnrollmentStatus(id: number, status: EnrollmentStatus): Observable<EnrollmentResponseDto> {
-    return this.http.patch<EnrollmentResponseDto>(`${this.apiUrl}/${id}/status`, { status });
+    const payload = {
+      enrollmentId: id,
+      status: status,
+      reason: status === 'REJECTED' ? 'Razón no especificada por el administrador' : null
+    };
+    return this.http.patch<EnrollmentResponseDto>(`${this.apiUrl}/approve`, payload);
   }
 }
