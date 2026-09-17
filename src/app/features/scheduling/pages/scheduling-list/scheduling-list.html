@@ -1,0 +1,154 @@
+<div class="w-full min-h-screen bg-[#0c1322] text-[#dce2f7]">
+  <div class="relative w-full overflow-hidden">
+    <div class="absolute -top-40 left-1/4 -translate-x-1/2 w-[650px] h-[350px] bg-[#1e3a8a]/20 rounded-full blur-[130px] pointer-events-none"></div>
+    <div class="absolute top-48 right-10 w-[450px] h-[300px] bg-[#2563eb]/15 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <div class="relative max-w-[1280px] w-full mx-auto px-4 sm:px-8 py-10 flex flex-col gap-8">
+      
+      <!-- Header -->
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div class="flex flex-col gap-1 max-w-2xl">
+          <div class="flex items-center gap-1.5">
+            <span class="inline-flex w-2 h-2 rounded-full bg-[#bfdbfe] animate-ping"></span>
+            <span class="font-['Sora'] text-[12px] font-bold uppercase text-[#93c5fd] tracking-widest">Cronogramas &middot; Temporada 2026</span>
+          </div>
+          <h1 class="font-['Sora'] text-[32px] sm:text-[40px] font-bold text-[#dce2f7] tracking-tight leading-tight">
+            Cronogramas de Eventos
+          </h1>
+          <p class="text-[#ccc3d8] text-[15px]">Selecciona un evento para gestionar o visualizar su cronograma oficial.</p>
+        </div>
+      </div>
+
+      <!-- Filtros (Mis Eventos) y búsqueda -->
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-2 rounded-xl bg-[#141b2b] shadow-lg">
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0" *ngIf="currentUserId() !== null">
+          <button type="button" (click)="setStatusFilter('ALL')"
+            [ngClass]="statusFilter() === 'ALL' ? 'bg-[#1e3a8a] text-white shadow-[0_0_16px_rgba(30,58,138,0.35)]' : 'bg-transparent text-[#ccc3d8] hover:text-[#dce2f7] hover:bg-[#232a3a]'"
+            class="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 shrink-0 border-0">
+            Todos
+            <span class="px-1.5 py-0.5 rounded-full bg-black/20 text-[11px] font-mono">{{ counts().all }}</span>
+          </button>
+          <button type="button" (click)="setStatusFilter('MINE')"
+            [ngClass]="statusFilter() === 'MINE' ? 'bg-[#1e3a8a] text-white shadow-[0_0_16px_rgba(30,58,138,0.35)]' : 'bg-transparent text-[#ccc3d8] hover:text-[#dce2f7] hover:bg-[#232a3a]'"
+            class="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 shrink-0 border-0">
+            Mis Eventos
+            <span class="px-1.5 py-0.5 rounded-full bg-black/20 text-[11px] font-mono">{{ counts().mine }}</span>
+          </button>
+          <button type="button" (click)="setStatusFilter('ACTIVE')"
+            [ngClass]="statusFilter() === 'ACTIVE' ? 'bg-[#1e3a8a] text-white shadow-[0_0_16px_rgba(30,58,138,0.35)]' : 'bg-transparent text-[#ccc3d8] hover:text-[#dce2f7] hover:bg-[#232a3a]'"
+            class="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 shrink-0 border-0">
+            Activos
+            <span class="px-1.5 py-0.5 rounded-full bg-black/20 text-[11px] font-mono">{{ counts().active }}</span>
+          </button>
+        </div>
+        <div class="relative w-full md:w-96 flex items-center ml-auto">
+          <span class="material-symbols-outlined absolute left-3.5 text-[#958da1] pointer-events-none text-base">search</span>
+          <input type="text" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)"
+            placeholder="Buscar evento..."
+            class="w-full h-11 pl-10 pr-4 rounded-lg bg-[#232a3a]/70 hover:bg-[#232a3a] focus:bg-[#191f2f] text-[#dce2f7] placeholder:text-[#958da1] text-sm outline-none focus:shadow-[0_0_0_2px_rgba(30,58,138,0.5)] transition-all" />
+        </div>
+      </div>
+
+      <!-- Estado de carga / error -->
+      <div class="text-center py-16 text-[#ccc3d8]" *ngIf="isLoading()">Cargando eventos&hellip;</div>
+      <div class="text-center py-16 text-[#ffb4ab]" *ngIf="!isLoading() && loadError()">{{ loadError() }}</div>
+
+      <!-- Vacío -->
+      <div class="flex flex-col items-center justify-center py-16 text-center gap-4 bg-[#141b2b] rounded-xl p-10"
+        *ngIf="!isLoading() && !loadError() && filteredEvents().length === 0">
+        <div class="w-16 h-16 rounded-full bg-[#232a3a] flex items-center justify-center text-[#958da1]">
+          <span class="material-symbols-outlined text-4xl">search_off</span>
+        </div>
+        <div class="flex flex-col gap-1 max-w-sm">
+          <h4 class="font-['Sora'] text-lg text-[#dce2f7]">No se encontraron eventos</h4>
+          <p class="text-sm text-[#ccc3d8]">Prueba ajustar la búsqueda o cambiar de pestaña.</p>
+        </div>
+      </div>
+
+      <!-- Grid de eventos -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        *ngIf="!isLoading() && !loadError() && filteredEvents().length > 0">
+        <article *ngFor="let event of filteredEvents()"
+          class="group flex flex-col justify-between rounded-xl bg-[#141b2b] hover:bg-[#191f2f] transition-all duration-300 shadow-lg hover:shadow-[0_8px_30px_rgba(30,58,138,0.15)] hover:-translate-y-1 overflow-hidden">
+          <div class="relative w-full h-48 overflow-hidden">
+            <img [src]="cardImage(event)" alt=""
+              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <div class="absolute inset-0 bg-gradient-to-t from-[#141b2b] via-[#141b2b]/30 to-transparent"></div>
+            <div class="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
+              <span
+                [ngClass]="event.status === 'ACTIVE' ? 'bg-emerald-950/70 text-emerald-300' : 'bg-[#2e3545]/90 text-[#ccc3d8]'"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full backdrop-blur-md text-[11px] font-bold uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full"
+                  [ngClass]="event.status === 'ACTIVE' ? 'bg-emerald-400' : 'bg-[#958da1]'"></span>
+                {{ statusLabels[event.status] }}
+              </span>
+              <span
+                class="font-mono text-[11px] text-[#93c5fd] bg-[#0c1322]/85 backdrop-blur-md px-2 py-0.5 rounded-full uppercase tracking-wider">
+                {{ eventCode(event) }}
+              </span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-3 p-5 flex-1 justify-between">
+            <div class="flex flex-col gap-2">
+              <h3 class="font-['Sora'] text-lg font-semibold text-[#dce2f7] group-hover:text-[#bfdbfe] transition-colors line-clamp-1">
+                {{ event.name }}
+              </h3>
+              <p class="text-sm text-[#ccc3d8] line-clamp-2">{{ event.description }}</p>
+              <div class="flex flex-col gap-1 pt-1">
+                <div class="flex items-center gap-1.5 text-[#ccc3d8] text-sm">
+                  <span class="material-symbols-outlined text-[#93c5fd] text-base shrink-0">location_on</span>
+                  <span class="truncate">{{ event.location }}</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-[#ccc3d8] text-sm">
+                  <span class="material-symbols-outlined text-[#93c5fd] text-base shrink-0">calendar_today</span>
+                  {{ event.startDate | date:'dd/MM/yyyy' }} - {{ event.endDate | date:'dd/MM/yyyy' }}
+                </div>
+              </div>
+            </div>
+            
+            <!-- Botón Cronograma -->
+            <div class="pt-4 mt-2">
+              <ng-container *ngIf="isOwner(event)">
+                <a [routerLink]="['/schedule/admin', event.idEvent]"
+                  class="link-onprimary w-full px-4 py-3 rounded-lg bg-[#1e3a8a] hover:bg-[#1e40af] !text-white text-sm font-semibold text-center transition-all shadow-[0_0_16px_rgba(30,58,138,0.4)] flex items-center justify-center gap-2">
+                  <span class="material-symbols-outlined text-[20px]">calendar_clock</span>
+                  Generar Cronograma
+                </a>
+              </ng-container>
+              <ng-container *ngIf="!isOwner(event)">
+                <a [routerLink]="['/schedule/view', event.idEvent]"
+                  class="link-onprimary w-full px-4 py-3 rounded-lg bg-[#1e3a8a] hover:bg-[#1e40af] !text-white text-sm font-semibold text-center transition-all shadow-[0_0_16px_rgba(30,58,138,0.4)] flex items-center justify-center gap-2">
+                  <span class="material-symbols-outlined text-[20px]">calendar_clock</span>
+                  Ver Cronograma
+                </a>
+              </ng-container>
+            </div>
+
+          </div>
+        </article>
+      </div>
+
+      <!-- Paginación -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 pb-4 text-sm text-[#ccc3d8]"
+        *ngIf="!isLoading() && !loadError() && totalElements() > 0">
+        <span>Mostrando {{ filteredEvents().length }} de {{ totalElements() }} eventos</span>
+        <div class="flex items-center gap-1.5" *ngIf="totalPages() > 1">
+          <button type="button" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 0"
+            class="w-9 h-9 rounded-lg bg-[#141b2b] text-[#958da1] disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:bg-[#232a3a] flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-base">chevron_left</span>
+          </button>
+          <button type="button" *ngFor="let p of pageNumbers()" (click)="goToPage(p)"
+            [ngClass]="p === currentPage() ? 'bg-[#1e3a8a] text-white shadow-[0_0_10px_rgba(30,58,138,0.4)]' : 'bg-[#141b2b] hover:bg-[#232a3a] text-[#ccc3d8]'"
+            class="w-9 h-9 rounded-lg font-mono text-sm flex items-center justify-center transition-colors">
+            {{ p + 1 }}
+          </button>
+          <button type="button" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() >= totalPages() - 1"
+            class="w-9 h-9 rounded-lg bg-[#141b2b] text-[#958da1] disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:bg-[#232a3a] flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-base">chevron_right</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -14,50 +14,44 @@
             <span class="font-mono text-[11px] font-bold uppercase text-[#d0bcff] tracking-widest">Panel de Administración</span>
           </div>
           <h1 class="font-['Sora'] text-[32px] sm:text-[40px] font-bold text-[#dce2f7] tracking-tight leading-tight">Gestión de Inscripciones</h1>
-          <p class="text-[#ccc3d8] text-[15px]">Filtra por categoría, aprueba competidores y rechaza solicitudes que no cumplan el reglamento.</p>
+          <p class="text-[#ccc3d8] text-[15px]">Elige uno de tus eventos, aprueba competidores y rechaza solicitudes que no cumplan el reglamento.</p>
         </div>
       </div>
 
       <!-- Barra de Filtros -->
       <div class="relative z-50 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-3 rounded-2xl bg-[#141b2b]/90 backdrop-blur-xl shadow-lg border border-white/5">
-        
-        <!-- Dropdown de Categoría -->
-        <div class="relative w-full md:w-72">
+
+        <!-- Dropdown de Mis Eventos -->
+        <div class="relative w-full md:w-80">
           <!-- Botón de Dropdown -->
           <button
             type="button"
             (click)="toggleDropdown()"
-            class="w-full h-11 pl-4 pr-10 rounded-xl bg-[#232a3a] border border-transparent hover:bg-[#2e3545] focus:bg-[#191f2f] focus:border-[#7c3aed]/50 focus:shadow-[0_0_0_4px_rgba(124,58,237,0.15)] text-[#dce2f7] text-sm text-left transition-all outline-none flex items-center justify-between"
+            [disabled]="isLoadingEvents() || myEvents().length === 0"
+            class="w-full h-11 pl-4 pr-10 rounded-xl bg-[#232a3a] border border-transparent hover:bg-[#2e3545] focus:bg-[#191f2f] focus:border-[#7c3aed]/50 focus:shadow-[0_0_0_4px_rgba(124,58,237,0.15)] text-[#dce2f7] text-sm text-left transition-all outline-none flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span class="truncate">
-              {{ selectedCategory() ? categoryLabels[selectedCategory()!] : 'Selecciona una categoría...' }}
+              {{ isLoadingEvents() ? 'Cargando tus eventos...' : (selectedEvent()?.name ?? (myEvents().length === 0 ? 'No tienes eventos creados' : 'Selecciona un evento...')) }}
             </span>
             <span class="material-symbols-outlined absolute right-3 text-[#958da1] transition-transform duration-200" [class.rotate-180]="isDropdownOpen()">expand_more</span>
           </button>
-          
+
           <!-- Opciones (Flotante) -->
           @if (isDropdownOpen()) {
             <div class="absolute z-50 top-[calc(100%+8px)] left-0 w-full rounded-xl overflow-hidden animate-in fade-in slide-in-from-top-2" style="background-color: #191f2f; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
               <ul class="max-h-60 overflow-y-auto custom-scrollbar py-1" style="background-color: #191f2f; margin: 0; padding: 4px 0; list-style: none;">
-                <li style="border-bottom: 1px solid rgba(255,255,255,0.05); margin: 0;">
-                  <button type="button" style="width: 100%; text-align: left; padding: 10px 16px; font-size: 14px; color: #958da1; background: transparent; border: none; cursor: pointer;"
-                          class="hover:bg-[#232a3a] hover:text-[#dce2f7] transition-colors" 
-                          (click)="onCategoryChange('')">
-                    Selecciona una categoría...
-                  </button>
-                </li>
-                @for (option of categoryOptions; track option) {
+                @for (event of myEvents(); track event.idEvent) {
                   <li style="border-bottom: 1px solid rgba(255,255,255,0.05); margin: 0;">
                     <button type="button" style="width: 100%; text-align: left; padding: 10px 16px; font-size: 14px; color: #dce2f7; background: transparent; border: none; cursor: pointer;"
-                            class="hover:bg-[#7c3aed] hover:text-white transition-colors" 
-                            (click)="onCategoryChange(option)">
-                      {{ categoryLabels[option] }}
+                            class="hover:bg-[#7c3aed] hover:text-white transition-colors"
+                            (click)="onEventChange(event.idEvent)">
+                      {{ event.name }}
                     </button>
                   </li>
                 }
               </ul>
             </div>
-            
+
             <!-- Backdrop invisible para cerrar al hacer clic afuera -->
             <div class="fixed inset-0 z-40" (click)="isDropdownOpen.set(false)"></div>
           }
@@ -102,13 +96,21 @@
 
       <!-- Tabla principal -->
       @if (!isLoading() && !errorMessage()) {
-        @if (!selectedCategory()) {
+        @if (!isLoadingEvents() && myEvents().length === 0) {
+          <div class="flex flex-col items-center justify-center py-24 text-center gap-4 bg-[#141b2b] rounded-2xl border border-white/5">
+            <div class="w-20 h-20 rounded-full bg-[#232a3a] flex items-center justify-center text-[#958da1]">
+              <span class="material-symbols-outlined text-[40px]">event_busy</span>
+            </div>
+            <h4 class="font-['Sora'] text-xl font-semibold text-[#dce2f7]">No tienes eventos creados</h4>
+            <p class="text-sm text-[#ccc3d8] max-w-sm">Crea un evento para poder gestionar las inscripciones de sus participantes.</p>
+          </div>
+        } @else if (!selectedEvent()) {
           <div class="flex flex-col items-center justify-center py-24 text-center gap-4 bg-[#141b2b] rounded-2xl border border-white/5">
             <div class="w-20 h-20 rounded-full bg-[#232a3a] flex items-center justify-center text-[#958da1]">
               <span class="material-symbols-outlined text-[40px]">filter_alt</span>
             </div>
-            <h4 class="font-['Sora'] text-xl font-semibold text-[#dce2f7]">Selecciona una categoría</h4>
-            <p class="text-sm text-[#ccc3d8] max-w-sm">Debes elegir una categoría en el filtro superior para cargar las inscripciones correspondientes.</p>
+            <h4 class="font-['Sora'] text-xl font-semibold text-[#dce2f7]">Selecciona un evento</h4>
+            <p class="text-sm text-[#ccc3d8] max-w-sm">Elige uno de tus eventos en el filtro superior para ver quiénes están inscritos.</p>
           </div>
         } @else if (filteredEnrollments().length > 0) {
           
@@ -118,7 +120,7 @@
                 <thead>
                   <tr class="bg-[#191f2f]/80 text-[#ccc3d8] uppercase font-mono text-[11px] border-b border-white/5">
                     <th class="py-4 px-6 font-semibold">Participante</th>
-                    <th class="py-4 px-6 font-semibold">Evento / Mod.</th>
+                    <th class="py-4 px-6 font-semibold">Modalidad</th>
                     <th class="py-4 px-6 font-semibold">Estado</th>
                     <th class="py-4 px-6 font-semibold">Registro</th>
                     <th class="py-4 px-6 font-semibold text-right">Acciones</th>
@@ -132,14 +134,14 @@
                           <div class="w-10 h-10 rounded-full bg-[#232a3a] flex items-center justify-center text-[#dce2f7] shadow-inner font-mono text-[11px]">
                             U#{{ enrollment.userId }}
                           </div>
-                          <span class="text-sm font-semibold text-[#dce2f7] group-hover:text-[#d2bbff] transition-colors">Usuario {{ enrollment.userId }}</span>
+                          <div class="flex flex-col">
+                            <span class="text-sm font-semibold text-[#dce2f7] group-hover:text-[#d2bbff] transition-colors">{{ participantName(enrollment) }}</span>
+                            <span class="text-xs text-[#958da1]" *ngIf="enrollment.participant?.email">{{ enrollment.participant?.email }}</span>
+                          </div>
                         </div>
                       </td>
                       <td class="py-4 px-6">
-                        <div class="flex flex-col gap-1">
-                          <span class="text-sm text-[#dce2f7] font-medium">Evento #{{ enrollment.eventId }}</span>
-                          <span class="text-xs text-[#958da1] font-mono">{{ getModalityName(enrollment.modalityId) }}</span>
-                        </div>
+                        <span class="text-xs text-[#958da1] font-mono">{{ getModalityName(enrollment.modalityId) }}</span>
                       </td>
                       <td class="py-4 px-6">
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border"
@@ -211,7 +213,7 @@
               <span class="material-symbols-outlined text-[40px]">inbox</span>
             </div>
             <h4 class="font-['Sora'] text-xl font-semibold text-[#dce2f7]">No hay inscripciones</h4>
-            <p class="text-sm text-[#ccc3d8] max-w-sm">No existen inscripciones que coincidan con la categoría y el filtro de estado actual.</p>
+            <p class="text-sm text-[#ccc3d8] max-w-sm">Todavía no hay inscripciones para este evento con el filtro de estado actual.</p>
           </div>
         }
       }

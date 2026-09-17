@@ -164,6 +164,10 @@
                             class="w-9 h-9 rounded-lg bg-[#232a3a] hover:bg-[#93000a] text-[#ccc3d8] hover:text-[#ffdad6] inline-flex items-center justify-center transition-colors ml-1.5">
                       <span class="material-symbols-outlined text-base">delete</span>
                     </button>
+                    <button type="button" *ngIf="eventId()" [routerLink]="['/scoring/results', eventId(), modality.id]" title="Panel de Resultados / Evaluación"
+                            class="w-9 h-9 rounded-lg bg-[#232a3a] hover:bg-[#7c3aed] text-[#ccc3d8] hover:text-[#fff] inline-flex items-center justify-center transition-colors ml-1.5">
+                      <span class="material-symbols-outlined text-base">leaderboard</span>
+                    </button>
                   </ng-container>
                   <ng-template #participantActions>
                     <a *ngIf="eventId()" [routerLink]="['/enrollment/new', eventId()]"

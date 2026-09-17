@@ -1,0 +1,45 @@
+<div class="schedule-viewer-container container">
+  <div class="content-wrapper">
+    
+    <div class="header-section">
+      <a routerLink="/schedule" class="btn btn-ghost" style="padding-left: 0;">
+        <span class="material-symbols-outlined">arrow_back</span> Cronogramas
+      </a>
+      <h1 class="header-title">Cronograma Oficial</h1>
+      <p class="text-gray">Sigue en tiempo real el orden de las presentaciones.</p>
+    </div>
+
+    <div *ngIf="isLoading()" class="loading-container">
+      <div class="spinner-large"></div>
+    </div>
+
+    <div *ngIf="errorMessage()" class="alert-message error">
+      <span class="material-symbols-outlined">event_busy</span>
+      <p style="margin: 0;">{{ errorMessage() }}</p>
+    </div>
+
+    <!-- Cuando SÍ hay cronograma -->
+    <ng-container *ngIf="!isLoading() && schedule() as currentSchedule">
+      
+      <!-- Info del Evento -->
+      <div class="event-info-card fade-in">
+        <h2>{{ currentSchedule.eventName || 'Evento #' + eventId() }}</h2>
+        <div style="display: flex; gap: var(--wd-spacing-4); color: var(--wd-text-muted); font-size: var(--wd-font-size-sm); margin-top: var(--wd-spacing-2);">
+          <span style="display: flex; align-items: center; gap: 4px;">
+            <span class="material-symbols-outlined" style="font-size: 16px;">calendar_month</span> 
+            {{ currentSchedule.eventStartDate | date:'mediumDate' }}
+          </span>
+          <span style="display: flex; align-items: center; gap: 4px;">
+            <span class="material-symbols-outlined" style="font-size: 16px;">format_list_numbered</span> 
+            {{ currentSchedule.totalSlots }} Turnos
+          </span>
+        </div>
+      </div>
+
+      <!-- Timeline Component -->
+      <app-schedule-timeline [schedule]="currentSchedule" [isAdmin]="false"></app-schedule-timeline>
+
+    </ng-container>
+
+  </div>
+</div>

@@ -34,6 +34,7 @@ export class ScoringHistoryComponent implements OnInit {
 
   searchTerm = signal<string>('');
   selectedEvent = signal<string>('');
+  selectedModality = signal<string>('');
   selectedDate = signal<string>('');
   sidebarActive = signal<string>('evaluation');
   isLoading = signal<boolean>(true);
@@ -92,11 +93,12 @@ export class ScoringHistoryComponent implements OnInit {
     return 'No events';
   });
 
-  /** Historial filtrado por búsqueda, evento y fecha. */
+  /** Historial filtrado por búsqueda, evento, modalidad y fecha. */
   filteredHistory = computed(() => {
     let entries = this.scoringHistory();
     const term = this.removeAccents(this.searchTerm().trim());
     const event = this.selectedEvent();
+    const modality = this.selectedModality();
     const date = this.selectedDate();
 
     if (term) {
@@ -119,6 +121,10 @@ export class ScoringHistoryComponent implements OnInit {
       entries = entries.filter(e => e.eventName === event);
     }
 
+    if (modality && modality !== '' && modality !== 'all') {
+      entries = entries.filter(e => e.category === modality);
+    }
+
     if (date) {
       entries = entries.filter(e => e.date.includes(date));
     }
@@ -132,35 +138,92 @@ export class ScoringHistoryComponent implements OnInit {
     return Array.from(new Set(evts.map(e => e.name)));
   });
 
+  /** Lista única de categorías (modalidades) para el dropdown de filtro. */
+  uniqueModalityNames = computed(() => {
+    const entries = this.scoringHistory();
+    return Array.from(new Set(entries.map(e => e.category)));
+  });
+
   ngOnInit(): void {
     this.loadRealData();
   }
 
-  /**
-   * Carga datos reales: 1) eventos, 2) modalidades de cada evento,
-   * 3) enrollments por categoría de cada modalidad.
-   */
   private loadRealData(): void {
     this.isLoading.set(true);
 
+    // Helper para extraer el ID sin importar cómo venga del backend
+    const extractEventId = (evt: any): number => {
+      if (evt.idEvent) return evt.idEvent;
+      if (evt.id) return evt.id;
+      if (evt.IdEvent) return evt.IdEvent;
+      if (evt.eventId) return evt.eventId;
+      if (evt.event_id) return evt.event_id;
+      if (evt.id_event) return evt.id_event;
+      return 0;
+    };
+
+    const extractEnrollmentId = (enr: any): string => {
+      if (enr.enrollmentId) return enr.enrollmentId.toString();
+      if (enr.id) return enr.id.toString();
+      return '0';
+    };
+
+    const user = this.authService.getCurrentUser();
+    const userId = user?.id ? Number(user.id) : null;
+
+    if (!userId) {
+      this.isLoading.set(false);
+      return;
+    }
+
     // Paso 1: Cargar todos los eventos
     this.eventService.getEvents().subscribe({
-      next: (events) => {
-        console.log('1. Events fetched:', events.length, events);
-        events.forEach(e => this.eventsMap.set(e.idEvent, e));
-
-        if (events.length === 0) {
+      next: (allEvents) => {
+        if (allEvents.length === 0) {
           console.warn('No events found, aborting.');
           this.isLoading.set(false);
           return;
         }
 
+        // Consultar el rol del usuario en cada evento
+        const roleRequests = allEvents.map(e => {
+          const eId = extractEventId(e);
+          return this.enrollmentService.getUserEventRole(eId, userId).pipe(
+            catchError(() => of(null)) // Si falla o no tiene rol, retorna null
+          );
+        });
+
+        forkJoin(roleRequests).subscribe({
+          next: (roles) => {
+            const juryEventIds = new Set<number>();
+            roles.forEach((role, idx) => {
+              if (role && role.roleInEvent === 'JURY') {
+                juryEventIds.add(extractEventId(allEvents[idx]));
+              }
+            });
+
+            // Filtrar solo los eventos donde es JURY
+            const events = allEvents.filter(e => juryEventIds.has(extractEventId(e)));
+            console.log('1. Events fetched (filtered for jury):', events.length);
+
+            if (events.length === 0) {
+              console.warn('No jury events found, aborting.');
+              this.isLoading.set(false);
+              return;
+            }
+
+            events.forEach(e => {
+              const eId = extractEventId(e);
+              this.eventsMap.set(eId, e);
+            });
+
         // Paso 2: Cargar modalidades de cada evento
-        const modalityRequests = events.map(e =>
-          this.modalityService.getModalitiesByEventId(e.idEvent).pipe(
+        const modalityRequests = events.map(e => {
+          const eId = extractEventId(e);
+          return this.modalityService.getModalitiesByEventId(eId).pipe(
             catchError(() => of([] as ModalityResponseDto[]))
-          )
-        );
+          );
+        });
 
         forkJoin(modalityRequests).subscribe({
           next: (allModalities) => {
@@ -172,62 +235,99 @@ export class ScoringHistoryComponent implements OnInit {
               });
             });
 
-            // Paso 3: Cargar enrollments por cada categoría única
-            const uniqueCategories = new Set(allMods.map(m => m.category));
-            console.log('2. Modalities fetched. Unique categories:', Array.from(uniqueCategories));
-            const categoryRequests = Array.from(uniqueCategories).map(cat =>
-              this.enrollmentService.getEnrollmentsByCategory(cat).pipe(
-                catchError(() => of([] as EnrollmentResponseDto[]))
-              )
-            );
+            // Paso 3: Cargar enrollments y resultados por cada modalidad para tener nombres y puntajes
+            console.log('2. Modalities fetched. Fetching enrollments and results...');
+            const eventEnrollmentRequests = events.map(evt => {
+              const evtId = extractEventId(evt);
+              return this.enrollmentService.getEnrollmentsByEvent(evtId).pipe(
+                catchError((err) => {
+                  console.warn(`No se pudieron obtener inscripciones para el evento ${evtId}:`, err);
+                  return of([] as EnrollmentResponseDto[]);
+                })
+              );
+            });
 
-            if (categoryRequests.length === 0) {
-              console.warn('No category requests to make, aborting.');
+            const resultRequests = allMods.map(m => {
+              const evtId = extractEventId(this.eventsMap.get(m.eventId) || m as any);
+              return this.scoringService.getResultsByModality(evtId.toString(), m.id.toString()).pipe(
+                catchError(() => of([] as any[]))
+              );
+            });
+
+            if (eventEnrollmentRequests.length === 0) {
+              console.warn('No enrollment requests to make, aborting.');
               this.isLoading.set(false);
               return;
             }
 
-            forkJoin(categoryRequests).subscribe({
-              next: (allEnrollments) => {
+            forkJoin([
+              forkJoin(eventEnrollmentRequests).pipe(catchError(() => of([]))),
+              resultRequests.length > 0 ? forkJoin(resultRequests).pipe(catchError(() => of([]))) : of([])
+            ]).subscribe({
+              next: ([allEnrollments, allResults]) => {
                 const entries: ScoringHistoryEntry[] = [];
-                const allEnrolls = allEnrollments.flat();
-                console.log('3. Enrollments fetched from all categories:', allEnrolls.length, allEnrolls);
+                const allEnrolls = (allEnrollments as any[]).flat();
+                const flatResults = (allResults as any[]).flat();
+                
+                // Mapa de resultados por enrollmentId
+                const resultMap = new Map<string, any>();
+                flatResults.forEach(r => resultMap.set(r.enrollmentId?.toString(), r));
 
-                allEnrolls.forEach(enrollment => {
+                console.log('3. Enrollments fetched:', allEnrolls.length, 'Results fetched:', flatResults.length);
+
+                allEnrolls.forEach((enrollment: any) => {
                   const event = this.eventsMap.get(enrollment.eventId);
                   const modality = this.modalitiesMap.get(enrollment.modalityId);
 
                   if (!event || !modality) return;
 
-                  // Solo mostrar participantes aprobados (TEMPORALMENTE COMENTADO PARA PRUEBAS)
-                  // if (enrollment.status !== 'APPROVED') return;
-
                   const categoryLabel = MODALITY_CATEGORY_LABELS[modality.category] || modality.category;
                   const categoryClass = this.getCategoryClass(modality.category);
                   const division = modality.division || 'SOLO';
-                  const participantType = division === 'SOLO' ? 'Soloist'
-                    : division === 'DUET' ? 'Duet' : 'Group';
+                  const participantType = division === 'SOLO' ? 'Soloist' : division === 'DUET' ? 'Duet' : 'Group';
+
+                  const enrId = extractEnrollmentId(enrollment);
+
+                  // Obtener datos del resultado si existe (esto nos da el participantName y el score real)
+                  const result = resultMap.get(enrId);
+                  const rawEnr = enrollment as any;
+                  
+                  let displayParticipantName = result?.participantName 
+                    || (rawEnr.participant?.name && rawEnr.participant?.lastName ? `${rawEnr.participant.name} ${rawEnr.participant.lastName}` : rawEnr.participant?.name)
+                    || rawEnr.userName 
+                    || ((rawEnr.firstName && rawEnr.lastName) ? `${rawEnr.firstName} ${rawEnr.lastName}` : null);
+                    
+                  // Como último recurso, usamos el ID, pero el result debería traer el nombre
+                  if (!displayParticipantName) {
+                     displayParticipantName = `Participante #${enrollment.userId}`;
+                  }
 
                   entries.push({
-                    id: enrollment.enrollmentId.toString(),
-                    participantName: `Participant #${enrollment.userId}`,
+                    id: enrId,
+                    participantName: displayParticipantName,
                     participantType,
                     eventName: event.name,
                     category: categoryLabel.toUpperCase(),
                     categoryClass,
                     date: this.formatDate(enrollment.createdAt || event.startDate),
-                    totalScore: 0, // Se llenará cuando haya evaluaciones
-                    eventId: event.idEvent.toString(),
+                    totalScore: result?.finalScore || 0, // Si tiene puntaje, ya fue evaluado (evita el 409)
+                    eventId: extractEventId(event).toString(),
                     modalityId: modality.id.toString(),
-                    enrollmentId: enrollment.enrollmentId.toString()
+                    enrollmentId: enrId
                   });
                 });
 
                 this.scoringHistory.set(entries);
                 this.isLoading.set(false);
               },
-              error: () => this.isLoading.set(false)
+              error: (err) => {
+                console.error('Error in forkJoin enrollments/results:', err);
+                this.isLoading.set(false);
+              }
             });
+          },
+          error: () => this.isLoading.set(false)
+        });
           },
           error: () => this.isLoading.set(false)
         });
@@ -237,6 +337,7 @@ export class ScoringHistoryComponent implements OnInit {
         this.isLoading.set(false);
       }
     });
+
   }
 
   private getCategoryClass(category: ModalityCategory): string {

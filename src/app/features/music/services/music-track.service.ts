@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpEvent, HttpParams, HttpRequest } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, map, of, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { HttpGlobalResponse, MusicTrackResponseDto } from '../models/music-track.model';
@@ -24,21 +24,6 @@ export class MusicTrackService {
       params: { enrollmentId: enrollmentId.toString() }
     }).pipe(
       map(res => res.data),
-      catchError(err => this.handleError(err))
-    );
-  }
-
-  /** Expone los eventos de progreso de la subida para alimentar una barra de progreso en el componente. */
-  uploadTrackWithProgress(enrollmentId: number, file: File): Observable<HttpEvent<HttpGlobalResponse<MusicTrackResponseDto>>> {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const request = new HttpRequest('POST', `${this.apiUrl}/upload`, formData, {
-      params: new HttpParams().set('enrollmentId', enrollmentId.toString()),
-      reportProgress: true
-    });
-
-    return this.http.request<HttpGlobalResponse<MusicTrackResponseDto>>(request).pipe(
       catchError(err => this.handleError(err))
     );
   }

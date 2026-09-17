@@ -21,7 +21,7 @@ export class ScoringService {
 
   private handleError(err: HttpErrorResponse) {
     const message = err.error?.message ?? err.message ?? 'No fue posible comunicarse con el servidor de scoring.';
-    return throwError(() => new Error(message));
+    return throwError(() => new Error(`${err.status} - ${message}`));
   }
 
   /**
@@ -101,6 +101,27 @@ export class ScoringService {
   publishResults(eventId: string, modalityId: string, organizerId: string): Observable<void> {
     const url = `${this.baseUrl}/events/${eventId}/modalities/${modalityId}/session/publish`;
     return this.http.patch<void>(url, null, { params: { organizerId } }).pipe(
+      catchError(err => this.handleError(err))
+    );
+  }
+  /**
+   * Obtener el estado de la sesión de evaluación.
+   * GET /scoring/events/{eventId}/modalities/{modalityId}/session
+   */
+  getSession(eventId: string, modalityId: string): Observable<any> {
+    const url = `${this.baseUrl}/events/${eventId}/modalities/${modalityId}/session`;
+    return this.http.get<any>(url).pipe(
+      catchError(err => this.handleError(err))
+    );
+  }
+
+  /**
+   * Abrir sesión de evaluación.
+   * POST /scoring/events/{eventId}/modalities/{modalityId}/session/open
+   */
+  openSession(eventId: string, modalityId: string, request: { expectedEvaluations: number; expectedJudges: number; organizerId: string }): Observable<any> {
+    const url = `${this.baseUrl}/events/${eventId}/modalities/${modalityId}/session/open`;
+    return this.http.post<any>(url, request).pipe(
       catchError(err => this.handleError(err))
     );
   }

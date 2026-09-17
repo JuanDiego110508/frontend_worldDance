@@ -1,0 +1,160 @@
+<div class="w-full min-h-screen bg-[#0c1322] text-[#dce2f7]">
+  <div class="relative w-full overflow-hidden">
+    <div class="absolute -top-40 left-1/4 -translate-x-1/2 w-[650px] h-[350px] bg-[#7c3aed]/20 rounded-full blur-[130px] pointer-events-none"></div>
+
+    <div class="relative max-w-[1100px] w-full mx-auto px-4 sm:px-8 py-10 flex flex-col gap-8">
+
+      <a routerLink="/reports" class="inline-flex items-center gap-1.5 text-[#d0bcff] text-sm hover:text-[#ebddff] w-fit">
+        <span class="material-symbols-outlined text-base">arrow_back</span>
+        Volver a Reportes
+      </a>
+
+      <div class="text-center py-16 text-[#ccc3d8]" *ngIf="isLoadingEvent()">Cargando evento...</div>
+
+      <ng-container *ngIf="!isLoadingEvent() && event() as ev">
+
+        <!-- Sin permisos: el backend igual lo bloquearía, esto es solo para no mostrar UI de mas -->
+        <div class="flex flex-col items-center justify-center py-16 text-center gap-3 bg-[#141b2b] rounded-xl p-10" *ngIf="!canAccess()">
+          <span class="material-symbols-outlined text-4xl text-[#ffb4ab]">lock</span>
+          <h4 class="font-['Sora'] text-lg text-[#dce2f7]">No tienes acceso a los reportes de este evento</h4>
+          <p class="text-sm text-[#ccc3d8]">Solo el organizador dueño del evento o un administrador asignado en el evento pueden ver esta información.</p>
+        </div>
+
+        <ng-container *ngIf="canAccess()">
+          <div class="flex flex-col gap-1">
+            <span class="font-['Sora'] text-[12px] font-bold uppercase text-[#d0bcff] tracking-widest">Reportes del evento</span>
+            <h1 class="font-['Sora'] text-[28px] sm:text-[34px] font-bold text-[#dce2f7] tracking-tight">{{ ev.name }}</h1>
+            <p class="text-[#ccc3d8] text-sm">{{ ev.location }} · {{ ev.startDate | date:'dd/MM/yyyy' }} - {{ ev.endDate | date:'dd/MM/yyyy' }}</p>
+          </div>
+
+          <!-- KPIs generales -->
+          <section class="grid grid-cols-2 md:grid-cols-4 gap-4" *ngIf="summary() as s">
+            <div class="rounded-xl bg-[#141b2b] border border-[#232a3a] p-4 flex flex-col gap-1">
+              <span class="text-2xl font-bold text-[#d2bbff] font-['Sora']">{{ s.totalParticipants }}</span>
+              <span class="text-[11px] uppercase tracking-wider text-[#958da1]">Participantes</span>
+            </div>
+            <div class="rounded-xl bg-[#141b2b] border border-[#232a3a] p-4 flex flex-col gap-1">
+              <span class="text-2xl font-bold text-[#d2bbff] font-['Sora']">{{ s.totalModalities }}</span>
+              <span class="text-[11px] uppercase tracking-wider text-[#958da1]">Modalidades</span>
+            </div>
+            <div class="rounded-xl bg-[#141b2b] border border-[#232a3a] p-4 flex flex-col gap-1">
+              <span class="text-2xl font-bold text-[#d2bbff] font-['Sora']">{{ s.overallAverageScore | number:'1.1-2' }}</span>
+              <span class="text-[11px] uppercase tracking-wider text-[#958da1]">Promedio general</span>
+            </div>
+            <div class="rounded-xl bg-[#141b2b] border border-[#232a3a] p-4 flex flex-col gap-1">
+              <span class="text-2xl font-bold text-[#d2bbff] font-['Sora']">{{ s.totalScheduledSlots }}</span>
+              <span class="text-[11px] uppercase tracking-wider text-[#958da1]">Turnos en cronograma</span>
+            </div>
+          </section>
+
+          <!-- Reportes generales + cronograma -->
+          <section class="flex flex-col gap-3">
+            <h2 class="font-['Sora'] text-lg font-semibold text-[#dce2f7] border-b border-[#232a3a] pb-2">Reporte general del evento</h2>
+            <div class="flex flex-wrap gap-3">
+              <button (click)="downloadGeneralPdf()" [disabled]="isDownloading()"
+                      class="px-4 py-2 rounded-lg bg-[#93000a]/20 hover:bg-[#93000a]/40 text-[#ffb4ab] text-sm font-medium flex items-center gap-1.5 disabled:opacity-50">
+                <span class="material-symbols-outlined text-base">picture_as_pdf</span> PDF general
+              </button>
+              <button (click)="downloadGeneralExcel()" [disabled]="isDownloading()"
+                      class="px-4 py-2 rounded-lg bg-emerald-900/20 hover:bg-emerald-900/40 text-emerald-400 text-sm font-medium flex items-center gap-1.5 disabled:opacity-50">
+                <span class="material-symbols-outlined text-base">table_view</span> Excel general
+              </button>
+
+              <ng-container *ngIf="!isLoadingSchedule(); else scheduleLoading">
+                <button *ngIf="schedule()?.available" (click)="downloadSchedulePdf()" [disabled]="isDownloading()"
+                        class="px-4 py-2 rounded-lg bg-[#7c3aed]/20 hover:bg-[#7c3aed]/40 text-[#d0bcff] text-sm font-medium flex items-center gap-1.5 disabled:opacity-50">
+                  <span class="material-symbols-outlined text-base">event_note</span> PDF del cronograma
+                </button>
+                <span *ngIf="!schedule()?.available"
+                      class="px-4 py-2 rounded-lg bg-[#232a3a]/60 text-[#958da1] text-sm font-medium flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-base">event_busy</span>
+                  {{ schedule()?.status === 'DRAFT_NOT_VISIBLE' ? 'Cronograma en borrador (no visible)' : 'Cronograma aún no generado' }}
+                </span>
+              </ng-container>
+              <ng-template #scheduleLoading>
+                <span class="px-4 py-2 text-sm text-[#958da1]">Verificando cronograma...</span>
+              </ng-template>
+            </div>
+          </section>
+
+          <!-- Inscritos -->
+          <section class="flex flex-col gap-3">
+            <h2 class="font-['Sora'] text-lg font-semibold text-[#dce2f7] border-b border-[#232a3a] pb-2">Inscritos</h2>
+
+            <!-- Cada pestaña trae su propio botón de PDF: se puede descargar cualquiera de los
+                 5 informes de inscritos sin tener que seleccionarla primero. -->
+            <div class="flex flex-wrap gap-2">
+              <div *ngFor="let tab of tabs"
+                   [ngClass]="activeFilter() === tab.filter ? 'bg-[#7c3aed] text-white' : 'bg-[#141b2b] text-[#ccc3d8] border border-[#232a3a]'"
+                   class="rounded-full flex items-center overflow-hidden transition-colors">
+                <button (click)="selectTab(tab.filter)" class="pl-3 pr-2 py-1.5 text-sm font-medium flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-base">{{ tab.icon }}</span>
+                  {{ tab.label }}
+                </button>
+                <button (click)="downloadEnrollmentPdf(tab.filter)" [disabled]="isDownloading()"
+                        title="Descargar PDF de este informe"
+                        class="pr-3 pl-1 py-1.5 opacity-80 hover:opacity-100 disabled:opacity-40">
+                  <span class="material-symbols-outlined text-base">picture_as_pdf</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-4 text-sm text-[#ccc3d8]" *ngIf="enrollmentReport() as r">
+              <span>Total: <strong class="text-[#dce2f7]">{{ r.counters.total }}</strong></span>
+              <span>Aprobados: <strong class="text-emerald-400">{{ r.counters.approved }}</strong></span>
+              <span>Pendientes: <strong class="text-amber-400">{{ r.counters.pending }}</strong></span>
+              <span>Rechazados: <strong class="text-red-400">{{ r.counters.rejected }}</strong></span>
+              <span>Con pista: <strong class="text-[#d2bbff]">{{ r.counters.withTrack }}</strong></span>
+              <span>Sin pista: <strong class="text-[#958da1]">{{ r.counters.withoutTrack }}</strong></span>
+
+              <button (click)="downloadEnrollmentPdf()" [disabled]="isDownloading()"
+                      class="ml-auto px-3 py-1.5 rounded-lg bg-[#93000a]/20 hover:bg-[#93000a]/40 text-[#ffb4ab] text-xs font-medium flex items-center gap-1.5 disabled:opacity-50">
+                <span class="material-symbols-outlined text-sm">picture_as_pdf</span> Descargar la pestaña activa
+              </button>
+            </div>
+
+            <div class="text-center py-10 text-[#ccc3d8]" *ngIf="isLoadingEnrollments()">Cargando inscritos...</div>
+
+            <div class="overflow-x-auto rounded-xl border border-[#232a3a]" *ngIf="!isLoadingEnrollments() && enrollmentReport() as r">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-[#141b2b] text-[#958da1] text-xs uppercase tracking-wider">
+                    <th class="px-4 py-3 text-left">Participante</th>
+                    <th class="px-4 py-3 text-left">Documento</th>
+                    <th class="px-4 py-3 text-left">Modalidad</th>
+                    <th class="px-4 py-3 text-left">Estado</th>
+                    <th class="px-4 py-3 text-left">Pista musical</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of r.rows" class="border-t border-[#232a3a]/60">
+                    <td class="px-4 py-3">{{ row.fullName }}</td>
+                    <td class="px-4 py-3 text-[#ccc3d8]">{{ row.documentNumber }}</td>
+                    <td class="px-4 py-3 text-[#ccc3d8]">{{ row.modalityName }}</td>
+                    <td class="px-4 py-3">
+                      <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase"
+                            [ngClass]="{
+                              'bg-emerald-950/70 text-emerald-300': row.status === 'APPROVED',
+                              'bg-amber-950/70 text-amber-300': row.status === 'PENDING',
+                              'bg-red-950/70 text-red-300': row.status === 'REJECTED'
+                            }">{{ row.statusLabel }}</span>
+                    </td>
+                    <td class="px-4 py-3 text-[#ccc3d8]">{{ row.trackLabel }}</td>
+                  </tr>
+                  <tr *ngIf="r.rows.length === 0">
+                    <td colspan="5" class="px-4 py-8 text-center text-[#958da1]">No hay inscritos que coincidan con este filtro.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </ng-container>
+      </ng-container>
+    </div>
+  </div>
+
+  <div class="fixed inset-0 bg-[#0c1322]/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center" *ngIf="isDownloading()">
+    <div class="w-12 h-12 border-4 border-[#7c3aed]/30 border-t-[#7c3aed] rounded-full animate-spin mb-4"></div>
+    <p class="text-[#dce2f7] font-semibold text-lg font-['Sora']">Generando reporte...</p>
+  </div>
+</div>

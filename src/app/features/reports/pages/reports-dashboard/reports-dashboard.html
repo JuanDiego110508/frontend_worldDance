@@ -9,11 +9,31 @@
       <div class="flex flex-col gap-1 max-w-2xl">
         <div class="flex items-center gap-1.5">
           <span class="inline-flex w-2 h-2 rounded-full bg-[#d2bbff] animate-ping"></span>
-          <span class="font-['Sora'] text-[12px] font-bold uppercase text-[#d0bcff] tracking-widest">Panel Administrativo</span>
+          <span class="font-['Sora'] text-[12px] font-bold uppercase text-[#d0bcff] tracking-widest">Mis Reportes</span>
         </div>
         <h1 class="font-['Sora'] text-[32px] sm:text-[40px] font-bold text-[#dce2f7] tracking-tight leading-tight">Reportes</h1>
-        <p class="text-[#ccc3d8] text-[15px]">Estadísticas generales y generación de reportes por evento.</p>
+        <p class="text-[#ccc3d8] text-[15px]">Estadísticas y generación de reportes de los eventos que organizas.</p>
       </div>
+
+      <!-- Resumen de mis eventos -->
+      <section class="grid grid-cols-2 md:grid-cols-4 gap-4" *ngIf="summary() as s">
+        <div class="rounded-xl bg-[#141b2b] border border-[#232a3a] p-4 flex flex-col gap-1">
+          <span class="text-2xl font-bold text-[#d2bbff] font-['Sora']">{{ s.totalEvents }}</span>
+          <span class="text-[11px] uppercase tracking-wider text-[#958da1]">Mis eventos</span>
+        </div>
+        <div class="rounded-xl bg-[#141b2b] border border-[#232a3a] p-4 flex flex-col gap-1">
+          <span class="text-2xl font-bold text-[#d2bbff] font-['Sora']">{{ s.totalApprovedEnrollments }}</span>
+          <span class="text-[11px] uppercase tracking-wider text-[#958da1]">Inscritos aprobados</span>
+        </div>
+        <div class="rounded-xl bg-[#141b2b] border border-[#232a3a] p-4 flex flex-col gap-1">
+          <span class="text-2xl font-bold text-[#d2bbff] font-['Sora']">{{ s.totalModalities }}</span>
+          <span class="text-[11px] uppercase tracking-wider text-[#958da1]">Modalidades</span>
+        </div>
+        <div class="rounded-xl bg-[#141b2b] border border-[#232a3a] p-4 flex flex-col gap-1">
+          <span class="text-2xl font-bold text-[#d2bbff] font-['Sora']">{{ s.overallAverageScore | number:'1.1-2' }}</span>
+          <span class="text-[11px] uppercase tracking-wider text-[#958da1]">Promedio general</span>
+        </div>
+      </section>
 
       <section class="flex flex-col gap-4">
         <h2 class="font-['Sora'] text-xl font-semibold text-[#dce2f7] border-b border-[#232a3a] pb-2">Reportes por Evento</h2>
@@ -58,16 +78,21 @@
 
             <div class="pt-5 mt-4 flex items-center justify-between gap-3 border-t border-[#232a3a]/50">
               <button class="flex-1 px-3 py-2 rounded-lg bg-[#93000a]/20 hover:bg-[#93000a]/40 text-[#ffb4ab] text-sm font-medium transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                      (click)="downloadPdf(event.idEvent || event['id'] || event['IdEvent'] || 0, event.name)" [disabled]="isDownloading()">
+                      (click)="downloadPdf(eventId(event), event.name)" [disabled]="isDownloading()">
                 <span class="material-symbols-outlined text-base">picture_as_pdf</span>
                 PDF
               </button>
               <button class="flex-1 px-3 py-2 rounded-lg bg-emerald-900/20 hover:bg-emerald-900/40 text-emerald-400 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                      (click)="downloadExcel(event.idEvent || event['id'] || event['IdEvent'] || 0, event.name)" [disabled]="isDownloading()">
+                      (click)="downloadExcel(eventId(event), event.name)" [disabled]="isDownloading()">
                 <span class="material-symbols-outlined text-base">table_view</span>
                 Excel
               </button>
             </div>
+            <a [routerLink]="['/reports', eventId(event)]"
+               class="mt-3 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[#7c3aed]/15 hover:bg-[#7c3aed]/30 text-[#d0bcff] text-sm font-medium transition-colors">
+              <span class="material-symbols-outlined text-base">bar_chart</span>
+              Ver más reportes
+            </a>
 
           </article>
         </div>

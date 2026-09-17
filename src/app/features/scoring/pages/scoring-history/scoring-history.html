@@ -1,280 +1,240 @@
-<div class="scoring-layout">
-  <!-- Sidebar -->
-  <aside class="scoring-sidebar">
-    <div class="sidebar-brand">
-      <h3 class="brand-title">World Dance</h3>
-      <span class="brand-subtitle">JUDGE PANEL</span>
+<div class="flex min-h-screen bg-[#070e1d] text-slate-200">
+<!-- BEGIN: SecondarySidebar -->
+<aside class="w-64 border-r border-white/5 bg-[#0a1122]/90 flex flex-col shrink-0" data-purpose="secondary-sidebar">
+<!-- Panel Header & Brand -->
+<div class="px-6 py-7 border-b border-white/5">
+<h2 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
+          World Dance
+        </h2>
+<p class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase mt-0.5">JUDGE PANEL</p>
+</div>
+<!-- Navigation Links -->
+<nav aria-label="Sidebar Navigation" class="flex-1 px-4 py-6 space-y-1.5">
+<!-- Inactive: Evaluación -->
+<a class="group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all cursor-pointer" [ngClass]="sidebarActive() === 'evaluation' ? 'text-purple-200 bg-purple-950/40 border border-purple-500/20 shadow-[0_0_15px_rgba(124,58,237,0.15)]' : 'text-slate-400 hover:text-white hover:bg-white/5'" (click)="setSidebarActive('evaluation')">
+<svg class="w-5 h-5 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+          Evaluación
+        </a>
+<!-- Active: Historial de evaluaciones -->
+<a class="group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all cursor-pointer" [ngClass]="sidebarActive() === 'history' ? 'text-purple-200 bg-purple-950/40 border border-purple-500/20 shadow-[0_0_15px_rgba(124,58,237,0.15)]' : 'text-slate-400 hover:text-white hover:bg-white/5'" (click)="setSidebarActive('history')">
+<svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+          Historial de evaluaciones
+        </a>
+</nav>
+</aside>
+<!-- END: SecondarySidebar -->
+<!-- BEGIN: ContentArea -->
+<main class="flex-1 flex flex-col px-8 py-8 lg:px-10 overflow-y-auto">
+<!-- BEGIN: HeaderSection -->
+<header class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6" data-purpose="page-header">
+<!-- Title & Subtitle -->
+<div>
+<h1 class="text-3xl font-extrabold text-white tracking-tight">Scoring History</h1>
+<p class="text-sm text-slate-400 mt-1">Reviewing {{ totalParticipants() }} total evaluations across {{ eventsJudged() }} events.</p>
+</div>
+<!-- Top Right Actions -->
+<div class="flex items-center gap-4 shrink-0">
+<!-- Publish Results Button -->
+<button (click)="onPublishResults()" class="relative group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium text-sm shadow-[0_0_20px_rgba(124,58,237,0.35)] hover:shadow-[0_0_25px_rgba(124,58,237,0.5)] transition-all duration-300" type="button">
+<svg class="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M8.25 4.5l7.5 7.5-7.5 7.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+            Publish Results
+          </button>
+<!-- Notification Bell -->
+<button aria-label="Notificaciones" class="relative p-2.5 rounded-xl border border-white/5 bg-[#10182d] hover:bg-white/5 text-slate-300 hover:text-white transition-colors" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<!-- Profile Badge -->
+<div class="flex items-center gap-3 pl-3 pr-2 py-1.5 border border-white/5 bg-[#10182d] rounded-2xl">
+<div class="text-right leading-none">
+<p class="text-sm font-semibold text-white">{{ userName() }}</p>
+<p class="text-[10px] font-bold tracking-wider text-purple-400 uppercase mt-0.5">SENIOR JUDGE</p>
+</div>
+<div class="w-9 h-9 rounded-xl bg-purple-600/30 border border-purple-500/40 text-purple-200 flex items-center justify-center font-bold text-xs shadow-inner">
+              JM
+            </div>
+</div>
+</div>
+</header>
+<!-- END: HeaderSection -->
+<!-- BEGIN: SearchAndFilters -->
+<section class="mt-2 mb-6" data-purpose="search-filters">
+<div class="flex flex-col md:flex-row items-center gap-3">
+<!-- Main Search Input -->
+<div class="relative flex-1 w-full">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-500">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+<input class="w-full bg-[#10182d] border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-colors" placeholder="Search by participant or group name..." type="text" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+</div>
+<!-- Event Selector Dropdown -->
+<!-- BEGIN: FilterDropdownRow -->
+<div class="py-6 flex flex-wrap gap-4 items-center justify-start" data-purpose="event-filtering">
+<!-- Event Filter -->
+<div class="relative inline-block w-72">
+<label class="sr-only" for="event-select">Seleccionar Evento</label>
+<select [(ngModel)]="selectedEvent" class="w-full appearance-none bg-[#0a1122]/90 border border-white/10 hover:border-purple-500/50 text-slate-200 text-sm rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 cursor-pointer shadow-inner shadow-black/20 transition-all" id="event-select">
+<option value="all">Todos los eventos</option>
+<option *ngFor="let name of uniqueEventNames()" [value]="name">{{ name }}</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center px-3.5 pointer-events-none text-slate-400">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+
+<!-- Modality Filter -->
+<div class="relative inline-block w-72">
+<label class="sr-only" for="modality-select">Seleccionar Modalidad</label>
+<select [(ngModel)]="selectedModality" class="w-full appearance-none bg-[#0a1122]/90 border border-white/10 hover:border-white/20 text-slate-200 text-sm rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 cursor-pointer shadow-inner shadow-black/20 transition-all" id="modality-select">
+<option value="">Todas las modalidades</option>
+<option *ngFor="let mod of uniqueModalityNames()" [value]="mod">{{ mod }}</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center px-3.5 pointer-events-none text-slate-400">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+</div>
+<!-- END: FilterDropdownRow -->
+<!-- Date Picker Input -->
+<div class="relative w-full md:w-44 shrink-0">
+<input class="w-full bg-[#10182d] border border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-colors" placeholder="dd/mm/aaaa" type="date" [ngModel]="selectedDate()" (ngModelChange)="selectedDate.set($event)">
+<span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-500">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M6.75 3v2.25M17.25 3v2.253 3.75m-16.5 0h21m-21 0v11.25A2.25 2.25 0 004.5 20.25h15a2.25 2.25 0 002.25-2.25V6.75" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+</div>
+</div>
+</section>
+<!-- END: SearchAndFilters -->
+<!-- BEGIN: MetricCards -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6" data-purpose="kpi-metrics">
+<!-- Metric 1: Average Score -->
+<div class="bg-[#10182d] border border-white/5 rounded-2xl p-6 panel-shadow transition-all duration-300 card-glow">
+<p class="text-[11px] font-bold tracking-widest text-slate-400 uppercase">AVERAGE SCORE</p>
+<div class="mt-3 flex items-baseline gap-1">
+<span class="text-4xl font-extrabold text-white tracking-tight">{{ averageScore() }}</span>
+<span class="text-lg font-medium text-slate-500">/10</span>
+</div>
+<!-- Progress bar subtly stylized -->
+<div class="mt-5 w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+<div class="bg-purple-500 h-full rounded-full" [style.width.%]="averageScore() * 10"></div>
+</div>
+</div>
+<!-- Metric 2: Total Participants -->
+<div class="bg-[#10182d] border border-white/5 rounded-2xl p-6 panel-shadow transition-all duration-300 card-glow">
+<p class="text-[11px] font-bold tracking-widest text-slate-400 uppercase">TOTAL PARTICIPANTS</p>
+<div class="mt-3 flex items-baseline">
+<span class="text-4xl font-extrabold text-white tracking-tight">{{ totalParticipants() }}</span>
+</div>
+<div class="mt-4 flex items-center gap-1.5 text-xs font-medium text-emerald-400">
+<svg class="w-3.5 h-3.5 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M4.5 12.75l6 6 9-13.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class=""><br></span>
+</div>
+</div>
+<!-- Metric 3: Events Available -->
+<div class="bg-[#10182d] border border-white/5 rounded-2xl p-6 panel-shadow transition-all duration-300 card-glow">
+<p class="text-[11px] font-bold tracking-widest text-slate-400 uppercase">EVENTS AVAILABLE</p>
+<div class="mt-3 flex items-baseline">
+<span class="text-4xl font-extrabold text-white tracking-tight">{{ eventsJudged() }}</span>
+</div>
+<div class="mt-4 text-xs font-normal text-slate-400">
+<span class="">Next event: <strong class="text-slate-300 font-medium">{{ nextEvent() }}</strong></span>
+</div>
+</div>
+</section>
+<!-- END: MetricCards -->
+<!-- BEGIN: TableContainerEmptyState -->
+@if (isLoading()) {
+  <div class="flex-1 flex flex-col items-center justify-center py-20 px-4 text-center">
+    <div class="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+    <p class="mt-4 text-slate-400">Cargando participantes...</p>
+  </div>
+} @else {
+  <section class="bg-[#10182d] border border-white/5 rounded-2xl panel-shadow overflow-hidden flex flex-col flex-1 min-h-[380px]" data-purpose="scoring-table">
+    <!-- Table Column Headers -->
+    <div class="grid grid-cols-12 px-6 py-4 border-b border-white/5 text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-white/[0.01]">
+      <div class="col-span-4">PARTICIPANT / GROUP</div>
+      <div class="col-span-3">EVENT NAME</div>
+      <div class="col-span-2">CATEGORY</div>
+      <div class="col-span-2">DATE</div>
+      <div class="col-span-1 text-right">SCORE</div>
     </div>
-
-    <nav class="sidebar-nav">
-      <button
-        type="button"
-        class="sidebar-link"
-        [class.active]="sidebarActive() === 'evaluation'"
-        (click)="setSidebarActive('evaluation')"
-      >
-        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-        </svg>
-        Evaluación
-      </button>
-
-      <button
-        type="button"
-        class="sidebar-link"
-        [class.active]="sidebarActive() === 'history'"
-        (click)="setSidebarActive('history')"
-      >
-        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
-        Historial de evaluaciones
-      </button>
-    </nav>
-  </aside>
-
-  <!-- Main Content -->
-  <main class="scoring-main">
-    <!-- Header -->
-    <header class="scoring-header">
-      <div class="header-left">
-        <h1 class="page-title">Scoring History</h1>
-        <p class="page-subtitle">
-          Reviewing {{ totalParticipants() }} total evaluations across {{ eventsJudged() }} events.
+    
+    @if (filteredHistory().length === 0) {
+      <div class="flex-1 flex flex-col items-center justify-center py-20 px-4 text-center">
+        <div class="relative mb-5 flex items-center justify-center">
+          <div class="absolute w-20 h-20 bg-purple-600/20 rounded-full blur-xl pointer-events-none"></div>
+          <div class="relative w-14 h-14 rounded-2xl bg-gradient-to-b from-purple-900/40 to-transparent border border-purple-500/20 flex items-center justify-center shadow-lg">
+            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+          </div>
+        </div>
+        <p class="text-sm font-medium text-slate-400 max-w-lg leading-relaxed">
+          No se encontraron participantes. Asegúrate de que existan participantes <span class="text-slate-200 font-semibold uppercase tracking-wide">APROBADOS</span> en los eventos.
         </p>
       </div>
-
-      <div class="header-right">
-        <button class="btn-publish" (click)="onPublishResults()">
-          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 5l7 7-7 7"/>
-          </svg>
-          Publish Results
-        </button>
-
-        <button class="btn-notification" aria-label="Notifications">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>
-          </svg>
-        </button>
-
-        <div class="user-info">
-          <div class="user-details">
-            <span class="user-name-header">{{ userName() }}</span>
-            <span class="user-role">SENIOR JUDGE</span>
-          </div>
-          <div class="user-avatar-header">
-            {{ userInitials() }}
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <!-- Filters -->
-    <section class="filters-bar">
-      @if (sidebarActive() === 'history') {
-        <div class="filter-search">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="M21 21l-4.35-4.35"/>
-          </svg>
-          <input
-            type="text"
-            placeholder="Search by participant or group name..."
-            [ngModel]="searchTerm()"
-            (ngModelChange)="searchTerm.set($event)"
-          />
-        </div>
-      }
-
-      <div class="filter-select" [class.eval-mode]="sidebarActive() === 'evaluation'">
-        <select
-          [ngModel]="selectedEvent()"
-          (ngModelChange)="selectedEvent.set($event)"
-        >
-          <option value="all">All Events</option>
-          @for (name of uniqueEventNames(); track name) {
-            <option [value]="name">{{ name }}</option>
-          }
-        </select>
-        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </div>
-
-      @if (sidebarActive() === 'history') {
-        <div class="filter-date">
-          <input
-            type="date"
-            [ngModel]="selectedDate()"
-            (ngModelChange)="selectedDate.set($event)"
-            placeholder="mm/dd/yyyy"
-          />
-        </div>
-      }
-    </section>
-
-    <!-- Evaluation View: Card Grid -->
-    @if (sidebarActive() === 'evaluation') {
-      @if (isLoading()) {
-        <div class="loading-container">
-          <div class="loading-spinner"></div>
-          <p>Cargando participantes...</p>
-        </div>
-      } @else {
-        <section class="eval-cards-grid">
-          @if (filteredHistory().length === 0) {
-            <div class="empty-state-eval">
-              <span class="empty-icon">🎯</span>
-              <p>
-                @if (selectedEvent() === 'all' || selectedEvent() === '') {
-                  Por favor, seleccione un evento arriba para ver a los participantes.
-                } @else {
-                  No hay participantes pendientes en este evento.
-                }
-              </p>
-            </div>
-          } @else {
-            @for (entry of filteredHistory(); track entry.id) {
-              <div class="eval-card">
-                <div class="eval-card-header">
-                  <span class="eval-card-type">{{ entry.participantType }}</span>
-                  <span class="badge {{ entry.categoryClass }}">{{ entry.category }}</span>
-                </div>
-                <div class="eval-card-body">
-                  <h3 class="eval-participant-name">{{ entry.participantName }}</h3>
-                  <p class="eval-event-name">{{ entry.eventName }}</p>
-                </div>
-                <div class="eval-card-actions">
-                  <button class="btn-eval-now" (click)="navigateToEvaluate(entry)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                    </svg>
-                    Calificar Ahora
-                  </button>
-                </div>
+    } @else {
+      <div class="flex flex-col">
+        @for (entry of filteredHistory(); track entry.id) {
+          <div class="grid grid-cols-12 px-6 py-4 border-b border-white/5 items-center hover:bg-white/[0.02] cursor-pointer transition-colors" (click)="sidebarActive() === 'evaluation' ? navigateToEvaluate(entry) : navigateToResults(entry)">
+            <div class="col-span-4 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300 font-bold text-sm">
+                {{ entry.participantName.substring(0, 2).toUpperCase() }}
               </div>
-            }
-          }
-        </section>
-      }
-    }
-
-    <!-- History View: Stats and Table -->
-    @if (sidebarActive() === 'history') {
-      <!-- Stats Cards -->
-      <section class="stats-grid">
-        <div class="stat-card">
-          <span class="stat-label">AVERAGE SCORE</span>
-          <div class="stat-value-row">
-            <span class="stat-value-large">{{ averageScore() }}</span>
-            <span class="stat-value-suffix">/10</span>
-          </div>
-          <div class="stat-progress">
-            <div class="stat-progress-bar" [style.width.%]="averageScore() * 10"></div>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <span class="stat-label">TOTAL PARTICIPANTS</span>
-          <div class="stat-value-row">
-            <span class="stat-value-large">{{ totalParticipants() }}</span>
-          </div>
-          <span class="stat-trend trend-up">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="trend-icon">
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-            </svg>
-            Registered in database
-          </span>
-        </div>
-
-        <div class="stat-card">
-          <span class="stat-label">EVENTS AVAILABLE</span>
-          <div class="stat-value-row">
-            <span class="stat-value-large">{{ eventsJudged() }}</span>
-          </div>
-          <span class="stat-detail">Next event: {{ nextEvent() }}</span>
-        </div>
-      </section>
-
-      <!-- Loading -->
-      @if (isLoading()) {
-        <div class="loading-container">
-          <div class="loading-spinner"></div>
-          <p>Loading participants from database...</p>
-        </div>
-      }
-
-      <!-- Table -->
-      @if (!isLoading()) {
-        <section class="scoring-table-container">
-          <table class="scoring-table">
-            <thead>
-              <tr>
-                <th class="th-participant">PARTICIPANT / GROUP</th>
-                <th>EVENT NAME</th>
-                <th>CATEGORY</th>
-                <th>DATE</th>
-                <th class="th-score">TOTAL SCORE</th>
-                <th class="th-actions"></th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (filteredHistory().length === 0) {
-                <tr>
-                  <td colspan="6" class="empty-row">
-                    <div class="empty-state">
-                      <span class="empty-icon">🔍</span>
-                      <p>No approved participants found. Make sure events have enrolled participants with APPROVED status.</p>
-                    </div>
-                  </td>
-                </tr>
+              <div class="flex flex-col">
+                <span class="text-sm font-semibold text-slate-200">{{ entry.participantName }}</span>
+                <span class="text-xs text-slate-500">{{ entry.participantType }}</span>
+              </div>
+            </div>
+            
+            <div class="col-span-3 text-sm text-slate-300 font-medium">
+              {{ entry.eventName }}
+            </div>
+            
+            <div class="col-span-2">
+              <span class="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-slate-800/80 text-slate-300 border border-white/5">
+                {{ entry.category }}
+              </span>
+            </div>
+            
+            <div class="col-span-2 text-sm text-slate-400">
+              {{ entry.date }}
+            </div>
+            
+            <div class="col-span-1 text-right flex justify-end">
+              @if (entry.totalScore > 0) {
+                <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-lg font-bold text-sm bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                  {{ entry.totalScore }}
+                </span>
+              } @else {
+                <button (click)="navigateToEvaluate(entry); $event.stopPropagation()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 transition-colors">
+                  Calificar
+                </button>
               }
-              @for (entry of filteredHistory(); track entry.id) {
-                <tr class="table-row">
-                  <td class="td-participant">
-                    <div class="participant-info">
-                      <span class="participant-avatar" [attr.data-type]="entry.categoryClass">
-                        {{ entry.participantName.substring(0, 2).toUpperCase() }}
-                      </span>
-                      <div class="participant-details">
-                        <span class="participant-name">{{ entry.participantName }}</span>
-                        <span class="participant-type">{{ entry.participantType }}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="td-event">{{ entry.eventName }}</td>
-                  <td class="td-category">
-                    <span class="category-badge" [attr.data-category]="entry.categoryClass">
-                      {{ entry.category }}
-                    </span>
-                  </td>
-                  <td class="td-date">{{ entry.date }}</td>
-                  <td class="td-score">
-                    @if (entry.totalScore > 0) {
-                      <span class="score-value" [class]="getScoreClass(entry.totalScore)">
-                        {{ entry.totalScore }}
-                      </span>
-                    } @else {
-                      <span class="status-pending">Pending</span>
-                    }
-                  </td>
-                  <td class="td-actions">
-                    <button class="btn-more" (click)="navigateToResults(entry); $event.stopPropagation()">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <circle cx="12" cy="5" r="1.5"/>
-                        <circle cx="12" cy="12" r="1.5"/>
-                        <circle cx="12" cy="19" r="1.5"/>
-                      </svg>
-                    </button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </section>
-      }
+            </div>
+          </div>
+        }
+      </div>
     }
+  </section>
+}
+<!-- END: TableContainerEmptyState -->
   </main>
 </div>

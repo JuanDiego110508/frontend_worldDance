@@ -36,6 +36,11 @@ export const routes: Routes = [
     loadChildren: () => import('./features/music/music.routes').then(m => m.MUSIC_ROUTES)
   },
   {
+    path: 'schedule',
+    canActivate: [AuthGuard],
+    loadChildren: () => import('./features/scheduling/scheduling.routes').then(m => m.SCHEDULING_ROUTES)
+  },
+  {
     path: 'dashboard',
     canActivate: [AuthGuard],
     loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.DashboardComponent)
@@ -44,6 +49,10 @@ export const routes: Routes = [
     path: 'reports',
     canActivate: [AuthGuard],
     loadChildren: () => import('./features/reports/reports.routes').then(m => m.REPORTS_ROUTES)
+  },
+  {
+    path: 'rankings',
+    loadComponent: () => import('./pages/rankings/rankings').then(m => m.RankingsComponent)
   },
   {
     path: '**',

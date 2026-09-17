@@ -1,0 +1,24 @@
+:host {
+  display: block;
+}
+
+button {
+  border: none;
+}
+
+/*
+ * Igual que en event-list, reseteamos el color de los enlaces con clases
+ * propias porque styles.scss define un estilo global para 'a' que sobreescribe
+ * las clases de Tailwind sin !important.
+ */
+a.link-onprimary {
+  color: #fff !important;
+}
+a.link-soft {
+  color: #dce2f7;
+  &:hover { color: #d2bbff; }
+}
+a.link-muted {
+  color: #ccc3d8;
+  &:hover { color: #d2bbff; }
+}

@@ -9,7 +9,7 @@ export interface CriterionScore {
 
 /** Refleja CriterionScoreRequest del backend. */
 export interface CriterionScoreRequest {
-  CriterionName: string;
+  criterionName: string;
   percentage: number;
   score: number;
 }

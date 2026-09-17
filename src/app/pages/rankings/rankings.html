@@ -1,0 +1,132 @@
+<div class="w-full min-h-screen bg-[#0c1322] text-[#dce2f7] relative overflow-hidden">
+  <!-- Background Decorations -->
+  <div class="absolute -top-40 left-1/4 -translate-x-1/2 w-[650px] h-[350px] bg-[#7c3aed]/20 rounded-full blur-[130px] pointer-events-none"></div>
+  <div class="absolute top-48 right-10 w-[450px] h-[300px] bg-[#571bc1]/15 rounded-full blur-[120px] pointer-events-none"></div>
+
+  <div class="relative max-w-[1280px] w-full mx-auto px-4 sm:px-8 py-10 flex flex-col gap-8">
+    
+    <!-- Header -->
+    <div class="flex flex-col gap-1 max-w-2xl">
+      <div class="flex items-center gap-1.5">
+        <span class="inline-flex w-2 h-2 rounded-full bg-[#d2bbff] shadow-[0_0_8px_#d2bbff]"></span>
+        <span class="font-mono text-[12px] font-bold uppercase text-[#d0bcff] tracking-widest">Global Leaderboard</span>
+      </div>
+      <h1 class="font-['Sora'] text-[32px] sm:text-[40px] font-bold text-[#dce2f7] tracking-tight leading-tight">
+        Rankings de Competencia
+      </h1>
+      <p class="text-[#ccc3d8] text-[15px]">Explora los resultados oficiales de los eventos sancionados. Solo se muestran las puntuaciones publicadas.</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-[#141b2b]/90 backdrop-blur-2xl rounded-2xl p-6 md:p-8 shadow-2xl border border-white/10 flex flex-col md:flex-row gap-6 z-10">
+      <div class="flex-1 flex flex-col gap-2 relative">
+        <label class="text-sm font-semibold text-[#d0bcff] tracking-wide">1. Selecciona un Evento</label>
+        
+        <div (click)="toggleEventDropdown($event)"
+             class="w-full min-h-[48px] px-4 rounded-xl bg-[#191f2f]/80 border border-white/10 text-[#dce2f7] text-sm hover:border-[#7c3aed]/50 hover:bg-[#232a3a] transition-all cursor-pointer shadow-inner flex items-center justify-between"
+             [class.border-[#7c3aed]]="isEventDropdownOpen()"
+             [class.ring-1]="isEventDropdownOpen()"
+             [class.ring-[#7c3aed]]="isEventDropdownOpen()">
+          <span [class.text-[#9ca3af]]="!selectedEventId()">{{ selectedEventName }}</span>
+          <span class="material-symbols-outlined text-[#9ca3af] transition-transform duration-200" [class.rotate-180]="isEventDropdownOpen()">expand_more</span>
+        </div>
+
+        <ul *ngIf="isEventDropdownOpen()" class="absolute top-[80px] left-0 w-full max-h-60 overflow-y-auto bg-[#1e2535] border border-white/10 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.5)] z-50 flex flex-col p-1">
+          <li *ngIf="events().length === 0" class="px-4 py-3 text-sm text-[#9ca3af] text-center">No hay eventos</li>
+          <li *ngFor="let ev of events()" 
+              (click)="selectEvent(ev.idEvent)"
+              class="px-4 py-3 text-sm text-[#dce2f7] rounded-lg cursor-pointer hover:bg-[#7c3aed] transition-colors"
+              [class.bg-[#7c3aed]/20]="selectedEventId() === (ev.idEvent + '')">
+            {{ ev.name }} ({{ ev.location }})
+          </li>
+        </ul>
+      </div>
+
+      <div class="flex-1 flex flex-col gap-2 relative">
+        <label class="text-sm font-semibold text-[#d0bcff] tracking-wide">2. Selecciona una Modalidad</label>
+        
+        <div (click)="toggleModalityDropdown($event)"
+             class="w-full min-h-[48px] px-4 rounded-xl border border-white/10 text-sm transition-all shadow-inner flex items-center justify-between"
+             [ngClass]="{
+               'bg-[#191f2f]/80 text-[#dce2f7] cursor-pointer hover:border-[#7c3aed]/50 hover:bg-[#232a3a]': selectedEventId() && modalities().length > 0,
+               'bg-[#191f2f]/40 text-[#6b7280] cursor-not-allowed': !selectedEventId() || modalities().length === 0,
+               'border-[#7c3aed] ring-1 ring-[#7c3aed]': isModalityDropdownOpen()
+             }">
+          <span [class.text-[#9ca3af]]="!selectedModalityId()">{{ selectedModalityName }}</span>
+          <span class="material-symbols-outlined text-[#9ca3af] transition-transform duration-200" [class.rotate-180]="isModalityDropdownOpen()">expand_more</span>
+        </div>
+
+        <ul *ngIf="isModalityDropdownOpen()" class="absolute top-[80px] left-0 w-full max-h-60 overflow-y-auto bg-[#1e2535] border border-white/10 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.5)] z-50 flex flex-col p-1">
+          <li *ngFor="let mod of modalities()" 
+              (click)="selectModality(mod.id)"
+              class="px-4 py-3 text-sm text-[#dce2f7] rounded-lg cursor-pointer hover:bg-[#7c3aed] transition-colors"
+              [class.bg-[#7c3aed]/20]="selectedModalityId() === (mod.id + '')">
+            {{ mod.style }} - {{ mod.category }} ({{ mod.division }})
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div *ngIf="isLoading()" class="flex flex-col items-center justify-center py-20 text-[#ccc3d8]">
+      <span class="material-symbols-outlined text-[48px] animate-spin text-[#7c3aed] mb-4">progress_activity</span>
+      <p class="font-semibold text-lg">Cargando resultados...</p>
+    </div>
+
+    <div *ngIf="errorMessage()" class="p-4 rounded-lg bg-[#93000a]/20 border border-[#93000a]/40 text-[#ffb4ab] text-center font-semibold">
+      {{ errorMessage() }}
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading() && selectedEventId() && selectedModalityId() && publishedResults().length === 0" class="flex flex-col items-center justify-center py-16 text-center gap-4 bg-[#141b2b]/50 rounded-xl border border-white/5">
+      <div class="w-20 h-20 rounded-full bg-[#232a3a] flex items-center justify-center mb-2">
+        <span class="material-symbols-outlined text-[40px] text-[#958da1]">do_not_disturb_off</span>
+      </div>
+      <h3 class="text-xl font-semibold text-[#dce2f7]">Sin resultados publicados</h3>
+      <p class="text-[#ccc3d8] max-w-md">La evaluación para esta modalidad aún no ha concluido o los resultados no han sido publicados por el organizador.</p>
+    </div>
+
+    <!-- Results Container -->
+    <div *ngIf="!isLoading() && publishedResults().length > 0" class="flex flex-col gap-6 mt-4 z-10 relative">
+      <div class="bg-[#141b2b]/80 backdrop-blur-xl rounded-xl shadow-2xl border border-white/5 overflow-hidden">
+        <table class="w-full text-left border-separate border-spacing-0">
+          <thead>
+            <tr class="bg-[#191f2f]/90 text-[#ccc3d8] uppercase font-mono text-[11px]">
+              <th class="py-4 px-6 font-semibold border-b border-white/5">Posición</th>
+              <th class="py-4 px-6 font-semibold border-b border-white/5">Participante</th>
+              <th class="py-4 px-6 font-semibold text-right border-b border-white/5">Puntuación Final</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let result of publishedResults()" class="hover:bg-[#232a3a]/40 transition-colors group">
+              <td class="py-4 px-6 border-b border-white/5">
+                <span *ngIf="result.ranking === 1" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-400 text-yellow-900 font-bold font-mono text-sm shadow-[0_0_10px_rgba(250,204,21,0.5)]">1</span>
+                <span *ngIf="result.ranking === 2" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-300 text-slate-800 font-bold font-mono text-sm shadow-[0_0_10px_rgba(203,213,225,0.4)]">2</span>
+                <span *ngIf="result.ranking === 3" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-amber-600 text-amber-100 font-bold font-mono text-sm shadow-[0_0_10px_rgba(217,119,6,0.4)]">3</span>
+                <span *ngIf="result.ranking > 3" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#232a3a] text-[#d0bcff] font-bold font-mono text-sm group-hover:bg-[#7c3aed] group-hover:text-white transition-colors">
+                  {{ result.ranking }}
+                </span>
+              </td>
+              <td class="py-4 px-6 border-b border-white/5">
+                <span class="font-bold text-[#dce2f7] text-lg">{{ result.participantName || result.enrollmentId }}</span>
+                <span *ngIf="result.ranking === 1" class="ml-2 text-xl">🥇</span>
+                <span *ngIf="result.ranking === 2" class="ml-2 text-xl">🥈</span>
+                <span *ngIf="result.ranking === 3" class="ml-2 text-xl">🥉</span>
+              </td>
+              <td class="py-4 px-6 border-b border-white/5 text-right">
+                <span class="font-['Sora'] font-bold text-xl" 
+                      [ngClass]="{
+                        'text-yellow-400': result.ranking === 1,
+                        'text-slate-300': result.ranking === 2,
+                        'text-amber-500': result.ranking === 3,
+                        'text-[#d2bbff]': result.ranking > 3
+                      }">
+                  {{ result.finalScore | number:'1.2-2' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
