@@ -5,6 +5,7 @@ import { EnrollmentService } from '../../services/enrollment.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { EnrollmentResponseDto, ENROLLMENT_STATUS, EnrollmentStatus } from '../../models/enrollment.interface';
 import { MODALITY_CATEGORY_LABELS } from '../../../events/enums/event-enums';
+import { EventService } from '../../../events/services/event';
 
 @Component({
   selector: 'app-my-enrollment',
@@ -15,11 +16,14 @@ import { MODALITY_CATEGORY_LABELS } from '../../../events/enums/event-enums';
 })
 export class MyEnrollmentsComponent implements OnInit {
   private readonly enrollmentService = inject(EnrollmentService);
+  private readonly eventService = inject(EventService);
   private readonly authService = inject(AuthService);
 
   enrollments = signal<EnrollmentResponseDto[]>([]);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string>('');
+  
+  eventsMap = signal<Record<number, string>>({});
   
   statusFilter = signal<string>('all');
   
@@ -34,6 +38,25 @@ export class MyEnrollmentsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadMyEnrollments();
+    this.loadEvents();
+  }
+
+  loadEvents(): void {
+    this.eventService.getEvents().subscribe({
+      next: (data) => {
+        const map: Record<number, string> = {};
+        data.forEach(e => {
+          map[e.idEvent] = e.name;
+        });
+        this.eventsMap.set(map);
+      },
+      error: (err) => console.error('Error loading events for names', err)
+    });
+  }
+
+  getEventName(eventId: number): string {
+    const name = this.eventsMap()[eventId];
+    return name || `Evento #${eventId}`;
   }
 
   loadMyEnrollments(): void {
