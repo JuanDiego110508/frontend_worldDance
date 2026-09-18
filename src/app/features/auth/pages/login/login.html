@@ -99,7 +99,14 @@
           </a>
         </div>
 
-        @if (errorMessage()) {
+        @if (lockoutSecondsRemaining() > 0) {
+          <div class="lockout-warning">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V7z"/>
+            </svg>
+            <span>Demasiados intentos fallidos con este correo. Intenta de nuevo en {{ lockoutSecondsRemaining() }}s.</span>
+          </div>
+        } @else if (errorMessage()) {
           <div class="error-message">
             {{ errorMessage() }}
           </div>
@@ -108,7 +115,7 @@
         <button
           type="submit"
           class="submit-btn"
-          [disabled]="isLoading()"
+          [disabled]="isLoading() || lockoutSecondsRemaining() > 0"
         >
           @if (isLoading()) {
             <span class="spinner"></span>
