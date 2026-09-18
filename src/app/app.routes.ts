@@ -14,6 +14,7 @@ export const routes: Routes = [
   },
   {
     path: 'events',
+    canActivate: [AuthGuard],
     loadChildren: () => import('./features/events/events.routes').then(m => m.EVENTS_ROUTES)
   },
   {
