@@ -181,6 +181,9 @@
               Acepto los <a href="#" (click)="$event.preventDefault()">Términos y condiciones</a> y las políticas de competencia oficial de WorldDance.
             </label>
           </div>
+          @if (isFieldInvalid('terms')) {
+            <span class="field-error">Debes aceptar los términos y condiciones para registrarte</span>
+          }
 
           @if (errorMessage()) {
             <div class="error-message">
