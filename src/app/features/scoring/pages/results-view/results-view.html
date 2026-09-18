@@ -7,7 +7,7 @@
 <div class="w-2.5 h-6 rounded-full bg-gradient-to-b from-purple-500 to-indigo-600 shadow-sm shadow-purple-500/50"></div>
 <div>
 <h1 class="font-display font-bold text-lg tracking-wide text-white">World Dance</h1>
-<p class="text-[11px] font-semibold tracking-wider text-purple-400 uppercase">Judge Panel</p>
+<p class="text-[11px] font-semibold tracking-wider text-purple-400 uppercase">PANEL DE JURADO</p>
 </div>
 </div>
 </div>
@@ -50,7 +50,7 @@
 <!-- Title and Subtitle -->
 <div>
 <h2 class="font-display font-extrabold text-2xl lg:text-3xl text-white tracking-tight flex items-center gap-3">
-            Scoring History
+            Evaluaciones 
             <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20 font-sans tracking-normal">
               Live Stage
             </span>
@@ -71,7 +71,7 @@
 
 <!-- Publish Results Button -->
 <button *ngIf="sessionStatus() === 'CLOSED'" (click)="onPublish()" class="relative group inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white font-semibold text-sm shadow-button-shine hover:brightness-110 active:scale-[0.98] transition-all duration-200" type="button">
-<span>Publish Results</span>
+<span>Publicar Resultados</span>
 <svg class="w-4 h-4 text-purple-200 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewbox="0 0 24 24">
 <path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
 </svg>
@@ -83,18 +83,12 @@
 Publicados
 </div>
 
-<!-- Notification Bell -->
-<button aria-label="Notificaciones" class="relative p-2.5 rounded-xl bg-brand-surface hover:bg-brand-card text-slate-300 hover:text-white border border-brand-border/60 transition-colors" type="button">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
-<path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-</svg>
-<span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-purple-500 ring-2 ring-brand-surface"></span>
-</button>
+
 <!-- Judge Profile Snapshot -->
 <div class="flex items-center gap-3 pl-2 border-l border-brand-border/50">
 <div class="text-right">
 <span class="block text-sm font-semibold text-white leading-tight">{{ userName() }}</span>
-<span class="inline-block text-[10px] tracking-wider uppercase font-bold text-purple-400">SENIOR JUDGE</span>
+<span class="inline-block text-[10px] tracking-wider uppercase font-bold text-purple-400">Jurado</span>
 </div>
 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-700 via-indigo-600 to-cyan-500 p-[1.5px] shadow-sm">
 <div class="w-full h-full bg-brand-surface rounded-[10px] flex items-center justify-center font-display font-bold text-sm text-purple-200">
@@ -147,16 +141,23 @@ Publicados
           </div>
           <h3 class="font-display font-bold text-lg text-white group-hover:text-purple-200 transition-colors">{{ result.participantName }}</h3>
           <div class="flex items-center gap-2 mt-2 text-xs text-slate-400 font-medium">
-            <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
-            <span>Total Score: {{ result.finalScore }}</span>
+            @if (result.finalScore > 0) {
+              <span class="inline-flex items-center justify-center gap-1.5 px-2 py-1 rounded-lg font-bold text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                <span class="uppercase tracking-wider">Calificado</span>
+                <span class="text-white">{{ result.finalScore | number:'1.2-2' }}</span>
+              </span>
+            } @else {
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+              <span>Sin calificar</span>
+            }
           </div>
         </div>
         <div class="mt-6 pt-2">
-          <button [routerLink]="['/scoring/evaluate', eventId(), modalityId(), result.enrollmentId]" [state]="{ eventName: 'Evento', participantName: result.participantName }" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-button-shine hover:shadow-glow-purple transition-all duration-200 active:scale-[0.98]" type="button">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+          <button [routerLink]="['/scoring/evaluate', eventId(), modalityId(), result.enrollmentId]" [state]="{ eventName: 'Evento', participantName: result.participantName }" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl transition-all duration-200 active:scale-[0.98] font-semibold text-sm shadow-button-shine" [ngClass]="result.finalScore > 0 ? 'bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white' : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white hover:shadow-glow-purple'" type="button">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
             </svg>
-            <span>Ver / Editar Evaluación</span>
+            <span>{{ result.finalScore > 0 ? 'Editar Calificación' : 'Evaluar Participante' }}</span>
           </button>
         </div>
       </article>
