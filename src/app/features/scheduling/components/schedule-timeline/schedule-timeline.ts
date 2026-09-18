@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { ScheduleGenerationResponseDto, ScheduleSlotDto } from '../../models/scheduling.interface';
 
 interface ModalityGroup {
@@ -10,7 +11,7 @@ interface ModalityGroup {
 @Component({
   selector: 'app-schedule-timeline',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './schedule-timeline.html',
   styleUrls: ['./schedule-timeline.scss']
 })
