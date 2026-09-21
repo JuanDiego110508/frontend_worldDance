@@ -170,7 +170,10 @@
                     </button>
                   </ng-container>
                   <ng-template #participantActions>
-                    <a *ngIf="eventId()" [routerLink]="['/enrollment/new', eventId()]"
+                    <!-- Redirección al formulario de inscripción pasando el ID de la modalidad seleccionada -->
+                    <a *ngIf="eventId()" 
+                       [routerLink]="['/enrollment/new', eventId()]" 
+                       [queryParams]="{ modalityId: modality.id }"
                        class="link-onprimary inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#059669] hover:bg-[#10b981] text-sm font-semibold shadow-[0_0_16px_rgba(16,185,129,0.3)] transition-all">
                       <span class="material-symbols-outlined text-[18px]">verified</span>
                       Inscribirme
