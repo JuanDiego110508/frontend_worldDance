@@ -30,11 +30,11 @@ export class EnrollmentFormComponent implements OnInit {
   // Estado reactivo del componente mediante señales (Signals)
   readonly eventId = signal<number | null>(null);
   readonly eventModalitiesList = signal<ModalityResponseDto[]>([]);
-  
+
   // Identificadores y elecciones del usuario para el envío
   selectedModalityId: number | null = null;
   selectedRole: EventRole | null = null;
-  
+
   // Lista de roles disponibles en el evento para selección por el participante
   readonly availableEventRoles: EventRole[] = [
     EventRole.ADMIN,
@@ -52,7 +52,7 @@ export class EnrollmentFormComponent implements OnInit {
     [EventRole.PARTICIPANT]: 'Participante',
     [EventRole.INSTRUCTOR]: 'Instructor / Coreógrafo'
   };
-  
+
   // Control de estado de la interfaz de usuario
   readonly isRoleDropdownOpen = signal<boolean>(false);
   readonly isLoading = signal<boolean>(false);
@@ -122,14 +122,14 @@ export class EnrollmentFormComponent implements OnInit {
   getSelectedModalityLabel(): string {
     const selectedModality = this.getSelectedModalityDetails();
     if (!selectedModality) {
-      return this.selectedModalityId 
-        ? `Modalidad #${this.selectedModalityId}` 
+      return this.selectedModalityId
+        ? `Modalidad #${this.selectedModalityId}`
         : 'Modalidad no especificada';
     }
-    
+
     const categoryName = this.categoryLabels[selectedModality.category] || selectedModality.category;
     const divisionName = this.divisionLabels[selectedModality.division] || selectedModality.division;
-    
+
     return `${categoryName} · ${divisionName} · ${selectedModality.style} (${selectedModality.minAge}-${selectedModality.maxAge} años)`;
   }
 
@@ -189,15 +189,9 @@ export class EnrollmentFormComponent implements OnInit {
       },
       error: (enrollmentApiError) => {
         this.isLoading.set(false);
-<<<<<<< HEAD
         const backendMessage = enrollmentApiError.error?.message || 'Hubo un error al procesar tu inscripción. Intenta de nuevo.';
         this.errorMessage.set(backendMessage);
         console.error('Error al registrar inscripción:', enrollmentApiError);
-=======
-        const backendMsg = error.error?.message || error.message || 'Hubo un error al procesar tu inscripción. Intenta de nuevo.';
-        this.errorMessage.set(backendMsg);
-        console.error('Enrollment error:', error);
->>>>>>> develop
       }
     });
   }
