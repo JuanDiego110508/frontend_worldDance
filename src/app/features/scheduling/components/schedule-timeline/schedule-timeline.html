@@ -71,7 +71,7 @@
             </p>
 
             <!-- Solo visible para admins/organizadores -->
-            <div *ngIf="isAdmin" class="admin-slot-actions" style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--wd-border-color); display: flex; align-items: center; justify-content: space-between;">
+            <div *ngIf="isAdmin" class="admin-slot-actions" style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--wd-border-color); display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap;">
               <div *ngIf="slot.score !== undefined; else noScore" style="display: flex; align-items: center; gap: 0.35rem; color: var(--wd-green); font-weight: 600; font-size: 0.85rem;">
                 <span class="material-symbols-outlined" style="font-size: 1.1rem;">verified</span>
                 Calificación: {{ slot.score }}
@@ -82,10 +82,21 @@
                   Sin calificar
                 </div>
               </ng-template>
-              
-              <button class="btn btn-sm" style="background: rgba(124, 58, 237, 0.1); color: var(--wd-purple-light); border: 1px solid rgba(124, 58, 237, 0.2); padding: 0.25rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(124, 58, 237, 0.2)'" onmouseout="this.style.background='rgba(124, 58, 237, 0.1)'">
-                Ver Calificación
-              </button>
+
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <a [routerLink]="['/music', schedule.eventId, slot.enrollmentId]"
+                   class="btn btn-sm"
+                   style="background: rgba(124, 58, 237, 0.1); color: var(--wd-purple-light); border: 1px solid rgba(124, 58, 237, 0.2); padding: 0.25rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.35rem; text-decoration: none;"
+                   onmouseover="this.style.background='rgba(124, 58, 237, 0.2)'" onmouseout="this.style.background='rgba(124, 58, 237, 0.1)'"
+                   title="Ver Pista Musical">
+                  <span class="material-symbols-outlined" style="font-size: 1.1rem;">graphic_eq</span>
+                  Ver pista
+                </a>
+
+                <button class="btn btn-sm" style="background: rgba(124, 58, 237, 0.1); color: var(--wd-purple-light); border: 1px solid rgba(124, 58, 237, 0.2); padding: 0.25rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(124, 58, 237, 0.2)'" onmouseout="this.style.background='rgba(124, 58, 237, 0.1)'">
+                  Ver Calificación
+                </button>
+              </div>
             </div>
           </div>
 

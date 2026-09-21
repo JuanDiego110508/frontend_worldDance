@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, signal, computed, inject, ChangeDetectionStrategy, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
@@ -38,6 +38,40 @@ export class ScoringHistoryComponent implements OnInit {
   selectedDate = signal<string>('');
   sidebarActive = signal<string>('evaluation');
   isLoading = signal<boolean>(true);
+
+  private readonly elementRef = inject(ElementRef);
+  isEventDropdownOpen = signal<boolean>(false);
+  isModalityDropdownOpen = signal<boolean>(false);
+
+  @HostListener('document:click', ['$event'])
+  onClick(event: MouseEvent) {
+    if (!this.elementRef.nativeElement.contains(event.target)) {
+      this.isEventDropdownOpen.set(false);
+      this.isModalityDropdownOpen.set(false);
+    }
+  }
+
+  toggleEventDropdown(event: Event) {
+    event.stopPropagation();
+    this.isEventDropdownOpen.update(v => !v);
+    this.isModalityDropdownOpen.set(false);
+  }
+
+  toggleModalityDropdown(event: Event) {
+    event.stopPropagation();
+    this.isModalityDropdownOpen.update(v => !v);
+    this.isEventDropdownOpen.set(false);
+  }
+
+  selectEventFilter(eventName: string) {
+    this.selectedEvent.set(eventName);
+    this.isEventDropdownOpen.set(false);
+  }
+
+  selectModalityFilter(modName: string) {
+    this.selectedModality.set(modName);
+    this.isModalityDropdownOpen.set(false);
+  }
 
   userName = computed(() => {
     const user = this.authService.getCurrentUser();

@@ -6,7 +6,7 @@
 <h2 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
           World Dance
         </h2>
-<p class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase mt-0.5">JUDGE PANEL</p>
+<p class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase mt-0.5">PANEL DE JURADO</p>
 </div>
 <!-- Navigation Links -->
 <nav aria-label="Sidebar Navigation" class="flex-1 px-4 py-6 space-y-1.5">
@@ -33,29 +33,18 @@
 <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6" data-purpose="page-header">
 <!-- Title & Subtitle -->
 <div>
-<h1 class="text-3xl font-extrabold text-white tracking-tight">Scoring History</h1>
+<h1 class="text-3xl font-extrabold text-white tracking-tight">{{ sidebarActive() === 'evaluation' ? 'Evaluación' : 'Historial de evaluaciones' }}</h1>
 <p class="text-sm text-slate-400 mt-1">Reviewing {{ totalParticipants() }} total evaluations across {{ eventsJudged() }} events.</p>
 </div>
 <!-- Top Right Actions -->
 <div class="flex items-center gap-4 shrink-0">
-<!-- Publish Results Button -->
-<button (click)="onPublishResults()" class="relative group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium text-sm shadow-[0_0_20px_rgba(124,58,237,0.35)] hover:shadow-[0_0_25px_rgba(124,58,237,0.5)] transition-all duration-300" type="button">
-<svg class="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-<path d="M8.25 4.5l7.5 7.5-7.5 7.5" stroke-linecap="round" stroke-linejoin="round"></path>
-</svg>
-            Publish Results
-          </button>
-<!-- Notification Bell -->
-<button aria-label="Notificaciones" class="relative p-2.5 rounded-xl border border-white/5 bg-[#10182d] hover:bg-white/5 text-slate-300 hover:text-white transition-colors" type="button">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-<path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" stroke-linecap="round" stroke-linejoin="round"></path>
-</svg>
-</button>
+
+
 <!-- Profile Badge -->
 <div class="flex items-center gap-3 pl-3 pr-2 py-1.5 border border-white/5 bg-[#10182d] rounded-2xl">
 <div class="text-right leading-none">
 <p class="text-sm font-semibold text-white">{{ userName() }}</p>
-<p class="text-[10px] font-bold tracking-wider text-purple-400 uppercase mt-0.5">SENIOR JUDGE</p>
+<p class="text-[10px] font-bold tracking-wider text-purple-400 uppercase mt-0.5">Jurado</p>
 </div>
 <div class="w-9 h-9 rounded-xl bg-purple-600/30 border border-purple-500/40 text-purple-200 flex items-center justify-center font-bold text-xs shadow-inner">
               JM
@@ -65,7 +54,7 @@
 </header>
 <!-- END: HeaderSection -->
 <!-- BEGIN: SearchAndFilters -->
-<section class="mt-2 mb-6" data-purpose="search-filters">
+<section class="mt-2 mb-6 relative z-50" data-purpose="search-filters">
 <div class="flex flex-col md:flex-row items-center gap-3">
 <!-- Main Search Input -->
 <div class="relative flex-1 w-full">
@@ -81,30 +70,54 @@
 <div class="py-6 flex flex-wrap gap-4 items-center justify-start" data-purpose="event-filtering">
 <!-- Event Filter -->
 <div class="relative inline-block w-72">
-<label class="sr-only" for="event-select">Seleccionar Evento</label>
-<select [(ngModel)]="selectedEvent" class="w-full appearance-none bg-[#0a1122]/90 border border-white/10 hover:border-purple-500/50 text-slate-200 text-sm rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 cursor-pointer shadow-inner shadow-black/20 transition-all" id="event-select">
-<option value="all">Todos los eventos</option>
-<option *ngFor="let name of uniqueEventNames()" [value]="name">{{ name }}</option>
-</select>
-<div class="absolute inset-y-0 right-0 flex items-center px-3.5 pointer-events-none text-slate-400">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-</svg>
+<div (click)="toggleEventDropdown($event)"
+     class="w-full min-h-[44px] flex items-center justify-between bg-[#0a1122]/90 border border-white/10 hover:border-purple-500/50 text-slate-200 text-sm rounded-xl px-4 py-2 cursor-pointer shadow-inner shadow-black/20 transition-all"
+     [class.border-purple-500]="isEventDropdownOpen()"
+     [class.ring-2]="isEventDropdownOpen()"
+     [class.ring-purple-500]="isEventDropdownOpen()">
+  <span [class.text-slate-400]="!selectedEvent() || selectedEvent() === 'all'">{{ selectedEvent() && selectedEvent() !== 'all' ? selectedEvent() : 'Todos los eventos' }}</span>
+  <span class="material-symbols-outlined text-slate-400 transition-transform duration-200" [class.rotate-180]="isEventDropdownOpen()">expand_more</span>
 </div>
+
+<ul *ngIf="isEventDropdownOpen()" class="absolute top-[52px] left-0 w-full max-h-60 overflow-y-auto bg-[#1e2535] border border-white/10 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.5)] z-50 flex flex-col p-1">
+  <li (click)="selectEventFilter('all')"
+      class="px-4 py-3 text-sm text-[#dce2f7] rounded-lg cursor-pointer hover:bg-[#7c3aed] transition-colors"
+      [class.bg-purple-500]="selectedEvent() === 'all' || !selectedEvent()">
+    Todos los eventos
+  </li>
+  <li *ngFor="let name of uniqueEventNames()" 
+      (click)="selectEventFilter(name)"
+      class="px-4 py-3 text-sm text-[#dce2f7] rounded-lg cursor-pointer hover:bg-[#7c3aed] transition-colors"
+      [class.bg-purple-500]="selectedEvent() === name">
+    {{ name }}
+  </li>
+</ul>
 </div>
 
 <!-- Modality Filter -->
 <div class="relative inline-block w-72">
-<label class="sr-only" for="modality-select">Seleccionar Modalidad</label>
-<select [(ngModel)]="selectedModality" class="w-full appearance-none bg-[#0a1122]/90 border border-white/10 hover:border-white/20 text-slate-200 text-sm rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 cursor-pointer shadow-inner shadow-black/20 transition-all" id="modality-select">
-<option value="">Todas las modalidades</option>
-<option *ngFor="let mod of uniqueModalityNames()" [value]="mod">{{ mod }}</option>
-</select>
-<div class="absolute inset-y-0 right-0 flex items-center px-3.5 pointer-events-none text-slate-400">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-</svg>
+<div (click)="toggleModalityDropdown($event)"
+     class="w-full min-h-[44px] flex items-center justify-between bg-[#0a1122]/90 border border-white/10 hover:border-purple-500/50 text-slate-200 text-sm rounded-xl px-4 py-2 cursor-pointer shadow-inner shadow-black/20 transition-all"
+     [class.border-purple-500]="isModalityDropdownOpen()"
+     [class.ring-2]="isModalityDropdownOpen()"
+     [class.ring-purple-500]="isModalityDropdownOpen()">
+  <span [class.text-slate-400]="!selectedModality() || selectedModality() === 'all'">{{ selectedModality() && selectedModality() !== 'all' ? selectedModality() : 'Todas las modalidades' }}</span>
+  <span class="material-symbols-outlined text-slate-400 transition-transform duration-200" [class.rotate-180]="isModalityDropdownOpen()">expand_more</span>
 </div>
+
+<ul *ngIf="isModalityDropdownOpen()" class="absolute top-[52px] left-0 w-full max-h-60 overflow-y-auto bg-[#1e2535] border border-white/10 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.5)] z-50 flex flex-col p-1">
+  <li (click)="selectModalityFilter('')"
+      class="px-4 py-3 text-sm text-[#dce2f7] rounded-lg cursor-pointer hover:bg-[#7c3aed] transition-colors"
+      [class.bg-purple-500]="!selectedModality() || selectedModality() === 'all'">
+    Todas las modalidades
+  </li>
+  <li *ngFor="let mod of uniqueModalityNames()" 
+      (click)="selectModalityFilter(mod)"
+      class="px-4 py-3 text-sm text-[#dce2f7] rounded-lg cursor-pointer hover:bg-[#7c3aed] transition-colors"
+      [class.bg-purple-500]="selectedModality() === mod">
+    {{ mod }}
+  </li>
+</ul>
 </div>
 </div>
 <!-- END: FilterDropdownRow -->
@@ -126,7 +139,7 @@
 <div class="bg-[#10182d] border border-white/5 rounded-2xl p-6 panel-shadow transition-all duration-300 card-glow">
 <p class="text-[11px] font-bold tracking-widest text-slate-400 uppercase">AVERAGE SCORE</p>
 <div class="mt-3 flex items-baseline gap-1">
-<span class="text-4xl font-extrabold text-white tracking-tight">{{ averageScore() }}</span>
+<span class="text-4xl font-extrabold text-white tracking-tight">{{ averageScore() | number:'1.1-2' }}</span>
 <span class="text-lg font-medium text-slate-500">/10</span>
 </div>
 <!-- Progress bar subtly stylized -->
@@ -220,8 +233,9 @@
             
             <div class="col-span-1 text-right flex justify-end">
               @if (entry.totalScore > 0) {
-                <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-lg font-bold text-sm bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                  {{ entry.totalScore }}
+                <span class="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg font-bold text-xs bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.15)]">
+                  <span class="uppercase tracking-wider">Calificado</span>
+                  <span class="text-white">{{ entry.totalScore | number:'1.2-2' }}</span>
                 </span>
               } @else {
                 <button (click)="navigateToEvaluate(entry); $event.stopPropagation()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 transition-colors">

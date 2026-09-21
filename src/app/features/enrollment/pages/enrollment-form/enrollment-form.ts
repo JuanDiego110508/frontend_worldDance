@@ -189,9 +189,15 @@ export class EnrollmentFormComponent implements OnInit {
       },
       error: (enrollmentApiError) => {
         this.isLoading.set(false);
+<<<<<<< HEAD
         const backendMessage = enrollmentApiError.error?.message || 'Hubo un error al procesar tu inscripción. Intenta de nuevo.';
         this.errorMessage.set(backendMessage);
         console.error('Error al registrar inscripción:', enrollmentApiError);
+=======
+        const backendMsg = error.error?.message || error.message || 'Hubo un error al procesar tu inscripción. Intenta de nuevo.';
+        this.errorMessage.set(backendMsg);
+        console.error('Enrollment error:', error);
+>>>>>>> develop
       }
     });
   }

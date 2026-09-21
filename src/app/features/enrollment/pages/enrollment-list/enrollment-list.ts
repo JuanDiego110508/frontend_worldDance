@@ -138,7 +138,7 @@ export class EnrollmentListComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (error) => {
-        const backendMsg = error.error?.message || 'Error al cargar las inscripciones';
+        const backendMsg = error.error?.message || error.message || 'Error al cargar las inscripciones';
         this.errorMessage.set(backendMsg);
         this.isLoading.set(false);
         console.error('Error loading enrollments:', error);
@@ -161,7 +161,7 @@ export class EnrollmentListComponent implements OnInit {
         console.error('Error updating enrollment status:', error);
         const message = error?.status === 403
           ? 'Solo el organizador del evento puede aprobar o rechazar inscripciones.'
-          : (error?.error?.message ?? 'Error al actualizar el estado de la inscripción.');
+          : (error?.error?.message ?? error?.message ?? 'Error al actualizar el estado de la inscripción.');
         alert(message);
       }
     });
