@@ -16,21 +16,27 @@ import { EventRole } from '../../models/enrollment.interface';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EnrollmentFormComponent implements OnInit {
+  // Inyección de servicios necesarios para el proceso de inscripción
   private readonly enrollmentService = inject(EnrollmentService);
   private readonly authService = inject(AuthService);
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
+  private readonly activeRoute = inject(ActivatedRoute);
+  private readonly appRouter = inject(Router);
   private readonly modalityService = inject(ModalityService);
 
+  // Diccionarios de mapeo para etiquetas legibles de categoría y división
   readonly categoryLabels = MODALITY_CATEGORY_LABELS;
   readonly divisionLabels = MODALITY_DIVISION_LABELS;
 
-  eventId = signal<number | null>(null);
-  modalities = signal<ModalityResponseDto[]>([]);
+  // Estado reactivo del componente mediante señales (Signals)
+  readonly eventId = signal<number | null>(null);
+  readonly eventModalitiesList = signal<ModalityResponseDto[]>([]);
+
+  // Identificadores y elecciones del usuario para el envío
   selectedModalityId: number | null = null;
   selectedRole: EventRole | null = null;
-  
-  readonly roles: EventRole[] = [
+
+  // Lista de roles disponibles en el evento para selección por el participante
+  readonly availableEventRoles: EventRole[] = [
     EventRole.ADMIN,
     EventRole.JURY,
     EventRole.STAFF,
@@ -38,78 +44,112 @@ export class EnrollmentFormComponent implements OnInit {
     EventRole.INSTRUCTOR
   ];
 
-  readonly roleLabels: Record<EventRole, string> = {
+  // Etiquetas traducidas para mostrar en la interfaz de usuario
+  readonly roleDisplayLabels: Record<EventRole, string> = {
     [EventRole.ADMIN]: 'Administrador',
     [EventRole.JURY]: 'Jurado',
     [EventRole.STAFF]: 'Staff',
     [EventRole.PARTICIPANT]: 'Participante',
     [EventRole.INSTRUCTOR]: 'Instructor / Coreógrafo'
   };
-  
-  isDropdownOpen = signal<boolean>(false);
-  isRoleDropdownOpen = signal<boolean>(false);
-  isLoading = signal<boolean>(false);
-  errorMessage = signal<string>('');
-  successMessage = signal<string>('');
+
+  // Control de estado de la interfaz de usuario
+  readonly isRoleDropdownOpen = signal<boolean>(false);
+  readonly isLoading = signal<boolean>(false);
+  readonly errorMessage = signal<string>('');
+  readonly successMessage = signal<string>('');
 
   ngOnInit(): void {
-    const id = this.route.snapshot.params['eventId'];
-    if (id) {
-      this.eventId.set(Number(id));
-      this.loadModalities(Number(id));
+    // Obtener los parámetros de ruta y consulta enviados desde la vista de modalidades
+    const routeEventIdParameter = this.activeRoute.snapshot.params['eventId'];
+    const routeModalityIdQueryParameter = this.activeRoute.snapshot.queryParams['modalityId'];
+
+    if (routeEventIdParameter) {
+      const parsedEventId = Number(routeEventIdParameter);
+      this.eventId.set(parsedEventId);
+      this.loadEventModalities(parsedEventId);
     } else {
       this.errorMessage.set('No se especificó un evento válido.');
     }
+
+    if (routeModalityIdQueryParameter) {
+      this.selectedModalityId = Number(routeModalityIdQueryParameter);
+    }
   }
 
-  loadModalities(eventId: number): void {
-    this.modalityService.getModalitiesByEventId(eventId).subscribe({
-      next: (data) => this.modalities.set(data),
-      error: (err) => {
-        console.error('Error loading modalities', err);
+  /**
+   * Carga la lista de modalidades asignadas al evento desde el servicio.
+   * Permite obtener los detalles de la modalidad preseleccionada.
+   */
+  loadEventModalities(targetEventId: number): void {
+    this.modalityService.getModalitiesByEventId(targetEventId).subscribe({
+      next: (retrievedModalities) => {
+        this.eventModalitiesList.set(retrievedModalities);
+      },
+      error: (modalityFetchError) => {
+        console.error('Error al cargar las modalidades del evento:', modalityFetchError);
         this.errorMessage.set('No se pudieron cargar las modalidades del evento.');
       }
     });
   }
 
-  toggleDropdown(): void {
-    this.isDropdownOpen.update(v => !v);
-    if (this.isDropdownOpen()) this.isRoleDropdownOpen.set(false);
-  }
-
+  /**
+   * Alterna la visibilidad del menú desplegable de roles.
+   */
   toggleRoleDropdown(): void {
-    this.isRoleDropdownOpen.update(v => !v);
-    if (this.isRoleDropdownOpen()) this.isDropdownOpen.set(false);
+    this.isRoleDropdownOpen.update(previousState => !previousState);
   }
 
-  selectModality(modalityId: number): void {
-    this.selectedModalityId = modalityId;
-    this.isDropdownOpen.set(false);
-  }
-
-  selectRole(role: EventRole): void {
-    this.selectedRole = role;
+  /**
+   * Selecciona el rol elegido por el usuario para el evento.
+   */
+  selectRole(selectedEventRole: EventRole): void {
+    this.selectedRole = selectedEventRole;
     this.isRoleDropdownOpen.set(false);
   }
 
-  getSelectedModalityLabel(): string {
-    if (!this.selectedModalityId) return 'Selecciona tu categoría y división';
-    const mod = this.modalities().find(m => m.id === this.selectedModalityId);
-    if (!mod) return 'Selecciona tu categoría y división';
-    return `${this.categoryLabels[mod.category]} · ${this.divisionLabels[mod.division]} · ${mod.style} (${mod.minAge}-${mod.maxAge} años)`;
+  /**
+   * Retorna el objeto completo de la modalidad seleccionada si está disponible.
+   */
+  getSelectedModalityDetails(): ModalityResponseDto | null {
+    if (!this.selectedModalityId) return null;
+    return this.eventModalitiesList().find(modality => modality.id === this.selectedModalityId) || null;
   }
 
+  /**
+   * Retorna una etiqueta formateada descriptiva con la información relevante de la modalidad seleccionada.
+   */
+  getSelectedModalityLabel(): string {
+    const selectedModality = this.getSelectedModalityDetails();
+    if (!selectedModality) {
+      return this.selectedModalityId
+        ? `Modalidad #${this.selectedModalityId}`
+        : 'Modalidad no especificada';
+    }
+
+    const categoryName = this.categoryLabels[selectedModality.category] || selectedModality.category;
+    const divisionName = this.divisionLabels[selectedModality.division] || selectedModality.division;
+
+    return `${categoryName} · ${divisionName} · ${selectedModality.style} (${selectedModality.minAge}-${selectedModality.maxAge} años)`;
+  }
+
+  /**
+   * Retorna la etiqueta visible del rol actualmente seleccionado.
+   */
   getSelectedRoleLabel(): string {
     if (!this.selectedRole) return 'Selecciona tu rol';
-    return this.roleLabels[this.selectedRole];
+    return this.roleDisplayLabels[this.selectedRole];
   }
 
+  /**
+   * Valida y envía la solicitud de inscripción al servicio backend.
+   */
   onSubmit(): void {
     this.errorMessage.set('');
     this.successMessage.set('');
 
     if (!this.selectedModalityId) {
-      this.errorMessage.set('Debes seleccionar una modalidad.');
+      this.errorMessage.set('No se identificó la modalidad seleccionada. Por favor regresa al evento e intenta de nuevo.');
       return;
     }
 
@@ -118,40 +158,40 @@ export class EnrollmentFormComponent implements OnInit {
       return;
     }
 
-    const user = this.authService.getCurrentUser();
-    if (!user) {
+    const currentAuthenticatedUser = this.authService.getCurrentUser();
+    if (!currentAuthenticatedUser) {
       this.errorMessage.set('Debes iniciar sesión para inscribirte.');
       return;
     }
 
-    const eventId = this.eventId();
-    if (!eventId) {
+    const currentTargetEventId = this.eventId();
+    if (!currentTargetEventId) {
       this.errorMessage.set('No hay un evento válido.');
       return;
     }
 
     this.isLoading.set(true);
 
-    const data: CreateEnrollmentRequest = {
-      userId: user.id,
-      eventId: eventId,
+    const createEnrollmentPayload: CreateEnrollmentRequest = {
+      userId: currentAuthenticatedUser.id,
+      eventId: currentTargetEventId,
       modalityId: this.selectedModalityId,
       roleInEvent: this.selectedRole
     };
 
-    this.enrollmentService.createEnrollment(data).subscribe({
+    this.enrollmentService.createEnrollment(createEnrollmentPayload).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.successMessage.set('¡Inscripción enviada con éxito! Revisa tu portal de competidor para subir la pista musical si aplica.');
         setTimeout(() => {
-          this.router.navigate(['/enrollment/my']);
+          this.appRouter.navigate(['/enrollment/my']);
         }, 2000);
       },
-      error: (error) => {
+      error: (enrollmentApiError) => {
         this.isLoading.set(false);
-        const backendMsg = error.error?.message || error.message || 'Hubo un error al procesar tu inscripción. Intenta de nuevo.';
-        this.errorMessage.set(backendMsg);
-        console.error('Enrollment error:', error);
+        const backendMessage = enrollmentApiError.error?.message || 'Hubo un error al procesar tu inscripción. Intenta de nuevo.';
+        this.errorMessage.set(backendMessage);
+        console.error('Error al registrar inscripción:', enrollmentApiError);
       }
     });
   }
