@@ -22,6 +22,7 @@ export class ScheduleViewerComponent implements OnInit {
   
   isLoading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
+  isNotPublished = signal<boolean>(false);
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -39,20 +40,37 @@ export class ScheduleViewerComponent implements OnInit {
 
     this.isLoading.set(true);
     this.errorMessage.set(null);
+    this.isNotPublished.set(false);
     
     this.schedulingService.getScheduleByEvent(id)
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (res) => {
-          this.schedule.set(res);
+          if (!res || !res.schedules || res.schedules.length === 0) {
+            this.isNotPublished.set(true);
+            this.schedule.set(null);
+          } else {
+            this.schedule.set(res);
+            this.isNotPublished.set(false);
+          }
         },
         error: (err) => {
-          if (err.status === 404) {
-            this.errorMessage.set('El cronograma para este evento aún no ha sido publicado.');
+          this.schedule.set(null);
+          const msg = (err.error?.message || err.message || '').toLowerCase();
+          if (err.status === 404 || err.status === 400 || msg.includes('publicado') || msg.includes('not found') || msg.includes('no existe')) {
+            this.isNotPublished.set(true);
           } else {
             this.errorMessage.set('Error al cargar el cronograma: ' + (err.error?.message || err.message));
           }
         }
       });
   }
+
+  formattedEventCode(): string {
+    const id = this.eventId();
+    if (!id) return 'WD-CHAMP-2026';
+    const paddedId = String(id).padStart(2, '0');
+    return `WD-CHAMP-2026-${paddedId}`;
+  }
 }
+
